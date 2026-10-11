@@ -476,6 +476,7 @@ $("#kuota").addEventListener("keydown", (e) => {
 const authModal = $("#auth-modal");
 let authMode = "in";
 let lastUid = null;
+let sessionHandled = false;
 
 function openAuth() { authModal.hidden = false; }
 function closeAuth() { authModal.hidden = true; }
@@ -546,7 +547,8 @@ async function refreshRemoteBilling() {
 
 async function handleSession(session) {
   const uid = session?.user?.id ?? null;
-  if (uid === lastUid) return;
+  if (sessionHandled && uid === lastUid) return;
+  sessionHandled = true;
   lastUid = uid;
   remote.session = session;
   const btn = $("#btn-auth");

@@ -5,3 +5,4 @@ node_modules/
 .supabase/
 .env
 .env.*
+supabase/.temp/
