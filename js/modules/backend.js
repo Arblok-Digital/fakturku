@@ -164,14 +164,29 @@ export async function saveInvoice(state) {
 
 // ---------- admin ----------
 
-export async function adminPending() {
+async function fetchProfileMap() {
   const { data, error } = await sb
-    .from("topup_requests")
-    .select("code, credits, price, status, created_at, user_id, profiles:user_id ( full_name, role )")
-    .order("created_at", { ascending: false })
-    .limit(50);
+    .from("profiles")
+    .select("id, full_name, email, role");
   if (error) throw error;
-  return data ?? [];
+  const map = {};
+  for (const p of data ?? []) map[p.id] = p;
+  return map;
+}
+
+export async function adminPending() {
+  const [reqRes, profMap] = await Promise.all([
+    sb.from("topup_requests")
+      .select("code, credits, price, status, created_at, user_id")
+      .order("created_at", { ascending: false })
+      .limit(50),
+    fetchProfileMap(),
+  ]);
+  if (reqRes.error) throw reqRes.error;
+  return (reqRes.data ?? []).map((r) => {
+    const p = profMap[r.user_id];
+    return { ...r, profiles: p ? { full_name: p.full_name, role: p.role } : null };
+  });
 }
 
 export async function approveTopup(code) {
@@ -187,17 +202,21 @@ export async function rejectTopup(code) {
 }
 
 export async function adminUsers() {
-  const { data, error } = await sb
-    .from("profiles")
-    .select("id, full_name, email, role, created_at, ledger:user_id ( credits )");
-  if (error) throw error;
-  return (data ?? []).map((u) => ({
+  const [profRes, ledRes] = await Promise.all([
+    sb.from("profiles").select("id, full_name, email, role, created_at"),
+    sb.from("ledger_accounts").select("user_id, credits"),
+  ]);
+  if (profRes.error) throw profRes.error;
+  if (ledRes.error) throw ledRes.error;
+  const ledMap = {};
+  for (const l of ledRes.data ?? []) ledMap[l.user_id] = l.credits;
+  return (profRes.data ?? []).map((u) => ({
     id: u.id,
     name: u.full_name || "-",
     email: u.email || "-",
     role: u.role,
     created: u.created_at,
-    credits: u.ledger?.credits ?? 0,
+    credits: ledMap[u.id] ?? 0,
   }));
 }
 
@@ -216,13 +235,18 @@ export async function adjustCredits(userId, delta, note) {
 }
 
 export async function adminTransactions() {
-  const { data, error } = await sb
-    .from("credit_transactions")
-    .select("created_at, delta, reason, ref, credits_after, user_id, profiles:user_id ( full_name )")
-    .order("created_at", { ascending: false })
-    .limit(30);
-  if (error) throw error;
-  return data ?? [];
+  const [txRes, profMap] = await Promise.all([
+    sb.from("credit_transactions")
+      .select("created_at, delta, reason, ref, credits_after, user_id")
+      .order("created_at", { ascending: false })
+      .limit(30),
+    fetchProfileMap(),
+  ]);
+  if (txRes.error) throw txRes.error;
+  return (txRes.data ?? []).map((t) => {
+    const p = profMap[t.user_id];
+    return { ...t, profiles: p ? { full_name: p.full_name } : null };
+  });
 }
 
 export async function adminStats() {
