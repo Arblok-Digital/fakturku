@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FakturKu — Panel Admin</title>
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+  <style>
+    body { min-height: 100vh; }
+    .admin-wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+    .admin-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+    .admin-head h1 { font-size: 18px; margin: 0; }
+    .admin-head .mark {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--navy-100);
+      color: var(--navy-700);
+      padding: 2px 6px;
+      border-radius: var(--r-sm);
+    }
+    .admin-sub { font-size: 12.5px; color: var(--ink-500); margin: 0 0 20px; line-height: 1.5; }
+    .panel {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--r-md);
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+    .panel h2 {
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      color: var(--ink-500);
+      margin: 0 0 12px;
+    }
+    .form-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .form-row .field { flex: 1; min-width: 140px; margin-bottom: 0; }
+    .stats { display: flex; gap: 10px; flex-wrap: wrap; }
+    .stat {
+      flex: 1; min-width: 120px;
+      border: 1px solid var(--line);
+      border-radius: var(--r-sm);
+      padding: 12px 14px;
+    }
+    .stat .n { font-family: var(--font-mono); font-size: 26px; font-weight: 600; color: var(--navy-700); }
+    .stat .l { font-size: 11px; color: var(--ink-500); text-transform: uppercase; letter-spacing: 0.06em; }
+    .stat.hot { background: var(--amber-100); border-color: var(--amber-100); }
+    .stat.hot .n { color: var(--amber-600); }
+    .log-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .log-table th {
+      text-align: left; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em;
+      color: var(--ink-500); padding: 6px 8px; border-bottom: 1px solid var(--line);
+    }
+    .log-table td { padding: 7px 8px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+    .log-table .mono { font-family: var(--font-mono); font-size: 12px; }
+    .chip {
+      display: inline-block; font-size: 10.5px; font-family: var(--font-mono);
+      padding: 2px 7px; border-radius: var(--r-sm);
+    }
+    .chip.pending { background: var(--amber-100); color: var(--amber-600); }
+    .chip.approved { background: var(--teal-100); color: var(--teal-600); }
+    .chip.rejected, .chip.cancelled { background: var(--line); color: var(--ink-500); }
+    .act {
+      border: 1px solid var(--line); background: var(--paper); cursor: pointer;
+      font-family: inherit; font-size: 12px; padding: 5px 10px; border-radius: var(--r-sm);
+    }
+    .act.ok { border-color: var(--teal-600); color: var(--teal-600); }
+    .act.no { border-color: var(--danger-600); color: var(--danger-600); }
+    .act:hover { background: var(--navy-100); }
+    .row-actions { display: flex; gap: 6px; }
+    select.mini { font-size: 12px; padding: 4px 6px; }
+    .cred-cell { display: flex; gap: 6px; align-items: center; }
+    .cred-cell input { width: 64px; font-family: var(--font-mono); font-size: 12px; }
+    .empty-line { font-size: 12.5px; color: var(--ink-300); padding: 8px 0; }
+    .back-link { font-size: 12px; color: var(--navy-700); }
+    .admin-auth { max-width: 380px; }
+    .admin-auth .btn.primary { width: 100%; margin-top: 10px; }
+    .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+    .who { font-size: 12px; color: var(--ink-500); }
+    .who b { color: var(--ink-700); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="admin-wrap">
+    <div class="admin-head">
+      <h1>Panel Admin FakturKu</h1>
+      <span class="mark" id="mode-mark">—</span>
+    </div>
+
+    <!-- login (mode server) -->
+    <section class="panel admin-auth" id="adm-login" hidden>
+      <h2>Masuk Admin</h2>
+      <div class="field"><label for="ad-email">Email</label><input id="ad-email" type="email" autocomplete="email"></div>
+      <div class="field"><label for="ad-pass">Password</label><input id="ad-pass" type="password" autocomplete="current-password"></div>
+      <p class="auth-err" id="ad-err" hidden style="margin:8px 0 0;font-size:12.5px;color:var(--danger-600)"></p>
+      <button class="btn primary" type="button" id="ad-go">Masuk</button>
+    </section>
+
+    <!-- bukan admin -->
+    <section class="panel" id="adm-denied" hidden>
+      <h2>Akses Ditolak</h2>
+      <p class="admin-sub" id="ad-denied-msg">Akun ini bukan admin. Minta owner mempromosikan role-nya.</p>
+      <button class="act" type="button" id="ad-signout">Keluar</button>
+    </section>
+
+    <!-- ===== dashboard server ===== -->
+    <div id="adm-dash" hidden>
+      <div class="toolbar">
+        <span class="who">Masuk sebagai <b id="ad-who">—</b></span>
+        <span class="row-actions">
+          <button class="act" type="button" id="ad-refresh">Muat Ulang</button>
+          <button class="act" type="button" id="ad-logout">Keluar</button>
+        </span>
+      </div>
+
+      <section class="panel">
+        <h2>Statistik</h2>
+        <div class="stats">
+          <div class="stat"><div class="n" id="st-users">—</div><div class="l">User terdaftar</div></div>
+          <div class="stat"><div class="n" id="st-invoices">—</div><div class="l">Dokumen tersimpan</div></div>
+          <div class="stat hot"><div class="n" id="st-pending">—</div><div class="l">Top-up menunggu</div></div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Permintaan Top-Up</h2>
+        <table class="log-table">
+          <thead>
+            <tr><th>Waktu</th><th>User</th><th>Paket</th><th>Harga</th><th>ID</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="tu-body"></tbody>
+        </table>
+        <div class="empty-line" id="tu-empty">Belum ada permintaan.</div>
+        <p class="admin-sub" style="margin:10px 0 0">Approve hanya setelah bukti transfer masuk — kuota user bertambah otomatis.</p>
+      </section>
+
+      <section class="panel">
+        <h2>User &amp; Kuota</h2>
+        <table class="log-table">
+          <thead>
+            <tr><th>Nama</th><th>Email</th><th>Role</th><th>Kuota</th><th>Adjust</th></tr>
+          </thead>
+          <tbody id="us-body"></tbody>
+        </table>
+        <div class="empty-line" id="us-empty">Belum ada user.</div>
+      </section>
+
+      <section class="panel">
+        <h2>Log Transaksi Kuota</h2>
+        <table class="log-table">
+          <thead>
+            <tr><th>Waktu</th><th>User</th><th>Delta</th><th>Ref</th><th>Sisa</th></tr>
+          </thead>
+          <tbody id="tx-body"></tbody>
+        </table>
+        <div class="empty-line" id="tx-empty">Belum ada transaksi.</div>
+      </section>
+    </div>
+
+    <!-- ===== mode lokal (tanpa Supabase) ===== -->
+    <div id="adm-local" hidden>
+      <p class="admin-sub">Mode lokal: backend Supabase belum diisi (<code>js/config.js</code>). Panel di bawah memakai kode offline per-device — tidak realtime.</p>
+
+      <section class="panel">
+        <h2>1 · Approve Permintaan</h2>
+        <div class="form-row">
+          <div class="field">
+            <label for="a-id">ID Permintaan User</label>
+            <input id="a-id" class="mono" type="text" placeholder="FKT-XXXXXX" autocomplete="off">
+          </div>
+          <div class="field">
+            <label for="a-pkg">Paket Dibayar</label>
+            <select id="a-pkg"></select>
+          </div>
+        </div>
+        <button class="btn primary" type="button" id="a-go" style="margin-top:12px;width:100%">Setujui &amp; Buat Kode</button>
+        <div class="code-out" id="a-out" hidden>
+          <div class="lbl">Kode konfirmasi untuk user</div>
+          <div class="code" id="a-code">------</div>
+          <button class="btn" type="button" id="a-copy">Salin Kode</button>
+        </div>
+        <div class="note" id="a-note" hidden></div>
+      </section>
+
+      <section class="panel">
+        <h2>2 · Riwayat Approval</h2>
+        <table class="log-table">
+          <thead>
+            <tr><th>Waktu</th><th>ID</th><th>Paket</th><th>Kode</th><th></th></tr>
+          </thead>
+          <tbody id="log-body"></tbody>
+        </table>
+        <div class="empty-line" id="log-empty">Belum ada approval.</div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
+          <span id="log-sum" style="font-size:12px;color:var(--ink-500)"></span>
+          <button class="btn" type="button" id="log-clear">Bersihkan Riwayat</button>
+        </div>
+      </section>
+    </div>
+
+    <p class="admin-sub">
+      <a class="back-link" href="index.html">← Kembali ke aplikasi</a>
+    </p>
+  </div>
+
+  <style>
+    .code-out {
+      margin-top: 14px;
+      border: 1px solid var(--teal-600);
+      background: var(--teal-100);
+      border-radius: var(--r-sm);
+      padding: 14px;
+      text-align: center;
+    }
+    .code-out .lbl { font-size: 11px; color: var(--ink-500); }
+    .code-out .code {
+      font-family: var(--font-mono);
+      font-size: 30px;
+      font-weight: 600;
+      letter-spacing: 0.24em;
+      color: var(--teal-600);
+      margin: 4px 0 8px;
+    }
+    .note { font-size: 11.5px; color: var(--amber-600); line-height: 1.5; margin-top: 12px; }
+  </style>
+
+  <script type="module">
+    import { adminCode, PACKAGES } from "./js/modules/credit-ledger.js";
+    import * as backend from "./js/modules/backend.js";
+
+    const $ = (s) => document.querySelector(s);
+    const LOG_KEY = "fakturku:adminlog";
+
+    function fmtTime(iso) {
+      const d = new Date(iso);
+      return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) + " " +
+             d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    /* ================= MODE SERVER ================= */
+
+    async function startRemote() {
+      $("#mode-mark").textContent = "SERVER";
+      await backend.init();
+
+      backend.onAuthChange(async (session) => {
+        if (!session) {
+          $("#adm-login").hidden = false;
+          $("#adm-dash").hidden = true;
+          $("#adm-denied").hidden = true;
+          return;
+        }
+        $("#adm-login").hidden = true;
+        const me = await backend
+          .client().from("profiles").select("role, email, full_name").eq("id", session.user.id).single();
+        const role = me.data?.role;
+        if (role !== "admin") {
+          $("#adm-denied").hidden = false;
+          $("#ad-denied-msg").textContent =
+            `Akun ${me.data?.email || session.user.email} punya role "${role || "?"}" — bukan admin.`;
+          return;
+        }
+        $("#adm-denied").hidden = true;
+        $("#adm-dash").hidden = false;
+        $("#ad-who").textContent = me.data?.email || session.user.email;
+        await loadDash();
+      });
+    }
+
+    async function loadDash() {
+      try {
+        const [stats, reqs, users, txs] = await Promise.all([
+          backend.adminStats(),
+          backend.adminPending(),
+          backend.adminUsers(),
+          backend.adminTransactions(),
+        ]);
+        $("#st-users").textContent = stats.users;
+        $("#st-invoices").textContent = stats.invoices;
+        $("#st-pending").textContent = stats.pending;
+
+        $("#tu-body").innerHTML = reqs.map((r) => {
+          const who = r.profiles?.full_name || r.profiles?.role || r.user_id.slice(0, 8);
+          const canAct = r.status === "pending";
+          return `<tr>
+            <td>${fmtTime(r.created_at)}</td>
+            <td>${esc(who)}</td>
+            <td>${r.credits} dok</td>
+            <td class="mono">Rp ${Number(r.price).toLocaleString("id-ID")}</td>
+            <td class="mono">${r.code}</td>
+            <td><span class="chip ${r.status}">${r.status}</span></td>
+            <td>${canAct ? `<span class="row-actions">
+              <button class="act ok" data-appr="${r.code}">Approve</button>
+              <button class="act no" data-rej="${r.code}">Tolak</button>
+            </span>` : ""}</td>
+          </tr>`;
+        }).join("");
+        $("#tu-empty").hidden = reqs.length > 0;
+
+        $("#us-body").innerHTML = users.map((u) => `
+          <tr>
+            <td>${esc(u.name)}</td>
+            <td class="mono">${esc(u.email)}</td>
+            <td><select class="mini" data-role="${u.id}">
+              <option value="pic" ${u.role === "pic" ? "selected" : ""}>pic</option>
+              <option value="admin" ${u.role === "admin" ? "selected" : ""}>admin</option>
+              <option value="viewer" ${u.role === "viewer" ? "selected" : ""}>viewer</option>
+            </select></td>
+            <td class="mono">${u.credits}</td>
+            <td><span class="cred-cell">
+              <input type="number" data-adj="${u.id}" value="10" step="1">
+              <button class="act" data-adjgo="${u.id}">Kirim</button>
+            </span></td>
+          </tr>`).join("");
+        $("#us-empty").hidden = users.length > 0;
+
+        $("#tx-body").innerHTML = txs.map((t) => `
+          <tr>
+            <td>${fmtTime(t.created_at)}</td>
+            <td>${esc(t.profiles?.full_name || t.user_id.slice(0, 8))}</td>
+            <td class="mono" style="color:${t.delta > 0 ? "var(--teal-600)" : "var(--danger-600)"}">${t.delta > 0 ? "+" : ""}${t.delta}</td>
+            <td class="mono">${esc(t.ref || "")}</td>
+            <td class="mono">${t.credits_after ?? "—"}</td>
+          </tr>`).join("");
+        $("#tx-empty").hidden = txs.length > 0;
+      } catch (e) {
+        console.error("dash load", e);
+        alert("Gagal memuat data: " + (e?.message || ""));
+      }
+    }
+
+    function esc(s) {
+      return String(s ?? "").replace(/[&<>"']/g, (c) =>
+        ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+    }
+
+    $("#ad-go").addEventListener("click", async () => {
+      const err = $("#ad-err");
+      err.hidden = true;
+      try {
+        await backend.signIn($("#ad-email").value.trim(), $("#ad-pass").value);
+      } catch (e) {
+        err.textContent = e?.message || "Gagal masuk.";
+        err.hidden = false;
+      }
+    });
+    $("#ad-pass").addEventListener("keydown", (e) => { if (e.key === "Enter") $("#ad-go").click(); });
+
+    $("#ad-signout").addEventListener("click", () => backend.signOut());
+    $("#ad-logout").addEventListener("click", () => backend.signOut());
+    $("#ad-refresh").addEventListener("click", loadDash);
+
+    $("#tu-body").addEventListener("click", async (e) => {
+      const a = e.target.dataset && e.target.dataset.appr;
+      const r = e.target.dataset && e.target.dataset.rej;
+      try {
+        if (a) {
+          if (!confirm(`Approve ${a}? Kuota user bertambah otomatis.`)) return;
+          await backend.approveTopup(a);
+        } else if (r) {
+          if (!confirm(`Tolak ${r}?`)) return;
+          await backend.rejectTopup(r);
+        } else return;
+        await loadDash();
+      } catch (err) {
+        alert("Gagal: " + (err?.message || ""));
+      }
+    });
+
+    $("#us-body").addEventListener("change", async (e) => {
+      const id = e.target.dataset && e.target.dataset.role;
+      if (!id) return;
+      try {
+        await backend.setRole(id, e.target.value);
+      } catch (err) {
+        alert("Gagal set role: " + (err?.message || ""));
+      }
+    });
+
+    $("#us-body").addEventListener("click", async (e) => {
+      const id = e.target.dataset && e.target.dataset.adjgo;
+      if (!id) return;
+      const inp = $(`input[data-adj="${id}"]`);
+      const delta = Number(inp?.value) || 0;
+      if (!delta) return;
+      try {
+        await backend.adjustCredits(id, delta, "manual admin");
+        await loadDash();
+      } catch (err) {
+        alert("Gagal adjust: " + (err?.message || ""));
+      }
+    });
+
+    /* ================= MODE LOKAL ================= */
+
+    function startLocal() {
+      $("#mode-mark").textContent = "LOKAL";
+      $("#adm-local").hidden = false;
+
+      function loadLog() {
+        try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
+        catch { return []; }
+      }
+      function saveLog(l) {
+        try { localStorage.setItem(LOG_KEY, JSON.stringify(l)); }
+        catch (e) { console.warn("log save gagal", e); }
+      }
+
+      $("#a-pkg").innerHTML = PACKAGES.map((p, i) =>
+        `<option value="${i}">${p.credits} dokumen — Rp ${p.price.toLocaleString("id-ID")}</option>`
+      ).join("");
+
+      function renderLog() {
+        const log = loadLog();
+        $("#log-body").innerHTML = log.map((r, i) => `
+          <tr>
+            <td>${fmtTime(r.at)}</td>
+            <td class="mono">${r.id}</td>
+            <td>${r.credits} dok · Rp ${Number(r.price).toLocaleString("id-ID")}</td>
+            <td class="mono">${r.code}</td>
+            <td><button class="act no" data-rm="${i}">Hapus</button></td>
+          </tr>`).join("");
+        $("#log-empty").hidden = log.length > 0;
+        const total = log.reduce((s, r) => s + Number(r.price || 0), 0);
+        $("#log-sum").textContent = log.length
+          ? `${log.length} approve · total Rp ${total.toLocaleString("id-ID")}` : "";
+      }
+
+      $("#a-go").addEventListener("click", () => {
+        const id = $("#a-id").value.trim().toUpperCase();
+        if (!/^FKT-[A-Z0-9]{4,10}$/.test(id)) {
+          alert("ID tidak valid. Format: FKT-XXXXXX");
+          return;
+        }
+        const pkg = PACKAGES[Number($("#a-pkg").value)] || PACKAGES[0];
+        const code = adminCode(id);
+        const log = loadLog();
+        log.unshift({ id, code, credits: pkg.credits, price: pkg.price, at: new Date().toISOString() });
+        saveLog(log.slice(0, 200));
+        $("#a-code").textContent = code;
+        $("#a-out").hidden = false;
+        renderLog();
+      });
+
+      $("#a-copy").addEventListener("click", async () => {
+        const code = $("#a-code").textContent;
+        try { await navigator.clipboard.writeText(code); } catch { /* noop */ }
+        $("#a-copy").textContent = "Tersalin!";
+        setTimeout(() => { $("#a-copy").textContent = "Salin Kode"; }, 1500);
+      });
+
+      $("#log-body").addEventListener("click", (e) => {
+        const i = e.target.dataset && e.target.dataset.rm;
+        if (i == null) return;
+        const log = loadLog();
+        log.splice(Number(i), 1);
+        saveLog(log);
+        renderLog();
+      });
+
+      $("#log-clear").addEventListener("click", () => {
+        if (!confirm("Bersihkan seluruh riwayat approval?")) return;
+        saveLog([]);
+        renderLog();
+      });
+
+      renderLog();
+    }
+
+    /* ================= BOOT ================= */
+
+    if (backend.isRemote()) {
+      startRemote().catch((e) => {
+        console.error(e);
+        $("#ad-err").textContent = "Backend gagal diinit: " + (e?.message || "");
+        $("#ad-err").hidden = false;
+        $("#adm-login").hidden = false;
+      });
+    } else {
+      startLocal();
+    }
+  </script>
+</body>
+</html>

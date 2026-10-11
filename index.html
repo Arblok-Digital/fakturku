@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FakturKu — Generator Faktur &amp; Kwitansi</title>
+  <meta name="description" content="Generator faktur, kwitansi, dan struk angsuran. Editable, print A4 / thermal, share ke WhatsApp &amp; Telegram.">
+  <meta name="theme-color" content="#16324F">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header class="appbar noprint">
+    <div class="brand">FakturKu <span class="mark">BETA</span></div>
+    <select id="tpl-select" aria-label="Pilih format dokumen" title="Pilih format dokumen"></select>
+    <div class="spacer"></div>
+    <span class="kuota" id="kuota" title="Sisa kuota ekspor">—</span>
+    <button class="btn ghost" id="btn-auth" type="button" hidden>Masuk</button>
+    <button class="btn ghost" id="btn-new" type="button">Dokumen Baru</button>
+    <button class="btn ghost" id="btn-drafts" type="button">Draft</button>
+  </header>
+
+  <nav class="tabs noprint" aria-label="Navigasi">
+    <button type="button" id="tab-edit" class="on">Edit</button>
+    <button type="button" id="tab-preview">Preview</button>
+  </nav>
+
+  <div class="workspace" id="workspace" data-tab="edit">
+    <!-- ============ EDITOR ============ -->
+    <section class="editor noprint" id="editor">
+      <div class="fsec" id="sec-drafts" hidden>
+        <h3>Draft Tersimpan</h3>
+        <div class="draft-list" id="draft-list"></div>
+      </div>
+
+      <div class="fsec" id="sec-doc">
+        <h3>Dokumen</h3>
+        <div class="grid2">
+          <div class="field">
+            <label for="f-number">Nomor</label>
+            <input id="f-number" class="mono" type="text" data-bind="number">
+          </div>
+          <div class="field">
+            <label for="f-date">Tanggal</label>
+            <input id="f-date" type="date" data-bind="date">
+          </div>
+        </div>
+        <div class="field" data-when="due">
+          <label for="f-due">Jatuh Tempo</label>
+          <input id="f-due" type="date" data-bind="dueDate">
+        </div>
+        <div class="field">
+          <label for="f-notes">Catatan / Keterangan</label>
+          <textarea id="f-notes" rows="2" data-bind="notes" placeholder="Opsional"></textarea>
+        </div>
+      </div>
+
+      <div class="fsec" id="sec-issuer">
+        <h3>Penerbit (Perusahaan)</h3>
+        <div class="field">
+          <label for="f-logo">Logo (tersimpan di device ini)</label>
+          <input id="f-logo" type="file" accept="image/*">
+        </div>
+        <div class="field">
+          <label for="f-issuer-name">Nama Perusahaan</label>
+          <input id="f-issuer-name" type="text" data-bind="issuer.name">
+        </div>
+        <div class="field">
+          <label for="f-issuer-addr">Alamat</label>
+          <textarea id="f-issuer-addr" rows="2" data-bind="issuer.address"></textarea>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="f-issuer-npwp">NPWP</label>
+            <input id="f-issuer-npwp" class="mono" type="text" data-bind="issuer.npwp">
+          </div>
+          <div class="field">
+            <label for="f-issuer-phone">Telp</label>
+            <input id="f-issuer-phone" class="mono" type="text" data-bind="issuer.phone">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-issuer-email">Email</label>
+          <input id="f-issuer-email" class="mono" type="text" data-bind="issuer.email">
+        </div>
+      </div>
+
+      <div class="fsec" id="sec-client" data-when="client">
+        <h3>Penerima / Nasabah</h3>
+        <div class="field">
+          <label for="f-client-name">Nama</label>
+          <input id="f-client-name" type="text" data-bind="client.name">
+        </div>
+        <div class="field">
+          <label for="f-client-addr">Alamat</label>
+          <textarea id="f-client-addr" rows="2" data-bind="client.address"></textarea>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="f-client-npwp">NPWP</label>
+            <input id="f-client-npwp" class="mono" type="text" data-bind="client.npwp">
+          </div>
+          <div class="field">
+            <label for="f-client-phone">Telp</label>
+            <input id="f-client-phone" class="mono" type="text" data-bind="client.phone">
+          </div>
+        </div>
+      </div>
+
+      <div class="fsec" id="sec-items" data-when="items">
+        <h3>Rincian Transaksi</h3>
+        <table class="items" id="items-table">
+          <thead>
+            <tr>
+              <th style="width:46%">Uraian</th>
+              <th style="width:14%"><input class="num" disabled title="Qty" value="Qty" tabindex="-1"></th>
+              <th style="width:20%"><input class="num" disabled title="Harga" value="Harga" tabindex="-1"></th>
+              <th style="width:20%"><input class="num" disabled title="Jumlah" value="Jumlah" tabindex="-1"></th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="items-body"></tbody>
+        </table>
+        <div class="items-foot">
+          <button class="btn" type="button" id="btn-add-item">+ Tambah baris</button>
+          <span class="hint-line" id="items-sum">Rp 0</span>
+        </div>
+        <div class="grid2" style="margin-top:10px">
+          <div class="field">
+            <label for="f-discount">Diskon (Rp)</label>
+            <input id="f-discount" class="mono" type="number" min="0" data-bind="discount" value="0">
+          </div>
+          <div class="field">
+            <label for="f-tax">PPN (%)</label>
+            <input id="f-tax" class="mono" type="number" min="0" max="100" step="0.5" data-bind="taxRate" value="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="fsec" id="sec-receipt" data-when="receipt">
+        <h3>Kwitansi</h3>
+        <div class="field">
+          <label for="f-received-from">Terima dari</label>
+          <input id="f-received-from" type="text" data-bind="receivedFrom">
+        </div>
+        <div class="field">
+          <label for="f-for-payment">Untuk Pembayaran</label>
+          <input id="f-for-payment" type="text" data-bind="forPayment" placeholder="Contoh: Angsuran ke-12 kontrak KRD-0091">
+        </div>
+        <div class="field">
+          <label for="f-amount">Jumlah (Rp)</label>
+          <input id="f-amount" class="mono" type="number" min="0" data-bind="amount">
+        </div>
+        <div class="hint-line">Terbilang otomatis: <span id="terbilang-preview">—</span></div>
+      </div>
+
+      <div class="fsec" id="sec-installment" data-when="installment">
+        <h3>Angsuran</h3>
+        <div class="grid2">
+          <div class="field">
+            <label for="f-contract">No. Kontrak</label>
+            <input id="f-contract" class="mono" type="text" data-bind="contractNo">
+          </div>
+          <div class="field">
+            <label for="f-inst-no">Angsuran ke-</label>
+            <input id="f-inst-no" class="mono" type="number" min="1" data-bind="installmentNo">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-customer">Nama Nasabah</label>
+          <input id="f-customer" type="text" data-bind="customerName">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="f-principal">Pokok (Rp)</label>
+            <input id="f-principal" class="mono" type="number" min="0" data-bind="principal">
+          </div>
+          <div class="field">
+            <label for="f-interest">Bunga (Rp)</label>
+            <input id="f-interest" class="mono" type="number" min="0" data-bind="interest">
+          </div>
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="f-fine">Denda (Rp)</label>
+            <input id="f-fine" class="mono" type="number" min="0" data-bind="fine">
+          </div>
+          <div class="field">
+            <label for="f-inst-due">Jatuh Tempo Cicilan</label>
+            <input id="f-inst-due" type="date" data-bind="installmentDue">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-remaining">Sisa Tagihan (Rp)</label>
+          <input id="f-remaining" class="mono" type="number" min="0" data-bind="remaining">
+        </div>
+      </div>
+
+      <div class="fsec" id="sec-payment" data-when="payment">
+        <h3>Informasi Pembayaran</h3>
+        <div class="field">
+          <label for="f-bank">Bank</label>
+          <input id="f-bank" type="text" data-bind="payment.bank" placeholder="Contoh: BCA">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="f-acct-no">No. Rekening</label>
+            <input id="f-acct-no" class="mono" type="text" data-bind="payment.accountNo">
+          </div>
+          <div class="field">
+            <label for="f-acct-name">Atas Nama</label>
+            <input id="f-acct-name" type="text" data-bind="payment.accountName">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-method">Metode Lain</label>
+          <input id="f-method" type="text" data-bind="payment.method" placeholder="Transfer / Tunai / VA / QRIS">
+        </div>
+      </div>
+
+      <div class="fsec" id="sec-sign">
+        <h3>Pembuat &amp; Penerima</h3>
+        <div class="hint-line" style="margin-bottom:8px">Untuk kwitansi: "Dibuat oleh" = yang menerima uang, "Diterima oleh" = yang membayar.</div>
+        <div class="field">
+          <label for="f-maker">Dibuat oleh (Nama)</label>
+          <input id="f-maker" type="text" data-bind="signatures.maker.name">
+        </div>
+        <div class="field">
+          <label for="f-maker-title">Jabatan</label>
+          <input id="f-maker-title" type="text" data-bind="signatures.maker.title" placeholder="Contoh: Staf Lapangan">
+        </div>
+        <div class="field">
+          <label for="f-receiver">Diterima oleh (Nama)</label>
+          <input id="f-receiver" type="text" data-bind="signatures.receiver.name">
+        </div>
+        <div class="field">
+          <label for="f-receiver-title">Jabatan</label>
+          <input id="f-receiver-title" type="text" data-bind="signatures.receiver.title">
+        </div>
+        <label class="check"><input type="checkbox" id="f-stamp" data-bind="stamp"> Tampilkan area meterai</label>
+      </div>
+
+      <div class="fsec" id="sec-terms" data-when="terms">
+        <h3>Syarat &amp; Ketentuan</h3>
+        <div class="field">
+          <label for="f-terms">Klausul</label>
+          <textarea id="f-terms" rows="3" data-bind="terms"></textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ PREVIEW ============ -->
+    <section class="preview">
+      <div class="preview-bar noprint">
+        <button class="btn primary" type="button" id="btn-image">Bagikan JPEG</button>
+        <button class="btn" type="button" id="btn-wa">WhatsApp</button>
+        <button class="btn" type="button" id="btn-print">Print</button>
+        <button class="btn" type="button" id="btn-copy">Salin</button>
+        <span class="hint" id="out-hint"></span>
+      </div>
+      <div class="stage" id="stage">
+        <div class="doc doc-a4" id="doc"></div>
+      </div>
+    </section>
+  </div>
+
+  <!-- ============ MODAL TOP-UP ============ -->
+  <div class="modal-back noprint" id="topup-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="topup-title">
+      <h3 id="topup-title">Kuota &amp; Tagihan</h3>
+      <div class="q-status" id="q-status">Sisa kuota: <b id="q-n">—</b> dokumen</div>
+      <p class="modal-sub" id="topup-sub">Trial gratis 10 dokumen sudah terpakai. Top-up untuk lanjut — makin besar paket, makin hemat (mulai Rp8.333/dokumen). Bayar per dokumen, re-print &amp; re-share gratis.</p>
+
+      <div id="topup-packages">
+        <div class="pkg-list" id="pkg-list"></div>
+        <p class="modal-contact" id="topup-contact"></p>
+      </div>
+
+      <div id="topup-pending" hidden>
+        <div class="req-box">
+          <div class="req-row"><span>ID Permintaan</span><b class="mono" id="req-id">—</b></div>
+          <div class="req-row"><span>Transfer</span><b class="mono" id="req-price">—</b></div>
+          <div class="req-row"><span>Dapat</span><b class="mono" id="req-credits">—</b></div>
+          <div class="req-row"><span>Ke</span><b id="req-contact">—</b></div>
+        </div>
+        <p class="wait-note" id="req-wait" hidden></p>
+        <div id="topup-local">
+          <p class="modal-sub">Setelah transfer, kirim bukti + ID di atas ke admin. Admin kirim kode konfirmasi, lalu masukkan di sini:</p>
+          <div class="code-row">
+            <input id="topup-code" class="mono" type="text" placeholder="KODE 6 KARAKTER" maxlength="6" autocomplete="off">
+            <button class="btn primary" type="button" id="btn-redeem">Tukar Kode</button>
+          </div>
+          <button class="btn link" type="button" id="btn-other-pkg">Pilih paket lain</button>
+        </div>
+        <button class="btn link" type="button" id="btn-cancel-topup" hidden>Batalkan Permintaan</button>
+      </div>
+
+      <div class="hist" id="topup-hist">
+        <h4>Riwayat Kuota</h4>
+        <div id="hist-list"></div>
+      </div>
+
+      <button class="btn link" type="button" id="topup-close">Tutup</button>
+    </div>
+  </div>
+
+  <!-- ============ MODAL AUTH ============ -->
+  <div class="modal-back noprint" id="auth-modal" hidden>
+    <div class="modal auth" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+      <h3 id="auth-title">Masuk FakturKu</h3>
+      <p class="modal-sub">Akun menyimpan kuota, riwayat, dan dokumen di server — bisa dari HP sekaligus laptop.</p>
+      <div class="auth-tabs">
+        <button type="button" id="auth-tab-in" class="on">Masuk</button>
+        <button type="button" id="auth-tab-up">Daftar</button>
+      </div>
+      <div class="field" id="auth-name-field" hidden>
+        <label for="auth-name">Nama</label>
+        <input id="auth-name" type="text" autocomplete="name">
+      </div>
+      <div class="field">
+        <label for="auth-email">Email</label>
+        <input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com">
+      </div>
+      <div class="field">
+        <label for="auth-pass">Password</label>
+        <input id="auth-pass" type="password" autocomplete="current-password" placeholder="Minimal 6 karakter">
+      </div>
+      <p class="auth-err" id="auth-err" hidden></p>
+      <button class="btn primary" type="button" id="auth-go">Masuk</button>
+    </div>
+  </div>
+
+  <script src="js/vendor-html2canvas.js"></script>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

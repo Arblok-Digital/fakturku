@@ -1,0 +1,30 @@
+﻿{
+  "generated": "2026-10-11T18:48:44+07:00",
+  "sections": [
+    {
+      "id": "mockups",
+      "label": "Mockups",
+      "groups": [
+        {
+          "slug": "fakturku",
+          "files": [
+            { "label": "FakturKu PWA â€” buka aplikasi", "path": "../index.html" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "design-systems",
+      "label": "Design Systems",
+      "groups": [
+        {
+          "slug": "fakturku",
+          "files": [
+            { "label": "colors_and_type.css", "path": "design-systems/fakturku/colors_and_type.css" }
+          ]
+        }
+      ]
+    }
+  ]
+}
+
