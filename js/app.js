@@ -183,6 +183,11 @@ $("#sec-drafts h3").insertAdjacentHTML("afterend", `
 
 function renderDrafts() {
   const all = listDrafts();
+  const badge = $("#drafts-count");
+  if (badge) {
+    badge.textContent = all.length || "";
+    badge.hidden = all.length === 0;
+  }
   $("#draft-list").innerHTML = all.length
     ? all.map((d) => `
       <div class="draft-row">
@@ -230,7 +235,7 @@ $("#draft-list").addEventListener("click", (e) => {
 });
 
 /* ---------- new doc ---------- */
-$("#btn-new").addEventListener("click", () => {
+function newDoc() {
   if (!confirm("Buat dokumen baru? Dokumen sekarang tetap tersimpan sebagai draft terakhir.")) return;
   saveCurrent(state);
   state = blankState(state.template);
@@ -238,7 +243,9 @@ $("#btn-new").addEventListener("click", () => {
   renderItems(); render();
   saveCurrent(state);
   toast("Dokumen baru dibuat");
-});
+}
+$("#btn-new").addEventListener("click", newDoc);
+$("#btn-new-fab").addEventListener("click", newDoc);
 
 /* ---------- output & billing ---------- */
 async function markIssued() {
@@ -554,12 +561,15 @@ async function handleSession(session) {
   const btn = $("#btn-auth");
   if (session) {
     btn.hidden = false;
-    btn.textContent = (session.user.email || "akun").split("@")[0];
+    const email = session.user.email || "";
+    $("#auth-avatar").textContent = (email[0] || "?").toUpperCase();
+    btn.title = email;
     closeAuth();
     await refreshRemoteBilling();
-    toast("Terhubung sebagai " + (session.user.email || ""));
+    toast("Terhubung sebagai " + email);
   } else {
-    btn.textContent = "Masuk";
+    $("#auth-avatar").textContent = "?";
+    btn.title = "Masuk";
     remote.credits = null;
     remote.history = [];
     remote.pending = null;
