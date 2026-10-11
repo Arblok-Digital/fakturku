@@ -18,7 +18,7 @@ PWA generator faktur / kwitansi / struk angsuran untuk PIC lapangan & finance. E
 
 ```
 index.html        aplikasi utama (editor + preview)
-admin.html        panel admin (dashboard server / tool kode lokal)
+admin.html        panel admin (dashboard server / tool kode lokal) — akses via /admin
 js/config.js      slot kunci Supabase (kosong = mode lokal)
 js/app.js         wiring UI
 js/modules/       engine: template, invoice, numbering, output, billing, backend
@@ -37,7 +37,7 @@ opendesign/       viewer desain + design system
 
 Catatan keamanan:
 - Kuota & top-up diproses RPC `SECURITY DEFINER` di server — user tidak bisa edit saldo sendiri (RLS ketat)
-- `admin.html` sengaja tidak di-link dari aplikasi; buka manual `/admin.html`
+- `admin.html` sengaja tidak di-link dari aplikasi; buka manual `/admin`
 - Ganti `CONTACT` di `js/modules/credit-ledger.js` (nomor WA admin) sebelum rilis
 
 ## Alur top-up (mode server)
