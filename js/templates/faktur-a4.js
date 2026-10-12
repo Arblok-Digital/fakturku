@@ -1,6 +1,7 @@
 export default {
   id: "faktur-a4",
   label: "Faktur Penjualan (A4)",
+  category: "finance",
   output: "a4",
   uses: ["due", "client", "items", "payment", "terms"],
 

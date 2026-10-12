@@ -47,11 +47,17 @@ export function requestHistory() {
 
 /* Debit 1 kuota saat dokumen pertama kali diterbitkan (print/share).
    Re-print / re-share dokumen yang sama tetap gratis. */
-export function tryDebit(ref) {
+export function tryDebit(ref, category) {
   const l = load();
   if (l.credits <= 0) return false;
   l.credits -= 1;
-  l.history.push({ at: new Date().toISOString(), amount: -1, sisa: l.credits, ref: ref || "" });
+  l.history.push({
+    at: new Date().toISOString(),
+    amount: -1,
+    sisa: l.credits,
+    ref: ref || "",
+    category: category || "",
+  });
   save(l);
   return true;
 }

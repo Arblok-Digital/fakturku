@@ -1,8 +1,10 @@
-import { nextNumber } from "./numbering.js";
+import { nextNumber, getPrefix } from "./numbering.js";
+import { getCategory } from "./template-engine.js";
 
 const CURRENT = "fakturku:current";
 const DRAFTS = "fakturku:drafts";
 
+/* prefix lama (per template) — tetap dipakai untuk backward compat */
 export const PREFIX = {
   "faktur-a4": "INV",
   "kwitansi-a4": "KW",
@@ -13,9 +15,11 @@ export const PREFIX = {
 export function blankState(templateId, opts = {}) {
   const today = new Date().toISOString().slice(0, 10);
   const tpl = templateId || "faktur-a4";
+  const cat = getCategory(tpl);
   return {
     template: tpl,
-    number: opts.keepNumber !== undefined ? opts.keepNumber : nextNumber(PREFIX[tpl]),
+    category: cat,
+    number: opts.keepNumber !== undefined ? opts.keepNumber : nextNumber(getPrefix(cat)),
     date: today,
     dueDate: "",
     notes: "",

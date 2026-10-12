@@ -1,6 +1,7 @@
 export default {
   id: "kwitansi-a4",
   label: "Kwitansi / Tanda Terima (A4)",
+  category: "finance",
   output: "a4",
   uses: ["receipt"],
 

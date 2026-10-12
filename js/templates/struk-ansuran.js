@@ -1,6 +1,7 @@
 export default {
   id: "struk-ansuran",
   label: "Struk Angsuran (Thermal 58mm)",
+  category: "umkm",
   output: "thermal",
   uses: ["installment"],
 

@@ -5,6 +5,15 @@ import invoiceDigital from "../templates/invoice-digital.js";
 
 export const TEMPLATES = [fakturA4, kwitansiA4, strukAnsuran, invoiceDigital];
 
+/* kategori default per template (fallback kalau template gak punya field category) */
+export const CATEGORY_MAP = Object.fromEntries(
+  TEMPLATES.map((t) => [t.id, t.category || "finance"])
+);
+
+export function getCategory(templateId) {
+  return CATEGORY_MAP[templateId] || "finance";
+}
+
 export function getTemplate(id) {
   return TEMPLATES.find((t) => t.id === id) || TEMPLATES[0];
 }

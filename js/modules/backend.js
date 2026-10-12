@@ -76,11 +76,14 @@ export async function creditsLeft() {
   return data?.credits ?? 0;
 }
 
-export async function tryDebit(ref) {
-  if (!sb) return local.tryDebit(ref);
+export async function tryDebit(ref, category) {
+  if (!sb) return local.tryDebit(ref, category);
   const user = await getUser();
   if (!user) return false;
-  const { data, error } = await sb.rpc("issue_document", { p_ref: ref });
+  const { data, error } = await sb.rpc("issue_document", {
+    p_ref: ref,
+    p_category: category || null,
+  });
   if (error) throw error;
   return data === true;
 }
@@ -141,6 +144,55 @@ export async function cancelTopup(code) {
   if (error) throw error;
   return data === true;
 }
+
+// ---------- categories & packages ----------
+
+let _categories = null;
+let _packages = null;
+
+export async function getCategories(force) {
+  if (_categories && !force) return _categories;
+  if (!sb) {
+    _categories = LOCAL_CATEGORIES;
+    return _categories;
+  }
+  const { data, error } = await sb.rpc("get_categories");
+  if (error) throw error;
+  _categories = data ?? [];
+  return _categories;
+}
+
+export async function getPackages(force) {
+  if (_packages && !force) return _packages;
+  if (!sb) {
+    _packages = local.PACKAGES.map((p, i) => ({
+      id: ["starter", "bisnis", "pro"][i] || `pkg${i}`,
+      label: `${p.credits} dokumen`,
+      credits: p.credits,
+      price: p.price,
+    }));
+    return _packages;
+  }
+  const { data, error } = await sb.rpc("get_packages");
+  if (error) throw error;
+  _packages = data ?? [];
+  return _packages;
+}
+
+export function getCategoryMeta(categories, id) {
+  return (categories || []).find((c) => c.id === id) || null;
+}
+
+/* fallback lokal (tanpa Supabase) — kategori default */
+const LOCAL_CATEGORIES = [
+  { id: "finance",     label: "Finance",     icon: "💰", color: "#16324F", price_per_doc: 1000, prefix: "FIN", active: true, sort_order: 1 },
+  { id: "legal",       label: "Legal",       icon: "⚖️", color: "#4A3B7A", price_per_doc: 2000, prefix: "LEG", active: true, sort_order: 2 },
+  { id: "umkm",        label: "UMKM",        icon: "🏪", color: "#0E7C6B", price_per_doc: 500,  prefix: "UMK", active: true, sort_order: 3 },
+  { id: "logistik",    label: "Logistik",    icon: "📦", color: "#B45309", price_per_doc: 500,  prefix: "LOG", active: true, sort_order: 4 },
+  { id: "pajak",       label: "Pajak",       icon: "🧾", color: "#A4291F", price_per_doc: 1500, prefix: "PKT", active: true, sort_order: 5 },
+  { id: "proyek",      label: "Proyek",      icon: "🏗️", color: "#2D6A4F", price_per_doc: 1500, prefix: "PRJ", active: true, sort_order: 6 },
+  { id: "operasional", label: "Operasional", icon: "📋", color: "#475569", price_per_doc: 750,  prefix: "OPS", active: true, sort_order: 7 },
+];
 
 // ---------- invoices (cloud sync) ----------
 

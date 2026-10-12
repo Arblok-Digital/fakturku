@@ -1,10 +1,10 @@
-﻿import { TEMPLATES, getTemplate, renderDoc } from "./modules/template-engine.js";
+﻿import { TEMPLATES, getTemplate, renderDoc, getCategory } from "./modules/template-engine.js";
 import {
   blankState, getPath, setPath, totals, saveCurrent, loadCurrent,
   listDrafts, saveDraft, deleteDraft, getDraft, PREFIX,
 } from "./modules/invoice-engine.js";
 import { terbilang, rupiah, formatDate, esc } from "./modules/format.js";
-import { nextNumber } from "./modules/numbering.js";
+import { nextNumber, getPrefix, nextNumberByCategory } from "./modules/numbering.js";
 import { printDoc, shareImage, copySummary, openWhatsApp } from "./modules/output.js";
 import * as ledger from "./modules/credit-ledger.js";
 import * as backend from "./modules/backend.js";
@@ -14,6 +14,9 @@ let renderTimer = null;
 
 /* remote billing cache (Supabase) */
 const remote = { session: null, credits: null, history: [], pending: null };
+
+/* category cache */
+let categoriesCache = [];
 
 const $ = (sel) => document.querySelector(sel);
 const editor = $("#editor");
@@ -38,8 +41,11 @@ function render() {
   const tpl = renderDoc(state);
   applySections(tpl);
   syncBoundInputs();
+  const cat = state.category || getCategory(state.template);
+  const catMeta = categoriesCache.find((c) => c.id === cat);
+  const catLabel = catMeta ? `${catMeta.icon} ${catMeta.label}` : cat;
   $("#out-hint").textContent =
-    `${tpl.label} Â· ${state.issued ? "TERBIT" : "DRAFT"}`;
+    `${tpl.label} · ${catLabel} · ${state.issued ? "TERBIT" : "DRAFT"}`;
   const terb = $("#terbilang-preview");
   if (terb) terb.textContent = terbilang(Number(state.amount) || 0);
   updateKuota();
@@ -154,24 +160,77 @@ $("#btn-add-item").addEventListener("click", () => {
   rows[rows.length - 1].focus();
 });
 
-/* ---------- template select ---------- */
-const sel = $("#tpl-select");
-sel.innerHTML = TEMPLATES.map((t) => `<option value="${t.id}">${t.label}</option>`).join("");
-sel.value = state.template;
+/* ---------- template picker (grid + filter kategori) ---------- */
+let activeFilter = "all";
 
-sel.addEventListener("change", () => {
-  const newId = sel.value;
+function renderTemplatePicker() {
+  const filterEl = $("#tpl-filter");
+  const gridEl = $("#tpl-grid");
+
+  /* build filter buttons dari categories */
+  const cats = categoriesCache.length ? categoriesCache : [
+    { id: "all", label: "Semua", icon: "" },
+    { id: "finance", label: "Finance", icon: "💰" },
+    { id: "umkm", label: "UMKM", icon: "🏪" },
+  ];
+  const filterCats = [{ id: "all", label: "Semua", icon: "" }, ...cats.filter((c) => c.active !== false)];
+  filterEl.innerHTML = filterCats.map((c) =>
+    `<button type="button" data-cat="${c.id}" class="${activeFilter === c.id ? "active" : ""}">${c.icon ? c.icon + " " : ""}${esc(c.label)}</button>`
+  ).join("");
+
+  /* filter templates */
+  const visible = TEMPLATES.filter((t) => {
+    const cat = t.category || "finance";
+    return activeFilter === "all" || cat === activeFilter;
+  });
+
+  gridEl.innerHTML = visible.map((t) => {
+    const cat = t.category || "finance";
+    const meta = categoriesCache.find((c) => c.id === cat);
+    const icon = meta?.icon || "";
+    const color = meta?.color || "#16324F";
+    const price = meta?.price_per_doc || 1000;
+    const isActive = state.template === t.id;
+    return `<button class="tpl-card ${isActive ? "active" : ""}" type="button"
+      data-tpl="${t.id}" data-cat="${cat}"
+      style="--card-accent:${color};--card-ring:${color}22">
+      <span class="tpl-cat-dot" style="background:${color}"></span>
+      <span class="tpl-name">${esc(t.label)}</span>
+      <span class="tpl-meta">${icon} ${esc(meta?.label || cat)} · ${rupiah(price)}/dok</span>
+    </button>`;
+  }).join("");
+}
+
+$("#tpl-filter").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-cat]");
+  if (!btn) return;
+  activeFilter = btn.dataset.cat;
+  renderTemplatePicker();
+});
+
+$("#tpl-grid").addEventListener("click", (e) => {
+  const card = e.target.closest("[data-tpl]");
+  if (!card) return;
+  const newId = card.dataset.tpl;
+  if (newId === state.template) return;
+  switchTemplate(newId);
+});
+
+function switchTemplate(newId) {
   if (!state.numbers) state.numbers = {};
   state.numbers[state.template] = state.number;
   state.template = newId;
+  state.category = getCategory(newId);
   if (state.numbers[newId]) {
     state.number = state.numbers[newId];
   } else {
-    state.number = nextNumber(PREFIX[newId]);
+    state.number = nextNumberByCategory(state.category);
     state.numbers[newId] = state.number;
   }
-  render(); saveCurrent(state);
-});
+  renderTemplatePicker();
+  render();
+  saveCurrent(state);
+}
 
 /* ---------- drafts ---------- */
 const secDrafts = $("#sec-drafts");
@@ -223,7 +282,8 @@ $("#draft-list").addEventListener("click", (e) => {
     const rec = getDraft(ld);
     if (rec) {
       state = rec.data;
-      sel.value = state.template;
+      state.category = state.category || getCategory(state.template);
+      renderTemplatePicker();
       renderItems(); render();
       saveCurrent(state);
       toast("Draft dimuat: " + rec.name);
@@ -239,7 +299,7 @@ function newDoc() {
   if (!confirm("Buat dokumen baru? Dokumen sekarang tetap tersimpan sebagai draft terakhir.")) return;
   saveCurrent(state);
   state = blankState(state.template);
-  sel.value = state.template;
+  renderTemplatePicker();
   renderItems(); render();
   saveCurrent(state);
   toast("Dokumen baru dibuat");
@@ -250,10 +310,11 @@ $("#btn-new-fab").addEventListener("click", newDoc);
 /* ---------- output & billing ---------- */
 async function markIssued() {
   if (state.issued) return true;
+  const category = state.category || getCategory(state.template);
   if (backend.isRemote()) {
     if (!remote.session) { openAuth(); return false; }
     let ok = false;
-    try { ok = await backend.tryDebit(state.number); }
+    try { ok = await backend.tryDebit(state.number, category); }
     catch { toast("Server tidak terhubung — coba lagi."); return false; }
     if (!ok) { openTopUp(); return false; }
     await refreshRemoteBilling();
@@ -263,7 +324,7 @@ async function markIssued() {
     render();
     return true;
   }
-  if (!ledger.tryDebit(state.number)) { openTopUp(); return false; }
+  if (!ledger.tryDebit(state.number, category)) { openTopUp(); return false; }
   state.issued = true;
   saveCurrent(state);
   render();
@@ -396,8 +457,12 @@ function renderBillingHistory(list) {
         const d = new Date(h.at);
         const when = d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) + " " +
           d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+        const catMeta = h.category ? categoriesCache.find((c) => c.id === h.category) : null;
+        const catBadge = catMeta
+          ? `<span class="cat-badge-mini" style="background:${catMeta.color}22;color:${catMeta.color}">${catMeta.icon} ${esc(catMeta.label)}</span>`
+          : "";
         return `<div class="hist-row">
-          <span class="lbl">${label}${h.ref && h.ref !== "TRIAL" ? `<span class="sub">${esc(h.ref)} · ${when}</span>` : `<span class="sub">${when}</span>`}</span>
+          <span class="lbl">${label}${catBadge}${h.ref && h.ref !== "TRIAL" ? `<span class="sub">${esc(h.ref)} · ${when}</span>` : `<span class="sub">${when}</span>`}</span>
           <span class="amt ${plus ? "plus" : "minus"}">${plus ? "+" : ""}${h.amount}</span>
           <span class="sisa">${h.sisa != null ? "sisa " + h.sisa : ""}</span>
         </div>`;
@@ -405,8 +470,28 @@ function renderBillingHistory(list) {
     : `<div class="hist-empty">Belum ada transaksi.</div>`;
 }
 
+function renderCatPrices() {
+  const list = $("#cat-price-list");
+  if (!list) return;
+  if (!categoriesCache.length) {
+    list.innerHTML = `<div class="hint-line">Memuat harga kategori…</div>`;
+    return;
+  }
+  list.innerHTML = categoriesCache.filter((c) => c.active !== false).map((c) =>
+    `<div class="cat-price-row">
+      <span class="cat-badge" style="background:${c.color}22;color:${c.color}">${c.icon} ${esc(c.label)}</span>
+      <span class="cat-price mono">${rupiah(c.price_per_doc)}/dok</span>
+    </div>`
+  ).join("");
+}
+
 async function openTopUp() {
   if (backend.isRemote()) await refreshRemoteBilling();
+  /* load categories (cache) */
+  if (!categoriesCache.length) {
+    try { categoriesCache = await backend.getCategories(); } catch { /* ignore */ }
+  }
+  renderCatPrices();
   const n = currentCredits();
   $("#q-n").textContent = n;
   $("#q-status").classList.toggle("empty", n <= 0);
@@ -598,18 +683,33 @@ function switchTab(tab) {
 }
 
 /* ---------- boot ---------- */
-renderItems();
-render();
+async function boot() {
+  /* load categories */
+  try {
+    if (backend.isRemote()) await backend.init();
+    categoriesCache = await backend.getCategories();
+  } catch (e) {
+    console.warn("load categories gagal", e);
+  }
 
-if (backend.isRemote()) {
-  backend.init()
-    .then(() => {
-      backend.onAuthChange((s) => { handleSession(s); });
-      return backend.getSession();
-    })
-    .then((s) => { if (s) handleSession(s); })
-    .catch((e) => console.warn("backend init gagal", e));
+  /* pastikan state.category terisi */
+  if (!state.category) state.category = getCategory(state.template);
+
+  renderTemplatePicker();
+  renderItems();
+  render();
+
+  if (backend.isRemote()) {
+    backend.onAuthChange((s) => { handleSession(s); });
+    try {
+      const s = await backend.getSession();
+      if (s) handleSession(s);
+    } catch (e) {
+      console.warn("backend init gagal", e);
+    }
+  }
 }
+boot();
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   navigator.serviceWorker.register("sw.js").catch(() => {});

@@ -1,4 +1,4 @@
-const CACHE = "fakturku-v10";
+const CACHE = "fakturku-v11";
 const SHELL = [
   "./",
   "./index.html",
