@@ -149,7 +149,7 @@
 | Fase 2 — Billing | 1 hari | ✅ selesai |
 | Fase 3 — UI/UX | 1 hari | ✅ selesai |
 | Fase 4 — Admin | 0.5 hari | 🔴 belum |
-| Fase 5 — Templates | berkelanjutan | 🔴 belum |
+| Fase 5 — Templates | berkelanjutan | 🟡 implemented di preview; QA perangkat menunggu |
 | Fase 6 — Model B | 1 hari | 🔴 opsional |
 
 ---
