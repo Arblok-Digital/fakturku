@@ -110,7 +110,7 @@
 - [x] Tambahkan field dokumen bersyarat di editor; kategori dan template tetap menggunakan dropdown
 - [x] Tambahkan struktur `details` ke state dokumen dengan backward compatibility draft lama
 - [x] Refresh cache PWA dan masukkan modul template baru ke shell cache
-- [x] Catat kebutuhan dokumen, sumber riset, dan batasan compliance di `08-template-catalog.md`
+- [x] Catat kebutuhan dokumen, sumber riset, dan batasan compliance di `08-template-research.md`
 
 ### Kategori yang sudah memiliki template
 
