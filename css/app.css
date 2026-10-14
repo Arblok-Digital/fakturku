@@ -1293,3 +1293,22 @@ button, input, select, textarea { font: inherit; color: inherit; }
   color: var(--ink-700);
   font-family: var(--font-mono);
 }
+
+
+/* Mobile document preview: keep the issuer identity and title from colliding. */
+@media screen and (max-width: 600px) {
+  .preview-bar { gap: 6px; padding: 8px 10px; }
+  .preview-bar > button { flex: 1 1 auto; min-height: 40px; white-space: nowrap; }
+  .preview-bar .hint { flex-basis: 100%; margin-left: 0; }
+  .doc-head { gap: 8px; }
+  .doc-issuer { min-width: 0; overflow-wrap: anywhere; }
+  .doc-issuer .nm { overflow-wrap: anywhere; }
+  .doc-logo { max-width: min(180px, 100%); object-fit: contain; object-position: left center; }
+  .doc-title { min-width: 0; overflow-wrap: anywhere; }
+  .doc-title .t { letter-spacing: .06em; }
+  .doc-parties { gap: 8px; }
+  .doc-meta td.k { white-space: normal; padding-right: 6px; }
+  .doc-table th, .doc-table td { padding: 5px 4px; overflow-wrap: anywhere; }
+  .doc-totals { max-width: 100%; }
+  .doc-screen { padding: 18px; }
+}
