@@ -49,13 +49,13 @@ Template bukan pengganti sistem inventory, approval, payroll, manajemen proyek, 
 
 ## Checklist QA
 
-- [ ] Semua 36 template tampil pada kategori yang benar.
-- [ ] Tidak ada ID elemen HTML yang duplikat.
-- [ ] Detail tambahan muncul hanya pada template yang memerlukannya.
-- [ ] Harga tersembunyi pada dokumen logistik yang relevan.
+- [x] Katalog berisi 36 template (4 lama + 32 tambahan) dengan ID/kategori unik; picker memakai katalog tersebut.
+- [x] Audit statis HTML: tidak ada ID elemen yang duplikat.
+- [x] Audit statis: semua field khusus template punya input yang tampil pada bagian editor yang sesuai.
+- [x] Harga disembunyikan pada Surat Jalan, Bukti Terima Barang, dan Packing List.
 - [ ] Nilai, total, tanggal, dan nomor dokumen benar.
 - [ ] Cetak A4 dan thermal POS terbaca di ponsel.
 - [ ] Save as dan Share WhatsApp tetap bekerja.
-- [ ] Peringatan non-resmi terlihat pada template pajak.
-- [ ] Service worker memuat modul katalog terbaru.
-- [ ] Preview diperiksa sebelum merge ke production.
+- [x] Template pajak memiliki disclaimer dokumen internal/non-resmi.
+- [x] Service worker v14 memasukkan modul katalog.
+- [ ] User memeriksa preview dari HP sebelum merge ke production.
