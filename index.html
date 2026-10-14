@@ -46,9 +46,9 @@
         <h3>Dokumen</h3>
         <div class="tpl-picker" id="tpl-picker">
           <div class="tpl-filter-wrap">
-            <div class="tpl-filter" id="tpl-filter"></div>
+            <select class="tpl-filter-select" id="tpl-filter" aria-label="Pilih kategori dokumen"></select>
           </div>
-          <div class="tpl-grid" id="tpl-grid"></div>
+          <select class="tpl-select" id="tpl-grid" aria-label="Pilih template dokumen"></select>
         </div>
         <div class="grid2">
           <div class="field">
@@ -266,14 +266,14 @@
 
     <!-- ============ PREVIEW ============ -->
     <section class="preview">
-      <div class="preview-bar noprint">
-        <button class="btn primary" type="button" id="btn-print">Print</button>
-        <button class="btn" type="button" id="btn-save-as">Save as JPEG</button>
-        <button class="btn" type="button" id="btn-wa">Share via WhatsApp</button>
-        <span class="hint" id="out-hint"></span>
-      </div>
+      <div class="preview-bar noprint"><span class="hint" id="out-hint"></span></div>
       <div class="stage" id="stage">
         <div class="doc doc-a4" id="doc"></div>
+      </div>
+      <div class="output-actions noprint" aria-label="Aksi dokumen">
+        <button class="btn primary" type="button" id="btn-print">Print</button>
+        <button class="btn" type="button" id="btn-save-as">Save as</button>
+        <button class="btn" type="button" id="btn-wa">Share via WA</button>
       </div>
     </section>
   </div>
