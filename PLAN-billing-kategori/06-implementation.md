@@ -103,54 +103,29 @@
 
 ---
 
-## Fase 5 — Template Baru 🔴 BELUM (berkelanjutan)
+## Fase 5 — Template Baru 🟡 IMPLEMENTED DI PREVIEW
 
-> Prioritas: Finance + UMKM dulu, lalu Logistik, Legal, Operasional, Proyek, Pajak.
+- [x] Tambahkan katalog 32 template baru lintas tujuh kategori melalui `js/templates/business-documents.js`
+- [x] Integrasikan seluruh template ke `js/modules/template-engine.js`
+- [x] Tambahkan field dokumen bersyarat di editor; kategori dan template tetap menggunakan dropdown
+- [x] Tambahkan struktur `details` ke state dokumen dengan backward compatibility draft lama
+- [x] Refresh cache PWA dan masukkan modul template baru ke shell cache
+- [x] Catat kebutuhan dokumen, sumber riset, dan batasan compliance di `08-template-catalog.md`
 
-### Finance (4 template baru)
-- [ ] Credit Note
-- [ ] Debit Note
-- [ ] Surat Tagihan
-- [ ] Recurring Invoice
+### Kategori yang sudah memiliki template
 
-### UMKM (5 template baru)
-- [ ] Nota Kontan
-- [ ] Surat Penawaran
-- [ ] Surat Pesanan
-- [ ] Struk POS
-- [ ] Price List
+| Kategori | Template baru |
+|---|---:|
+| Finance | 4 |
+| UMKM | 5 |
+| Logistik | 4 |
+| Legal | 5 |
+| Operasional | 5 |
+| Proyek | 5 |
+| Pajak (lembar kerja internal) | 4 |
+| **Total** | **32** |
 
-### Logistik (4 template baru)
-- [ ] Surat Jalan
-- [ ] BTB
-- [ ] Surat Retur
-- [ ] Packing List
-
-### Legal (5 template baru)
-- [ ] Surat Perjanjian
-- [ ] Surat Kuasa
-- [ ] SPK
-- [ ] LOI
-- [ ] Surat Pernyataan
-
-### Operasional (5 template baru)
-- [ ] Memo
-- [ ] SPD
-- [ ] Klaim Biaya
-- [ ] PO
-- [ ] Slip Gaji
-
-### Proyek (5 template baru)
-- [ ] RAB
-- [ ] BAST
-- [ ] SPB
-- [ ] Tagihan Termin
-- [ ] Berita Acara
-
-### Pajak (3 template baru)
-- [ ] Faktur Pajak
-- [ ] SSP
-- [ ] Bukti Potong PPh
+> Status implementasi di branch preview, belum production. Perlu QA visual dan uji tiap template di perangkat sebelum merge. Template legal/pajak adalah kerangka kerja yang perlu diperiksa; bukan jaminan legalitas atau formulir resmi DJP.
 
 ---
 
