@@ -452,9 +452,13 @@ function renderBillingHistory(list) {
   const hist = (list || ledger.requestHistory()).slice().reverse().slice(0, 20);
   $("#hist-list").innerHTML = hist.length
     ? hist.map((h) => {
+        const monetary = h.reason === "topup" || h.reason === "issue";
         const plus = h.amount > 0;
-        const label = h.ref === "TRIAL" ? "Trial gratis"
-          : plus ? "Top-up masuk" : "Ekspor dokumen";
+        const label = h.ref === "TRIAL" || h.reason === "trial" ? "Trial gratis"
+          : h.reason === "topup" ? "Top-up saldo"
+          : h.reason === "issue" ? "Biaya dokumen"
+          : plus ? "Saldo masuk" : "Ekspor dokumen";
+        const amountLabel = monetary ? rupiah(Math.abs(h.amount)) : `${Math.abs(h.amount)} dokumen`;
         const d = new Date(h.at);
         const when = d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) + " " +
           d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
@@ -464,8 +468,8 @@ function renderBillingHistory(list) {
           : "";
         return `<div class="hist-row">
           <span class="lbl">${label}${catBadge}${h.ref && h.ref !== "TRIAL" ? `<span class="sub">${esc(h.ref)} · ${when}</span>` : `<span class="sub">${when}</span>`}</span>
-          <span class="amt ${plus ? "plus" : "minus"}">${plus ? "+" : ""}${h.amount}</span>
-          <span class="sisa">${h.sisa != null ? "sisa " + h.sisa : ""}</span>
+          <span class="amt ${plus ? "plus" : "minus"}">${plus ? "+" : ""}${amountLabel}</span>
+          <span class="sisa">${h.sisa != null ? (monetary ? "saldo " + rupiah(h.sisa) : "sisa " + h.sisa) : ""}</span>
         </div>`;
       }).join("")
     : `<div class="hist-empty">Belum ada transaksi.</div>`;
