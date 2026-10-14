@@ -5,7 +5,7 @@ import {
 } from "./modules/invoice-engine.js";
 import { terbilang, rupiah, formatDate, esc } from "./modules/format.js";
 import { nextNumber, getPrefix, nextNumberByCategory } from "./modules/numbering.js";
-import { printDoc, shareImage, copySummary, openWhatsApp } from "./modules/output.js";
+import { printDoc, downloadImage, openWhatsApp } from "./modules/output.js";
 import * as ledger from "./modules/credit-ledger.js";
 import * as backend from "./modules/backend.js";
 
