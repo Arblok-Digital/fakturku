@@ -738,3 +738,13 @@ if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
 }
 
+/* Keep the balance chip fresh after admin approves a top-up. */
+if (backend.isRemote()) {
+  const syncBilling = () => {
+    if (remote.session && !document.hidden) refreshRemoteBilling();
+  };
+  window.setInterval(syncBilling, 20000);
+  window.addEventListener("focus", syncBilling);
+  document.addEventListener("visibilitychange", syncBilling);
+}
+
