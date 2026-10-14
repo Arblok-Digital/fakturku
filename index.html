@@ -340,19 +340,30 @@
     </div>
   </div>
 
-  <!-- ============ MODAL AUTH ============ -->
-  <div class="modal-back noprint" id="auth-modal" hidden>
-    <div class="modal auth" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-      <div class="sheet-handle" aria-hidden="true"></div>
-      <h3 id="auth-title">Masuk FakturKu</h3>
-      <p class="modal-sub">Akun menyimpan kuota, riwayat, dan dokumen di server — bisa dari HP sekaligus laptop.</p>
+  <!-- ============ PUBLIC LANDING + AUTH ============ -->
+  <main class="landing-shell" id="auth-modal">
+    <section class="landing-copy">
+      <div class="landing-brand"><span class="logo">F</span><span>FakturKu</span><span class="mark">BETA</span></div>
+      <p class="landing-eyebrow">DOKUMEN BISNIS, LEBIH RAPI</p>
+      <h1>Buat faktur dan kwitansi tanpa ribet.</h1>
+      <p class="landing-lead">Siapkan dokumen transaksi, lihat pratinjau, lalu cetak atau bagikan. Mulai dari satu tempat, tanpa formulir yang menutupi seluruh layar.</p>
+      <div class="landing-benefits">
+        <div><span class="benefit-icon">▤</span><span><b>Format dokumen praktis</b><small>Faktur, kwitansi, invoice digital, dan struk angsuran.</small></span></div>
+        <div><span class="benefit-icon">↗</span><span><b>Siap cetak dan dibagikan</b><small>Pratinjau dokumen sebelum Print, Save as, atau Share via WA.</small></span></div>
+        <div><span class="benefit-icon">▣</span><span><b>Dokumen tersimpan di akun</b><small>Masuk untuk mengakses kuota, riwayat, dan sinkronisasi akun.</small></span></div>
+      </div>
+      <p class="landing-footnote">FakturKu · Generator dokumen bisnis</p>
+    </section>
+    <section class="landing-auth" aria-label="Masuk atau daftar akun">
+      <h2 id="auth-title">Selamat datang</h2>
+      <p class="modal-sub">Masuk ke akun atau buat akun baru untuk melanjutkan.</p>
       <div class="auth-tabs">
         <button type="button" id="auth-tab-in" class="on">Masuk</button>
         <button type="button" id="auth-tab-up">Daftar</button>
       </div>
       <div class="field" id="auth-name-field" hidden>
         <label for="auth-name">Nama</label>
-        <input id="auth-name" type="text" autocomplete="name">
+        <input id="auth-name" type="text" autocomplete="name" placeholder="Nama lengkap">
       </div>
       <div class="field">
         <label for="auth-email">Email</label>
@@ -364,8 +375,9 @@
       </div>
       <p class="auth-err" id="auth-err" hidden></p>
       <button class="btn primary" type="button" id="auth-go">Masuk</button>
-    </div>
-  </div>
+      <p class="auth-note">Dengan melanjutkan, Anda dapat mengelola dokumen dan informasi akun melalui FakturKu.</p>
+    </section>
+  </main>
 
   <script src="js/vendor-html2canvas.js"></script>
   <script type="module" src="js/app.js"></script>
