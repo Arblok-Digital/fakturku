@@ -63,26 +63,42 @@ export function onAuthChange(cb) {
 
 // ---------- billing ----------
 
-export async function creditsLeft() {
-  if (!sb) return local.creditsLeft();
+export async function billingState() {
+  if (!sb) {
+    return { credits: local.creditsLeft(), trialCredits: local.creditsLeft(), balance: 0 };
+  }
   const user = await getUser();
-  if (!user) return 0;
+  if (!user) return { credits: 0, trialCredits: 0, balance: 0 };
   const { data, error } = await sb
     .from("ledger_accounts")
-    .select("credits")
+    .select("credits, trial_credits, balance")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
   if (error) throw error;
-  return data?.credits ?? 0;
+  return {
+    credits: Number(data?.credits) || 0,
+    trialCredits: Number(data?.trial_credits) || 0,
+    balance: Number(data?.balance) || 0,
+  };
 }
 
-export async function tryDebit(ref, category) {
+export async function creditsLeft() {
+  const state = await billingState();
+  return state.credits;
+}
+
+export async function tryDebit(ref, category, template, documentData) {
   if (!sb) return local.tryDebit(ref, category);
   const user = await getUser();
   if (!user) return false;
+  if (!template || !documentData || typeof documentData !== "object") {
+    throw new Error("Data template dokumen tidak lengkap.");
+  }
   const { data, error } = await sb.rpc("issue_document", {
     p_ref: ref,
     p_category: category || null,
+    p_template: template,
+    p_data: documentData,
   });
   if (error) throw error;
   return data === true;
@@ -108,12 +124,18 @@ export async function history() {
 
 export async function createTopup(pkg) {
   if (!sb) return local.requestTopUp(pkg);
+  if (!pkg?.id) throw new Error("Paket top-up tidak valid.");
   const { data, error } = await sb.rpc("request_topup", {
-    p_credits: pkg.credits,
-    p_price: pkg.price,
+    p_package_id: pkg.id,
   });
   if (error) throw error;
-  return { id: data, price: pkg.price, credits: pkg.credits, status: "pending" };
+  return {
+    id: data,
+    packageId: pkg.id,
+    price: Number(pkg.price) || 0,
+    credits: Number(pkg.credits) || 0,
+    status: "pending",
+  };
 }
 
 export async function pendingTopup() {
