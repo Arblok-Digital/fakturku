@@ -580,8 +580,15 @@ let authMode = "in";
 let lastUid = null;
 let sessionHandled = false;
 
-function openAuth() { authModal.hidden = false; }
-function closeAuth() { authModal.hidden = true; }
+function openAuth() {
+  authModal.hidden = false;
+  $("#workspace").hidden = true;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function closeAuth() {
+  authModal.hidden = true;
+  $("#workspace").hidden = false;
+}
 
 function setAuthMode(mode) {
   authMode = mode;
@@ -709,6 +716,10 @@ async function boot() {
 
   /* pastikan state.category terisi */
   if (!state.category) state.category = getCategory(state.template);
+
+  // Public landing/auth is the entry point; never expose the editor before session resolution.
+  $("#workspace").hidden = backend.isRemote();
+  $("#auth-modal").hidden = false;
 
   renderTemplatePicker();
   renderItems();
