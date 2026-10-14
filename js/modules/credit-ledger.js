@@ -1,13 +1,19 @@
-const KEY = "fakturku:ledger";
-const SECRET = "FakturKuSecret2026";
+import { PAYMENT_WHATSAPP } from "../config.js";
 
-/* Owner: ganti nomor kontak di bawah sebelum rilis ke user */
-export const CONTACT = "Hubungi admin — WhatsApp 0812-0000-0000";
+const KEY = "fakturku:ledger";
+
+/* CATATAN KEAMANAN: semua enforcement lokal di file ini hanya UX
+   convenience (localStorage mudah diubah via DevTools) dan gampang
+   di-bypass. Yang otoritatif adalah RPC Supabase server-side
+   (issue_document / request_topup / approve_topup). */
+
+export const CONTACT =
+  `WhatsApp +${PAYMENT_WHATSAPP.slice(0, 2)} ${PAYMENT_WHATSAPP.slice(2, 5)}-${PAYMENT_WHATSAPP.slice(5, 9)}-${PAYMENT_WHATSAPP.slice(9)}`;
 
 export const PACKAGES = [
-  { credits: 5, price: 50000 },
-  { credits: 12, price: 100000 },
-  { credits: 30, price: 250000 },
+  { id: "starter", label: "Saldo Rp15.000", balance: 15000, price: 15000 },
+  { id: "bisnis", label: "Saldo Rp40.000", balance: 40000, price: 40000 },
+  { id: "pro", label: "Saldo Rp85.000", balance: 85000, price: 85000 },
 ];
 
 const TRIAL_CREDITS = 10;
@@ -41,6 +47,10 @@ export function creditsLeft() {
   return load().credits;
 }
 
+export function billingState() {
+  return { trialCredits: creditsLeft(), balance: 0 };
+}
+
 export function requestHistory() {
   return load().history;
 }
@@ -62,11 +72,13 @@ export function tryDebit(ref, category) {
   return true;
 }
 
-export function adminCode(requestId) {
-  let h = 5381;
-  const s = String(requestId) + "|" + SECRET;
-  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) >>> 0;
-  return h.toString(36).toUpperCase().padStart(6, "0").slice(-6);
+/* DULU: adminCode() menghitung kode 6-digit deterministik (djb2 +
+   SECRET hardcoded) di client — siapa pun bisa menempa kode top-up
+   sendiri. Sekarang: client TIDAK PERNAH menerbitkan kode. Kode hanya
+   dibuat server-side (RPC request_topup) dan di-approve via admin
+   panel online. Stub ini gagal tertutup (fail closed). */
+export function adminCode(_requestId) {
+  throw new Error("hubungi admin — kode top-up hanya diterbitkan server (mode online).");
 }
 
 export function pendingRequest() {
@@ -83,8 +95,8 @@ export function requestTopUp(pkg) {
   const l = load();
   if (l.requests.some((r) => r.status === "pending")) return pendingRequest();
   const rec = {
-    id: "FKT-" + Date.now().toString(36).toUpperCase().slice(-6),
-    credits: pkg.credits,
+    id: "FKT-" + Date.now().toString(36).toUpperCase().slice(-6).padStart(6, "0"),
+    balance: pkg.balance,
     price: pkg.price,
     status: "pending",
     at: new Date().toISOString(),
@@ -94,15 +106,11 @@ export function requestTopUp(pkg) {
   return rec;
 }
 
-export function redeem(code) {
-  const l = load();
-  const c = String(code || "").trim().toUpperCase();
-  const req = l.requests.find((r) => r.status === "pending" && adminCode(r.id) === c);
-  if (!req) return false;
-  req.status = "fulfilled";
-  req.fulfilledAt = new Date().toISOString();
-  l.credits += req.credits;
-  l.history.push({ at: req.fulfilledAt, amount: req.credits, sisa: l.credits, ref: req.id });
-  save(l);
-  return true;
+/* Mode lokal = trial saja: permintaan dicatat sebagai pending, tapi
+   pemenuhannya WAJIB via server (admin panel online). redeem() lokal
+   dinonaktifkan — menerima kode di client sama dengan mencetak kuota
+   sendiri. Selalu gagal tertutup; user diarahkan hubungi admin
+   (lihat CONTACT). */
+export function redeem(_code) {
+  return false;
 }

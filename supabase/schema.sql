@@ -60,6 +60,17 @@ create index if not exists ct_user_created on public.credit_transactions (user_i
 create index if not exists tu_status on public.topup_requests (status, created_at desc);
 create index if not exists inv_user on public.invoices (user_id, updated_at desc);
 
+-- Guard: MAKSIMAL satu admin. Tanpa ini, dua signup paralel bisa
+-- sama-sama melihat profiles kosong dan dua-duanya jadi admin
+-- (race di handle_new_user). Index ini backstop yang race-proof:
+-- pelanggar kedua gagal dengan unique violation.
+-- Catatan owner: promosi admin kedua via set_role juga akan ditolak
+-- selama index ini ada — DROP INDEX one_admin_only bila butuh
+-- multi-admin. Jika DB existing sudah terlanjur punya >1 admin,
+-- bereskan dulu (demote duplikat) sebelum create index ini sukses.
+create unique index if not exists one_admin_only
+  on public.profiles (role) where (role = 'admin');
+
 -- ---------- helper (security definer, hindari recursi RLS) ----------
 
 create or replace function public.is_admin()
@@ -82,6 +93,10 @@ returns trigger language plpgsql security definer as $$
 declare
   is_first boolean;
 begin
+  -- Serialisasi klaim "user pertama": tanpa lock, dua signup paralel
+  -- sama-sama melihat profiles kosong dan dua-duanya jadi admin.
+  -- Lock dilepas otomatis saat transaksi commit/rollback.
+  perform pg_advisory_xact_lock(hashtext('fakturku:first-admin'));
   select not exists (select 1 from public.profiles) into is_first;
 
   insert into public.profiles (id, full_name, email, role)

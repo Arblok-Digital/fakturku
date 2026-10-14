@@ -92,18 +92,15 @@ alter table public.profiles
 
 ## RPC Baru
 
-### `issue_document(p_ref text, p_category text)`
+### `issue_document(p_ref text, p_category text, p_template text, p_data jsonb)`
 
-**Model A — Flat (sederhana):**
-```
-1. Ambil harga kategori dari document_categories (untuk log/riwayat)
-2. Cek kuota user (flat) dari ledger_accounts
-3. Jika kuota > 0:
-   - debit 1 kuota
-   - tandai dokumen terbit (issued_at = now, category = p_category)
-   - catat credit_transactions (category = p_category)
-4. Return success/fail
-```
+Menerima data dokumen langsung; tidak perlu menyimpan draft terlebih dahulu.
+
+1. Memastikan kategori cocok dengan pemetaan template di server
+2. Mengunci dokumen agar retry tidak menagih dua kali
+3. Menyimpan draft, memvalidasi harga aktif, memakai trial terlebih dahulu lalu saldo Rupiah
+4. Mencatat transaksi dan menandai dokumen terbit dalam transaksi database yang sama
+5. Menerbitkan ulang dokumen terbit yang sama tanpa debit tambahan
 
 **Model B — Tiered (weighted):**
 ```

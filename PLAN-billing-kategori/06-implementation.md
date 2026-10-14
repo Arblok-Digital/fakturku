@@ -37,7 +37,7 @@
 ## Fase 2 — Billing Logic ✅ SELESAI
 
 ### Backend (RPC)
-- [x] RPC `issue_document(p_ref, p_category)` — Model A (flat), v2
+- [x] RPC `issue_document(p_ref, p_category, p_template, p_data)` — trial + saldo kategori, atomik dan idempoten
 - [x] RPC `get_categories()` — list semua kategori + harga
 - [x] RPC `get_packages()` — list paket top-up
 - [x] RPC `update_category(id, price, active, color)` — admin only

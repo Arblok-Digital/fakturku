@@ -63,26 +63,28 @@ export function onAuthChange(cb) {
 
 // ---------- billing ----------
 
-export async function creditsLeft() {
-  if (!sb) return local.creditsLeft();
+export async function billingState() {
+  if (!sb) return local.billingState();
   const user = await getUser();
-  if (!user) return 0;
-  const { data, error } = await sb
-    .from("ledger_accounts")
-    .select("credits")
-    .eq("user_id", user.id)
-    .single();
+  if (!user) return { trialCredits: 0, balance: 0 };
+  const { data, error } = await sb.rpc("get_my_billing");
   if (error) throw error;
-  return data?.credits ?? 0;
+  const row = Array.isArray(data) ? data[0] : data;
+  return {
+    trialCredits: Number(row?.trial_credits) || 0,
+    balance: Number(row?.balance) || 0,
+  };
 }
 
-export async function tryDebit(ref, category) {
+export async function tryDebit(ref, category, state) {
   if (!sb) return local.tryDebit(ref, category);
   const user = await getUser();
   if (!user) return false;
   const { data, error } = await sb.rpc("issue_document", {
     p_ref: ref,
     p_category: category || null,
+    p_template: state?.template || "",
+    p_data: state || {},
   });
   if (error) throw error;
   return data === true;
@@ -94,26 +96,87 @@ export async function history() {
   if (!user) return [];
   const { data, error } = await sb
     .from("credit_transactions")
-    .select("created_at, delta, ref, credits_after")
+    .select("created_at, reason, ref, category, trial_delta, trial_after, balance_delta, balance_after, delta, credits_after")
     .order("created_at", { ascending: false })
     .limit(30);
   if (error) throw error;
   return (data ?? []).map((r) => ({
     at: r.created_at,
-    amount: r.delta,
+    reason: r.reason,
+    category: r.category,
     ref: r.ref || "",
-    sisa: r.credits_after,
+    trialDelta: Number(r.trial_delta) || 0,
+    trialAfter: Number(r.trial_after) || 0,
+    balanceDelta: Number(r.balance_delta) || 0,
+    balanceAfter: Number(r.balance_after) || 0,
+    legacyAmount: Number(r.delta) || 0,
+    legacyAfter: r.credits_after,
   }));
 }
 
-export async function createTopup(pkg) {
-  if (!sb) return local.requestTopUp(pkg);
-  const { data, error } = await sb.rpc("request_topup", {
-    p_credits: pkg.credits,
-    p_price: pkg.price,
+/* Top-up via server: client hanya boleh mengirim package_id. */
+export async function createTopup(pkgOrId) {
+  // Normalisasi ke package_id resmi (satu-satunya yang dikirim ke server).
+  let pid = typeof pkgOrId === "string" ? pkgOrId : (pkgOrId?.id ?? null);
+  const matchLocalPkg = () => {
+    if (pid) {
+      return local.PACKAGES.find((p) => p.id === pid) || null;
+    }
+    if (pkgOrId && typeof pkgOrId === "object") {
+      return (
+        local.PACKAGES.find((p) => p.balance === pkgOrId.balance && p.price === pkgOrId.price) ??
+        null
+      );
+    }
+    return null;
+  };
+  if (!sb) {
+    const pkg = matchLocalPkg();
+    if (!pkg) throw new Error("paket tidak dikenal — hubungi admin");
+    return local.requestTopUp(pkg);
+  }
+  if (!pid && pkgOrId && typeof pkgOrId === "object")
+    pid = pkgOrId.id || null;
+  if (!pid) throw new Error("paket tidak dikenal — hubungi admin");
+  const { data, error } = await sb.rpc("request_topup", { p_package_id: pid });
+  if (error) throw error;
+  // The package amount and price are resolved by the server.
+  const { data: row, error: rowErr } = await sb
+    .from("topup_requests")
+    .select("code, balance_amount, price, status, created_at")
+    .eq("code", data)
+    .single();
+  if (rowErr) throw rowErr;
+  return { id: row.code, balance: row.balance_amount, price: row.price, status: row.status, at: row.created_at };
+}
+
+export async function registerAdminPush(subscription) {
+  if (!sb) throw new Error("notifikasi admin memerlukan koneksi Supabase");
+  const { data, error } = await sb.rpc("save_admin_push_subscription", {
+    p_subscription: subscription.toJSON(),
   });
   if (error) throw error;
-  return { id: data, price: pkg.price, credits: pkg.credits, status: "pending" };
+  return data === true;
+}
+
+export async function unregisterAdminPush(endpoint) {
+  if (!sb) throw new Error("notifikasi admin memerlukan koneksi Supabase");
+  const { error } = await sb.rpc("remove_admin_push_subscription", {
+    p_endpoint: endpoint,
+  });
+  if (error) throw error;
+}
+
+export async function notifyAdminTopup(code) {
+  if (!sb) throw new Error("notifikasi admin memerlukan koneksi Supabase");
+  const { data, error } = await sb.functions.invoke("notify-admin-topup", {
+    body: { code },
+  });
+  if (error) throw error;
+  return {
+    delivered: Number(data?.delivered) || 0,
+    duplicate: data?.duplicate === true,
+  };
 }
 
 export async function pendingTopup() {
@@ -122,7 +185,7 @@ export async function pendingTopup() {
   if (!user) return null;
   const { data, error } = await sb
     .from("topup_requests")
-    .select("code, credits, price, status, created_at")
+    .select("code, balance_amount, price, status, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -132,7 +195,7 @@ export async function pendingTopup() {
   return {
     id: data.code,
     price: data.price,
-    credits: data.credits,
+    balance: data.balance_amount,
     status: data.status,
     at: data.created_at,
   };
@@ -165,17 +228,20 @@ export async function getCategories(force) {
 export async function getPackages(force) {
   if (_packages && !force) return _packages;
   if (!sb) {
-    _packages = local.PACKAGES.map((p, i) => ({
-      id: ["starter", "bisnis", "pro"][i] || `pkg${i}`,
-      label: `${p.credits} dokumen`,
-      credits: p.credits,
+    _packages = local.PACKAGES.map((p) => ({
+      id: p.id,
+      label: p.label,
+      balance: p.balance,
       price: p.price,
     }));
     return _packages;
   }
   const { data, error } = await sb.rpc("get_packages");
   if (error) throw error;
-  _packages = data ?? [];
+  _packages = (data ?? []).map((p) => ({
+    ...p,
+    balance: Number(p.balance_amount) || 0,
+  }));
   return _packages;
 }
 
@@ -200,11 +266,12 @@ export async function saveInvoice(state) {
   if (!sb || !state?.number) return;
   const user = await getUser();
   if (!user) return;
-  await sb.from("invoices").upsert(
+  const { error } = await sb.from("invoices").upsert(
     {
       user_id: user.id,
       template: state.template || "",
       number: state.number,
+      category: state.category || null,
       status: state.issued ? "issued" : "draft",
       verify_code: state.verify || "",
       data: state,
@@ -212,6 +279,7 @@ export async function saveInvoice(state) {
     },
     { onConflict: "user_id,number" }
   );
+  if (error) throw error;
 }
 
 // ---------- admin ----------
@@ -229,7 +297,7 @@ async function fetchProfileMap() {
 export async function adminPending() {
   const [reqRes, profMap] = await Promise.all([
     sb.from("topup_requests")
-      .select("code, credits, price, status, created_at, user_id")
+      .select("code, balance_amount, price, status, created_at, user_id")
       .order("created_at", { ascending: false })
       .limit(50),
     fetchProfileMap(),
@@ -256,19 +324,20 @@ export async function rejectTopup(code) {
 export async function adminUsers() {
   const [profRes, ledRes] = await Promise.all([
     sb.from("profiles").select("id, full_name, email, role, created_at"),
-    sb.from("ledger_accounts").select("user_id, credits"),
+    sb.from("ledger_accounts").select("user_id, trial_credits, balance"),
   ]);
   if (profRes.error) throw profRes.error;
   if (ledRes.error) throw ledRes.error;
   const ledMap = {};
-  for (const l of ledRes.data ?? []) ledMap[l.user_id] = l.credits;
+  for (const l of ledRes.data ?? []) ledMap[l.user_id] = l;
   return (profRes.data ?? []).map((u) => ({
     id: u.id,
     name: u.full_name || "-",
     email: u.email || "-",
     role: u.role,
     created: u.created_at,
-    credits: ledMap[u.id] ?? 0,
+    trialCredits: ledMap[u.id]?.trial_credits ?? 0,
+    balance: ledMap[u.id]?.balance ?? 0,
   }));
 }
 
@@ -277,8 +346,8 @@ export async function setRole(userId, role) {
   if (error) throw error;
 }
 
-export async function adjustCredits(userId, delta, note) {
-  const { error } = await sb.rpc("adjust_credits", {
+export async function adjustBalance(userId, delta, note) {
+  const { error } = await sb.rpc("adjust_balance", {
     p_user_id: userId,
     p_delta: delta,
     p_note: note || "",
@@ -286,12 +355,12 @@ export async function adjustCredits(userId, delta, note) {
   if (error) throw error;
 }
 
-export async function adminTransactions() {
+export async function adminTransactions(limit = 30) {
   const [txRes, profMap] = await Promise.all([
     sb.from("credit_transactions")
-      .select("created_at, delta, reason, ref, credits_after, user_id")
+      .select("created_at, delta, reason, ref, category, credits_after, trial_delta, trial_after, balance_delta, balance_after, user_id")
       .order("created_at", { ascending: false })
-      .limit(30),
+      .limit(limit),
     fetchProfileMap(),
   ]);
   if (txRes.error) throw txRes.error;
@@ -299,6 +368,28 @@ export async function adminTransactions() {
     const p = profMap[t.user_id];
     return { ...t, profiles: p ? { full_name: p.full_name } : null };
   });
+}
+
+export async function adminCashflow(days = 365) {
+  const since = new Date(Date.now() - days * 86400000).toISOString();
+  const [txRes, topupRes] = await Promise.all([
+    sb.from("credit_transactions")
+      .select("created_at, reason, ref, category, trial_delta, balance_delta, balance_after, user_id")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(1000),
+    sb.from("topup_requests")
+      .select("code, price, balance_amount, status, created_at, user_id")
+      .gte("created_at", since)
+      .order("created_at", { ascending: false })
+      .limit(1000),
+  ]);
+  if (txRes.error) throw txRes.error;
+  if (topupRes.error) throw topupRes.error;
+  return {
+    transactions: txRes.data ?? [],
+    topups: topupRes.data ?? [],
+  };
 }
 
 export async function adminStats() {

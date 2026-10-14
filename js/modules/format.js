@@ -13,7 +13,7 @@ export function formatDate(iso) {
   const bulan = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
   const hari = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
   const d = new Date(iso + (iso.length === 10 ? "T00:00:00" : ""));
-  if (isNaN(d)) return "";
+  if (isNaN(d)) return "—";
   return `${hari[d.getDay()]}, ${d.getDate()} ${bulan[d.getMonth()]} ${d.getFullYear()}`;
 }
 

@@ -20,10 +20,9 @@
     <div class="brand">
       <span class="logo" aria-hidden="true">F</span>
       <span class="name">FakturKu</span>
-      <span class="mark">BETA</span>
     </div>
     <div class="spacer"></div>
-    <button class="chip-btn" id="kuota" type="button" title="Sisa kuota ekspor">—</button>
+    <button class="chip-btn" id="kuota" type="button" title="Sisa kuota ekspor — klik untuk beli/paket" aria-label="Sisa kuota">—</button>
     <button class="icon-btn" id="btn-drafts" type="button" title="Draft tersimpan" aria-label="Draft tersimpan">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
       <span class="badge" id="drafts-count" hidden></span>
@@ -31,250 +30,303 @@
     <button class="icon-btn" id="btn-auth" type="button" title="Akun" aria-label="Akun" hidden>
       <span class="avatar" id="auth-avatar">?</span>
     </button>
-    <button class="btn ghost desk-only" id="btn-new" type="button">Dokumen Baru</button>
   </header>
 
   <div class="workspace" id="workspace" data-tab="edit">
     <!-- ============ EDITOR ============ -->
     <section class="editor noprint" id="editor">
-      <div class="fsec" id="sec-drafts" hidden>
-        <h3>Draft Tersimpan</h3>
-        <div class="draft-list" id="draft-list"></div>
+      <!-- Drafts moved to bottom sheet -->
+
+      <div class="fsec" id="sec-doc" open>
+        <div class="fsec-header">
+          <h3>Dokumen</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="fsec-content">
+          <div class="tpl-picker" id="tpl-picker">
+            <span class="tpl-picker-label">Template dokumen</span>
+            <button class="tpl-current" id="btn-open-tpl-picker" type="button" aria-haspopup="dialog" aria-controls="tpl-sheet">
+              <span class="tpl-current-icon" id="tpl-current-icon" aria-hidden="true"></span>
+              <span class="tpl-current-copy">
+                <span class="tpl-current-name" id="tpl-current-name"></span>
+                <span class="tpl-current-meta" id="tpl-current-meta"></span>
+              </span>
+              <span class="tpl-current-action">Ubah</span>
+            </button>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label for="f-number">Nomor</label>
+              <input id="f-number" class="mono" type="text" data-bind="number">
+            </div>
+            <div class="field">
+              <label for="f-date">Tanggal</label>
+              <input id="f-date" type="date" data-bind="date">
+            </div>
+          </div>
+          <div class="field" data-when="due">
+            <label for="f-due">Jatuh Tempo</label>
+            <input id="f-due" type="date" data-bind="dueDate">
+          </div>
+          <div class="field">
+            <label for="f-notes">Catatan / Keterangan</label>
+            <textarea id="f-notes" rows="2" data-bind="notes" placeholder="Opsional"></textarea>
+          </div>
+        </div>
       </div>
 
-      <div class="fsec" id="sec-doc">
-        <h3>Dokumen</h3>
-        <div class="tpl-picker" id="tpl-picker">
-          <div class="tpl-filter-wrap">
-            <div class="tpl-filter" id="tpl-filter"></div>
-          </div>
-          <div class="tpl-grid" id="tpl-grid"></div>
+      <div class="fsec" id="sec-issuer" open>
+        <div class="fsec-header">
+          <h3>Penerbit (Perusahaan)</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="grid2">
+        <div class="fsec-content">
           <div class="field">
-            <label for="f-number">Nomor</label>
-            <input id="f-number" class="mono" type="text" data-bind="number">
+            <label for="f-logo">Logo (tersimpan di device ini)</label>
+            <input id="f-logo" type="file" accept="image/*">
           </div>
           <div class="field">
-            <label for="f-date">Tanggal</label>
-            <input id="f-date" type="date" data-bind="date">
+            <label for="f-issuer-name">Nama Perusahaan</label>
+            <input id="f-issuer-name" type="text" data-bind="issuer.name">
           </div>
-        </div>
-        <div class="field" data-when="due">
-          <label for="f-due">Jatuh Tempo</label>
-          <input id="f-due" type="date" data-bind="dueDate">
-        </div>
-        <div class="field">
-          <label for="f-notes">Catatan / Keterangan</label>
-          <textarea id="f-notes" rows="2" data-bind="notes" placeholder="Opsional"></textarea>
+          <div class="field">
+            <label for="f-issuer-addr">Alamat</label>
+            <textarea id="f-issuer-addr" rows="2" data-bind="issuer.address"></textarea>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label for="f-issuer-npwp">NPWP</label>
+              <input id="f-issuer-npwp" class="mono" type="text" data-bind="issuer.npwp">
+            </div>
+            <div class="field">
+              <label for="f-issuer-phone">Telp</label>
+              <input id="f-issuer-phone" class="mono" type="text" data-bind="issuer.phone">
+            </div>
+          </div>
+          <div class="field">
+            <label for="f-issuer-email">Email</label>
+            <input id="f-issuer-email" class="mono" type="text" data-bind="issuer.email">
+          </div>
         </div>
       </div>
 
-      <div class="fsec" id="sec-issuer">
-        <h3>Penerbit (Perusahaan)</h3>
-        <div class="field">
-          <label for="f-logo">Logo (tersimpan di device ini)</label>
-          <input id="f-logo" type="file" accept="image/*">
+      <div class="fsec" id="sec-custom" data-when="custom" hidden>
+        <div class="fsec-header">
+          <h3 id="custom-fields-title">Detail Dokumen</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="field">
-          <label for="f-issuer-name">Nama Perusahaan</label>
-          <input id="f-issuer-name" type="text" data-bind="issuer.name">
-        </div>
-        <div class="field">
-          <label for="f-issuer-addr">Alamat</label>
-          <textarea id="f-issuer-addr" rows="2" data-bind="issuer.address"></textarea>
-        </div>
-        <div class="grid2">
-          <div class="field">
-            <label for="f-issuer-npwp">NPWP</label>
-            <input id="f-issuer-npwp" class="mono" type="text" data-bind="issuer.npwp">
-          </div>
-          <div class="field">
-            <label for="f-issuer-phone">Telp</label>
-            <input id="f-issuer-phone" class="mono" type="text" data-bind="issuer.phone">
-          </div>
-        </div>
-        <div class="field">
-          <label for="f-issuer-email">Email</label>
-          <input id="f-issuer-email" class="mono" type="text" data-bind="issuer.email">
-        </div>
+        <div class="fsec-content" id="custom-fields"></div>
       </div>
 
       <div class="fsec" id="sec-client" data-when="client">
-        <h3>Penerima / Nasabah</h3>
-        <div class="field">
-          <label for="f-client-name">Nama</label>
-          <input id="f-client-name" type="text" data-bind="client.name">
+        <div class="fsec-header">
+          <h3>Penerima / Nasabah</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="field">
-          <label for="f-client-addr">Alamat</label>
-          <textarea id="f-client-addr" rows="2" data-bind="client.address"></textarea>
-        </div>
-        <div class="grid2">
+        <div class="fsec-content">
           <div class="field">
-            <label for="f-client-npwp">NPWP</label>
-            <input id="f-client-npwp" class="mono" type="text" data-bind="client.npwp">
+            <label for="f-client-name">Nama</label>
+            <input id="f-client-name" type="text" data-bind="client.name">
           </div>
           <div class="field">
-            <label for="f-client-phone">Telp</label>
-            <input id="f-client-phone" class="mono" type="text" data-bind="client.phone">
+            <label for="f-client-addr">Alamat</label>
+            <textarea id="f-client-addr" rows="2" data-bind="client.address"></textarea>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label for="f-client-npwp">NPWP</label>
+              <input id="f-client-npwp" class="mono" type="text" data-bind="client.npwp">
+            </div>
+            <div class="field">
+              <label for="f-client-phone">Telp</label>
+              <input id="f-client-phone" class="mono" type="text" data-bind="client.phone">
+            </div>
           </div>
         </div>
       </div>
 
       <div class="fsec" id="sec-items" data-when="items">
-        <h3>Rincian Transaksi</h3>
-        <table class="items" id="items-table">
-          <thead>
-            <tr>
-              <th style="width:46%">Uraian</th>
-              <th style="width:14%"><input class="num" disabled title="Qty" value="Qty" tabindex="-1"></th>
-              <th style="width:20%"><input class="num" disabled title="Harga" value="Harga" tabindex="-1"></th>
-              <th style="width:20%"><input class="num" disabled title="Jumlah" value="Jumlah" tabindex="-1"></th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody id="items-body"></tbody>
-        </table>
-        <div class="items-foot">
-          <button class="btn" type="button" id="btn-add-item">+ Tambah baris</button>
-          <span class="hint-line" id="items-sum">Rp 0</span>
+        <div class="fsec-header">
+          <h3>Rincian Transaksi</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="grid2" style="margin-top:10px">
-          <div class="field">
-            <label for="f-discount">Diskon (Rp)</label>
-            <input id="f-discount" class="mono" type="number" min="0" data-bind="discount" value="0">
+        <div class="fsec-content">
+          <table class="items" id="items-table">
+            <thead>
+              <tr>
+                <th style="width:46%">Uraian</th>
+                <th style="width:14%" class="r">Qty</th>
+                <th style="width:20%" class="r">Harga</th>
+                <th style="width:20%" class="r">Jumlah</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="items-body"></tbody>
+          </table>
+          <div class="items-foot">
+            <button class="btn" type="button" id="btn-add-item">+ Tambah baris</button>
+            <span class="hint-line" id="items-sum">Rp 0</span>
           </div>
-          <div class="field">
-            <label for="f-tax">PPN (%)</label>
-            <input id="f-tax" class="mono" type="number" min="0" max="100" step="0.5" data-bind="taxRate" value="0">
+          <div class="grid2" style="margin-top:10px">
+            <div class="field">
+              <label for="f-discount">Diskon (Rp)</label>
+              <input id="f-discount" class="mono" type="number" min="0" data-bind="discount" value="0">
+            </div>
+            <div class="field">
+              <label for="f-tax">PPN (%)</label>
+              <input id="f-tax" class="mono" type="number" min="0" max="100" step="0.5" data-bind="taxRate" value="0">
+            </div>
           </div>
         </div>
       </div>
 
       <div class="fsec" id="sec-receipt" data-when="receipt">
-        <h3>Kwitansi</h3>
-        <div class="field">
-          <label for="f-received-from">Terima dari</label>
-          <input id="f-received-from" type="text" data-bind="receivedFrom">
+        <div class="fsec-header">
+          <h3>Kwitansi</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="field">
-          <label for="f-for-payment">Untuk Pembayaran</label>
-          <input id="f-for-payment" type="text" data-bind="forPayment" placeholder="Contoh: Angsuran ke-12 kontrak KRD-0091">
+        <div class="fsec-content">
+          <div class="field">
+            <label for="f-received-from">Terima dari</label>
+            <input id="f-received-from" type="text" data-bind="receivedFrom">
+          </div>
+          <div class="field">
+            <label for="f-for-payment">Untuk Pembayaran</label>
+            <input id="f-for-payment" type="text" data-bind="forPayment" placeholder="Contoh: Angsuran ke-12 kontrak KRD-0091">
+          </div>
+          <div class="field">
+            <label for="f-amount">Jumlah (Rp)</label>
+            <input id="f-amount" class="mono" type="number" min="0" data-bind="amount">
+          </div>
+          <div class="hint-line">Terbilang otomatis: <span id="terbilang-preview">—</span></div>
         </div>
-        <div class="field">
-          <label for="f-amount">Jumlah (Rp)</label>
-          <input id="f-amount" class="mono" type="number" min="0" data-bind="amount">
-        </div>
-        <div class="hint-line">Terbilang otomatis: <span id="terbilang-preview">—</span></div>
       </div>
 
       <div class="fsec" id="sec-installment" data-when="installment">
-        <h3>Angsuran</h3>
-        <div class="grid2">
-          <div class="field">
-            <label for="f-contract">No. Kontrak</label>
-            <input id="f-contract" class="mono" type="text" data-bind="contractNo">
-          </div>
-          <div class="field">
-            <label for="f-inst-no">Angsuran ke-</label>
-            <input id="f-inst-no" class="mono" type="number" min="1" data-bind="installmentNo">
-          </div>
+        <div class="fsec-header">
+          <h3>Angsuran</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="field">
-          <label for="f-customer">Nama Nasabah</label>
-          <input id="f-customer" type="text" data-bind="customerName">
-        </div>
-        <div class="grid2">
-          <div class="field">
-            <label for="f-principal">Pokok (Rp)</label>
-            <input id="f-principal" class="mono" type="number" min="0" data-bind="principal">
+        <div class="fsec-content">
+          <div class="grid2">
+            <div class="field">
+              <label for="f-contract">No. Kontrak</label>
+              <input id="f-contract" class="mono" type="text" data-bind="contractNo">
+            </div>
+            <div class="field">
+              <label for="f-inst-no">Angsuran ke-</label>
+              <input id="f-inst-no" class="mono" type="number" min="1" data-bind="installmentNo">
+            </div>
           </div>
           <div class="field">
-            <label for="f-interest">Bunga (Rp)</label>
-            <input id="f-interest" class="mono" type="number" min="0" data-bind="interest">
+            <label for="f-customer">Nama Nasabah</label>
+            <input id="f-customer" type="text" data-bind="customerName">
           </div>
-        </div>
-        <div class="grid2">
+          <div class="grid2">
+            <div class="field">
+              <label for="f-principal">Pokok (Rp)</label>
+              <input id="f-principal" class="mono" type="number" min="0" data-bind="principal">
+            </div>
+            <div class="field">
+              <label for="f-interest">Bunga (Rp)</label>
+              <input id="f-interest" class="mono" type="number" min="0" data-bind="interest">
+            </div>
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label for="f-fine">Denda (Rp)</label>
+              <input id="f-fine" class="mono" type="number" min="0" data-bind="fine">
+            </div>
+            <div class="field">
+              <label for="f-inst-due">Jatuh Tempo Cicilan</label>
+              <input id="f-inst-due" type="date" data-bind="installmentDue">
+            </div>
+          </div>
           <div class="field">
-            <label for="f-fine">Denda (Rp)</label>
-            <input id="f-fine" class="mono" type="number" min="0" data-bind="fine">
+            <label for="f-remaining">Sisa Tagihan (Rp)</label>
+            <input id="f-remaining" class="mono" type="number" min="0" data-bind="remaining">
           </div>
-          <div class="field">
-            <label for="f-inst-due">Jatuh Tempo Cicilan</label>
-            <input id="f-inst-due" type="date" data-bind="installmentDue">
-          </div>
-        </div>
-        <div class="field">
-          <label for="f-remaining">Sisa Tagihan (Rp)</label>
-          <input id="f-remaining" class="mono" type="number" min="0" data-bind="remaining">
         </div>
       </div>
 
       <div class="fsec" id="sec-payment" data-when="payment">
-        <h3>Informasi Pembayaran</h3>
-        <div class="field">
-          <label for="f-bank">Bank</label>
-          <input id="f-bank" type="text" data-bind="payment.bank" placeholder="Contoh: BCA">
+        <div class="fsec-header">
+          <h3>Informasi Pembayaran</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="grid2">
+        <div class="fsec-content">
           <div class="field">
-            <label for="f-acct-no">No. Rekening</label>
-            <input id="f-acct-no" class="mono" type="text" data-bind="payment.accountNo">
+            <label for="f-bank">Bank</label>
+            <input id="f-bank" type="text" data-bind="payment.bank" placeholder="Contoh: BCA">
+          </div>
+          <div class="grid2">
+            <div class="field">
+              <label for="f-acct-no">No. Rekening</label>
+              <input id="f-acct-no" class="mono" type="text" data-bind="payment.accountNo">
+            </div>
+            <div class="field">
+              <label for="f-acct-name">Atas Nama</label>
+              <input id="f-acct-name" type="text" data-bind="payment.accountName">
+            </div>
           </div>
           <div class="field">
-            <label for="f-acct-name">Atas Nama</label>
-            <input id="f-acct-name" type="text" data-bind="payment.accountName">
+            <label for="f-method">Metode Lain</label>
+            <input id="f-method" type="text" data-bind="payment.method" placeholder="Transfer / Tunai / VA / QRIS">
           </div>
-        </div>
-        <div class="field">
-          <label for="f-method">Metode Lain</label>
-          <input id="f-method" type="text" data-bind="payment.method" placeholder="Transfer / Tunai / VA / QRIS">
         </div>
       </div>
 
-      <div class="fsec" id="sec-sign">
-        <h3>Pembuat &amp; Penerima</h3>
-        <div class="hint-line" style="margin-bottom:8px">Untuk kwitansi: "Dibuat oleh" = yang menerima uang, "Diterima oleh" = yang membayar.</div>
-        <div class="field">
-          <label for="f-maker">Dibuat oleh (Nama)</label>
-          <input id="f-maker" type="text" data-bind="signatures.maker.name">
+      <div class="fsec" id="sec-sign" data-when="sign" open>
+        <div class="fsec-header">
+          <h3>Pembuat & Penerima</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-        <div class="field">
-          <label for="f-maker-title">Jabatan</label>
-          <input id="f-maker-title" type="text" data-bind="signatures.maker.title" placeholder="Contoh: Staf Lapangan">
+        <div class="fsec-content">
+          <div class="hint-line" style="margin-bottom:8px">Untuk kwitansi: "Dibuat oleh" = yang menerima uang, "Diterima oleh" = yang membayar.</div>
+          <div class="field">
+            <label for="f-maker">Dibuat oleh (Nama)</label>
+            <input id="f-maker" type="text" data-bind="signatures.maker.name">
+          </div>
+          <div class="field">
+            <label for="f-maker-title">Jabatan</label>
+            <input id="f-maker-title" type="text" data-bind="signatures.maker.title" placeholder="Contoh: Staf Lapangan">
+          </div>
+          <div class="field">
+            <label for="f-receiver">Diterima oleh (Nama)</label>
+            <input id="f-receiver" type="text" data-bind="signatures.receiver.name">
+          </div>
+          <div class="field">
+            <label for="f-receiver-title">Jabatan</label>
+            <input id="f-receiver-title" type="text" data-bind="signatures.receiver.title">
+          </div>
+          <label class="check"><input type="checkbox" id="f-stamp" data-bind="stamp"> Tampilkan area meterai</label>
         </div>
-        <div class="field">
-          <label for="f-receiver">Diterima oleh (Nama)</label>
-          <input id="f-receiver" type="text" data-bind="signatures.receiver.name">
-        </div>
-        <div class="field">
-          <label for="f-receiver-title">Jabatan</label>
-          <input id="f-receiver-title" type="text" data-bind="signatures.receiver.title">
-        </div>
-        <label class="check"><input type="checkbox" id="f-stamp" data-bind="stamp"> Tampilkan area meterai</label>
       </div>
 
       <div class="fsec" id="sec-terms" data-when="terms">
-        <h3>Syarat &amp; Ketentuan</h3>
-        <div class="field">
-          <label for="f-terms">Klausul</label>
-          <textarea id="f-terms" rows="3" data-bind="terms"></textarea>
+        <div class="fsec-header">
+          <h3>Syarat & Ketentuan</h3>
+          <svg class="fsec-chevron" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 9 12 15 18 9"/></svg>
         </div>
-      </div>
-    </section>
+        <div class="fsec-content">
+          <div class="field">
+            <label for="f-terms">Klausul</label>
+            <textarea id="f-terms" rows="3" data-bind="terms"></textarea>
+          </div>
+        </div>
+      </div></section>
 
     <!-- ============ PREVIEW ============ -->
     <section class="preview">
-      <div class="preview-bar noprint">
-        <button class="btn primary" type="button" id="btn-image">Bagikan JPEG</button>
-        <button class="btn" type="button" id="btn-wa">WhatsApp</button>
-        <button class="btn" type="button" id="btn-print">Print</button>
-        <button class="btn" type="button" id="btn-copy">Salin</button>
-        <span class="hint" id="out-hint"></span>
-      </div>
       <div class="stage" id="stage">
         <div class="doc doc-a4" id="doc"></div>
+      </div>
+      <!-- Sticky preview toolbar -->
+      <div class="preview-toolbar noprint" id="preview-toolbar">
+        <button class="btn primary" type="button" id="btn-print">Print</button>
+        <button class="btn" type="button" id="btn-image">Simpan JPEG</button>
+        <button class="btn" type="button" id="btn-wa">WhatsApp</button>
+        <span class="hint" id="out-hint" aria-live="polite"></span>
       </div>
     </section>
   </div>
@@ -291,80 +343,187 @@
     </button>
   </nav>
 
-  <button class="fab noprint" id="btn-new-fab" type="button" aria-label="Dokumen baru">
-    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-  </button>
-
-  <!-- ============ MODAL TOP-UP ============ -->
-  <div class="modal-back noprint" id="topup-modal" hidden>
-    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="topup-title">
+  <!-- ============ BOTTOM SHEETS ============ -->
+  <!-- Template Picker Sheet -->
+  <div class="modal-back sheet noprint" id="tpl-sheet" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="tpl-sheet-title">
       <div class="sheet-handle" aria-hidden="true"></div>
-      <h3 id="topup-title">Kuota &amp; Tagihan</h3>
-      <div class="q-status" id="q-status">Sisa kuota: <b id="q-n">—</b> dokumen</div>
-      <p class="modal-sub" id="topup-sub">Trial gratis 10 dokumen sudah terpakai. Top-up untuk lanjut — makin besar paket, makin hemat. Bayar per dokumen, re-print &amp; re-share gratis.</p>
+      <h3 id="tpl-sheet-title">Pilih Template</h3>
+      <p class="modal-sub tpl-sheet-sub">Pilih kategori, lalu tentukan format dokumennya.</p>
+      <label class="tpl-category-label" for="tpl-sheet-category">Kategori</label>
+      <select class="tpl-category-select" id="tpl-sheet-category"></select>
+      <div class="tpl-sheet-results" id="tpl-sheet-results"></div>
+      <div class="tpl-sheet-grid" id="tpl-sheet-grid"></div>
+      <button class="btn link" type="button" id="tpl-sheet-close">Tutup</button>
+    </div>
+  </div>
 
-      <div class="cat-prices" id="cat-prices">
-        <h4>Harga per Kategori</h4>
-        <div id="cat-price-list"></div>
+  <!-- Billing Sheet (Kuota & Paket) -->
+  <div class="modal-back sheet noprint" id="billing-sheet" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="billing-sheet-title">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <h3 id="billing-sheet-title">Kuota & Paket</h3>
+      <div class="sheet-tabs" role="tablist">
+        <button role="tab" class="on" data-tab="sisa" aria-selected="true">Sisa</button>
+        <button role="tab" data-tab="paket" aria-selected="false">Paket</button>
+        <button role="tab" data-tab="riwayat" aria-selected="false">Riwayat</button>
       </div>
-
-      <div id="topup-packages">
+      <div class="sheet-panel" id="panel-sisa" role="tabpanel" aria-labelledby="billing-sheet-title">
+        <div class="q-status" id="q-status">
+          <span>Gratis: <b id="q-trial">—</b> dokumen</span>
+          <span>Saldo: <b id="q-balance">—</b></span>
+        </div>
+        <p class="modal-sub" id="billing-sub">10 dokumen pertama gratis. Setelahnya, biaya terbit mengikuti kategori dokumen.</p>
+        <div class="cat-prices" id="cat-prices">
+          <h4>Harga per Kategori</h4>
+          <div id="cat-price-list"></div>
+        </div>
+        <div class="sheet-actions">
+          <button class="btn primary" type="button" id="btn-buy-pkg">Isi Saldo</button>
+        </div>
+      </div>
+      <div class="sheet-panel" id="panel-paket" role="tabpanel" aria-labelledby="billing-sheet-title" hidden>
         <div class="pkg-list" id="pkg-list"></div>
-        <p class="modal-contact" id="topup-contact"></p>
+        <p class="modal-contact" id="billing-contact"></p>
       </div>
-
-      <div id="topup-pending" hidden>
+      <div class="sheet-panel" id="panel-riwayat" role="tabpanel" aria-labelledby="billing-sheet-title" hidden>
+        <div class="hist" id="billing-hist">
+          <h4>Riwayat Kuota</h4>
+          <div id="billing-hist-list"></div>
+        </div>
+      </div>
+      <!-- Pending top-up view (replaces panels when active) -->
+      <div class="sheet-panel" id="panel-pending" role="tabpanel" aria-labelledby="billing-sheet-title" hidden>
         <div class="req-box">
           <div class="req-row"><span>ID Permintaan</span><b class="mono" id="req-id">—</b></div>
           <div class="req-row"><span>Transfer</span><b class="mono" id="req-price">—</b></div>
-          <div class="req-row"><span>Dapat</span><b class="mono" id="req-credits">—</b></div>
-          <div class="req-row"><span>Ke</span><b id="req-contact">—</b></div>
+          <div class="req-row"><span>Saldo masuk</span><b class="mono" id="req-balance">—</b></div>
+          <div class="req-row"><span>Konfirmasi</span><b id="req-contact">—</b></div>
         </div>
         <p class="wait-note" id="req-wait" hidden></p>
-        <div id="topup-local">
-          <p class="modal-sub">Setelah transfer, kirim bukti + ID di atas ke admin. Admin kirim kode konfirmasi, lalu masukkan di sini:</p>
-          <div class="code-row">
-            <input id="topup-code" class="mono" type="text" placeholder="KODE 6 KARAKTER" maxlength="6" autocomplete="off">
-            <button class="btn primary" type="button" id="btn-redeem">Tukar Kode</button>
+        <div id="topup-instructions">
+          <p class="modal-sub">Transfer sesuai nominal ke rekening yang diberikan admin. Setelah transfer, konfirmasi lewat WhatsApp dan lampirkan bukti pembayaran.</p>
+          <div class="payment-format">
+            <b>Format pesan konfirmasi</b>
+            <pre id="payment-message-preview"></pre>
           </div>
+          <button class="btn primary" type="button" id="btn-contact-wa">Konfirmasi via WhatsApp</button>
           <button class="btn link" type="button" id="btn-other-pkg">Pilih paket lain</button>
         </div>
         <button class="btn link" type="button" id="btn-cancel-topup" hidden>Batalkan Permintaan</button>
       </div>
-
-      <div class="hist" id="topup-hist">
-        <h4>Riwayat Kuota</h4>
-        <div id="hist-list"></div>
-      </div>
-
-      <button class="btn link" type="button" id="topup-close">Tutup</button>
+      <button class="btn link" type="button" id="billing-sheet-close">Tutup</button>
     </div>
   </div>
 
-  <!-- ============ MODAL AUTH ============ -->
-  <div class="modal-back noprint" id="auth-modal" hidden>
-    <div class="modal auth" role="dialog" aria-modal="true" aria-labelledby="auth-title">
+  <!-- Auth Sheet -->
+  <div class="auth-page noprint" id="auth-sheet" role="dialog" aria-modal="true" aria-labelledby="auth-sheet-title" aria-describedby="auth-intro" hidden>
+    <section class="auth-story" aria-labelledby="auth-story-title">
+      <div class="auth-brand" aria-label="FakturKu">
+        <span class="auth-brand-mark" aria-hidden="true">F</span>
+        <span>FakturKu</span>
+      </div>
+      <div class="auth-story-copy">
+        <span class="auth-eyebrow">Dokumen usaha, lebih praktis</span>
+        <h1 id="auth-story-title">Bukan cuma faktur.</h1>
+        <p>Bikin dokumen untuk berbagai kebutuhan usaha. Pilih template, ubah isinya, lalu cetak atau bagikan. Total dihitung otomatis untuk dokumen transaksi.</p>
+        <h2 class="auth-sectors-title">Untuk berbagai kebutuhan usaha</h2>
+        <ul class="auth-sectors">
+          <li>
+            <span class="auth-sector-icon" aria-hidden="true">💰</span>
+            <span class="auth-sector-copy">
+              <span class="auth-sector-heading"><b>Finance</b><span class="auth-sector-status">7 template</span></span>
+              <small>Faktur, tagihan, nota kredit</small>
+            </span>
+          </li>
+          <li>
+            <span class="auth-sector-icon" aria-hidden="true">🏪</span>
+            <span class="auth-sector-copy">
+              <span class="auth-sector-heading"><b>UMKM</b><span class="auth-sector-status">6 template</span></span>
+              <small>Nota, penawaran, daftar harga</small>
+            </span>
+          </li>
+          <li>
+            <span class="auth-sector-icon" aria-hidden="true">⚖️</span>
+            <span class="auth-sector-copy">
+              <span class="auth-sector-heading"><b>Legal</b><span class="auth-sector-status">6 template</span></span>
+              <small>Perjanjian, kuasa, pernyataan</small>
+            </span>
+          </li>
+          <li>
+            <span class="auth-sector-icon" aria-hidden="true">📦</span>
+            <span class="auth-sector-copy">
+              <span class="auth-sector-heading"><b>Logistik</b><span class="auth-sector-status">4 template</span></span>
+              <small>Surat jalan, retur, daftar kemasan</small>
+            </span>
+          </li>
+          <li>
+            <span class="auth-sector-icon" aria-hidden="true">🧾</span>
+            <span class="auth-sector-copy">
+              <span class="auth-sector-heading"><b>Pajak</b><span class="auth-sector-status">3 template</span></span>
+              <small>Lembar bantu, bukan dokumen resmi DJP</small>
+            </span>
+          </li>
+          <li>
+            <span class="auth-sector-icon" aria-hidden="true">🏗️</span>
+            <span class="auth-sector-copy">
+              <span class="auth-sector-heading"><b>Proyek</b><span class="auth-sector-status">5 template</span></span>
+              <small>RAB, tagihan termin, berita acara</small>
+            </span>
+          </li>
+          <li>
+            <span class="auth-sector-icon" aria-hidden="true">📋</span>
+            <span class="auth-sector-copy">
+              <span class="auth-sector-heading"><b>Operasional</b><span class="auth-sector-status">5 template</span></span>
+              <small>Memo, pembelian, perjalanan dinas</small>
+            </span>
+          </li>
+        </ul>
+        <p class="auth-template-note"><b>36 template siap dipakai di 7 kategori.</b> Isi template bisa diubah sebelum dicetak atau dibagikan. Dokumen legal dan pajak dilengkapi petunjuk penggunaannya.</p>
+      </div>
+      <p class="auth-story-foot">Mulai dengan 10 dokumen gratis.</p>
+    </section>
+
+    <section class="auth-panel" aria-label="Akses akun">
+      <div class="auth-card">
+        <h2 id="auth-sheet-title">Buat akun gratis</h2>
+        <p class="auth-intro" id="auth-intro">Daftar untuk menyimpan dokumen dan kuota di akunmu.</p>
+        <div class="auth-tabs" role="tablist" aria-label="Akses akun">
+          <button role="tab" id="auth-tab-up" class="on" aria-selected="true">Daftar</button>
+          <button role="tab" id="auth-tab-in" aria-selected="false">Masuk</button>
+        </div>
+        <div class="field" id="auth-name-field">
+          <label for="auth-name">Nama (opsional)</label>
+          <input id="auth-name" type="text" autocomplete="name" placeholder="Nama kamu">
+        </div>
+        <div class="field">
+          <label for="auth-email">Email</label>
+          <input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com">
+        </div>
+        <div class="field">
+          <label for="auth-pass">Password</label>
+          <input id="auth-pass" type="password" autocomplete="new-password" placeholder="Minimal 6 karakter">
+        </div>
+        <p class="auth-err" id="auth-err" role="status" aria-live="polite" hidden></p>
+        <button class="btn primary" type="button" id="auth-go">Buat akun gratis</button>
+        <p class="auth-data-note">Dokumen dan kuota akunmu tersimpan online, jadi bisa dibuka dari perangkat lain.</p>
+        <button class="btn link" type="button" id="auth-guest">Lanjutkan sebagai tamu</button>
+        <p class="auth-guest-note">Mode tamu menyimpan data di perangkat ini. Login diperlukan untuk menerbitkan dokumen.</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- Drafts Sheet -->
+  <div class="modal-back sheet noprint" id="drafts-sheet" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="drafts-sheet-title">
       <div class="sheet-handle" aria-hidden="true"></div>
-      <h3 id="auth-title">Masuk FakturKu</h3>
-      <p class="modal-sub">Akun menyimpan kuota, riwayat, dan dokumen di server — bisa dari HP sekaligus laptop.</p>
-      <div class="auth-tabs">
-        <button type="button" id="auth-tab-in" class="on">Masuk</button>
-        <button type="button" id="auth-tab-up">Daftar</button>
+      <h3 id="drafts-sheet-title">Draft Tersimpan</h3>
+      <div class="field" style="flex-direction:row;gap:6px;margin-bottom:12px">
+        <input id="draft-name" type="text" placeholder="Nama draft baru (mis. Faktur Pak Budi)" style="flex:1">
+        <button class="btn primary" type="button" id="btn-save-draft">Simpan</button>
       </div>
-      <div class="field" id="auth-name-field" hidden>
-        <label for="auth-name">Nama</label>
-        <input id="auth-name" type="text" autocomplete="name">
-      </div>
-      <div class="field">
-        <label for="auth-email">Email</label>
-        <input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com">
-      </div>
-      <div class="field">
-        <label for="auth-pass">Password</label>
-        <input id="auth-pass" type="password" autocomplete="current-password" placeholder="Minimal 6 karakter">
-      </div>
-      <p class="auth-err" id="auth-err" hidden></p>
-      <button class="btn primary" type="button" id="auth-go">Masuk</button>
+      <div class="draft-list" id="draft-list"></div>
+      <button class="btn link" type="button" id="drafts-sheet-close">Tutup</button>
     </div>
   </div>
 

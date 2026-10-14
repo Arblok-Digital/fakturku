@@ -56,11 +56,11 @@ User pilih template (filter kategori)
   → Invoice-engine build state
   → Template-engine render preview (PDF/thermal)
   → Cetak / Share / Terbit
-  → Backend: issue_document(p_ref, p_category)
+  → Backend: issue_document(p_ref, p_category, p_template, p_data)
+      → simpan draft + validasi template/kategori/harga
       → cek harga kategori
-      → cek kuota user
-      → debit 1 (Model A) atau weighted (Model B)
-      → tandai dokumen TERBIT
+      → pakai trial, lalu debit saldo Rupiah
+      → catat transaksi + tandai dokumen TERBIT secara atomik
 ```
 
 ---

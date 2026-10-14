@@ -1,5 +1,10 @@
 {
   "rewrites": [
-    { "source": "/admin", "destination": "/admin.html" }
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/opendesign/:path*", "destination": "/404.html" },
+    { "source": "/PLAN-billing-kategori/:path*", "destination": "/404.html" },
+    { "source": "/actual.txt", "destination": "/404.html" },
+    { "source": "/.kilo/:path*", "destination": "/404.html" },
+    { "source": "/((?!.*\\..*).*)", "destination": "/index.html" }
   ]
 }

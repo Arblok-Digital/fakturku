@@ -48,6 +48,7 @@ export function blankState(templateId, opts = {}) {
     },
     stamp: false,
     numbers: {},
+    custom: {},
     issued: false,
     savedAt: "",
   };
@@ -90,8 +91,11 @@ export function hydrate(raw) {
     maker: { ...d.signatures.maker, ...((raw.signatures || {}).maker || {}) },
     receiver: { ...d.signatures.receiver, ...((raw.signatures || {}).receiver || {}) },
   };
+  out.custom = raw.custom && typeof raw.custom === "object" ? raw.custom : {};
   if (!Array.isArray(raw.items) || !raw.items.length) out.items = d.items;
   if (!out.template) out.template = d.template;
+  // Empty/absent number must never persist as "": fall back to a fresh number.
+  if (!out.number) out.number = nextNumber(getPrefix(out.category || getCategory(out.template)));
   return out;
 }
 

@@ -1,0 +1,52 @@
+<div class="fsec" id="sec-payment" data-when="payment">
+        <h3>Informasi Pembayaran</h3>
+        <div class="field">
+          <label for="f-bank">Bank</label>
+          <input id="f-bank" type="text" data-bind="payment.bank" placeholder="Contoh: BCA">
+        </div>
+        <div class="grid2">
+          <div class="field">
+            <label for="f-acct-no">No. Rekening</label>
+            <input id="f-acct-no" class="mono" type="text" data-bind="payment.accountNo">
+          </div>
+          <div class="field">
+            <label for="f-acct-name">Atas Nama</label>
+            <input id="f-acct-name" type="text" data-bind="payment.accountName">
+          </div>
+        </div>
+        <div class="field">
+          <label for="f-method">Metode Lain</label>
+          <input id="f-method" type="text" data-bind="payment.method" placeholder="Transfer / Tunai / VA / QRIS">
+        </div>
+      </div>
+
+      <div class="fsec" id="sec-sign">
+        <h3>Pembuat &amp; Penerima</h3>
+        <div class="hint-line" style="margin-bottom:8px">Untuk kwitansi: "Dibuat oleh" = yang menerima uang, "Diterima oleh" = yang membayar.</div>
+        <div class="field">
+          <label for="f-maker">Dibuat oleh (Nama)</label>
+          <input id="f-maker" type="text" data-bind="signatures.maker.name">
+        </div>
+        <div class="field">
+          <label for="f-maker-title">Jabatan</label>
+          <input id="f-maker-title" type="text" data-bind="signatures.maker.title" placeholder="Contoh: Staf Lapangan">
+        </div>
+        <div class="field">
+          <label for="f-receiver">Diterima oleh (Nama)</label>
+          <input id="f-receiver" type="text" data-bind="signatures.receiver.name">
+        </div>
+        <div class="field">
+          <label for="f-receiver-title">Jabatan</label>
+          <input id="f-receiver-title" type="text" data-bind="signatures.receiver.title">
+        </div>
+        <label class="check"><input type="checkbox" id="f-stamp" data-bind="stamp"> Tampilkan area meterai</label>
+      </div>
+
+      <div class="fsec" id="sec-terms" data-when="terms">
+        <h3>Syarat &amp; Ketentuan</h3>
+        <div class="field">
+          <label for="f-terms">Klausul</label>
+          <textarea id="f-terms" rows="3" data-bind="terms"></textarea>
+        </div>
+      </div>
+    

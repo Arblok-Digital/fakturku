@@ -1,271 +1,83 @@
-# 03 — Logic Billing & Model
+# 03 — Billing & Pembayaran
 
-> 2 model billing: Model A (flat) vs Model B (tiered). Rekomendasi: Model A dulu.
+## Model
+
+- Setiap akun mendapat **10 dokumen trial gratis**. Satu dokumen terbit mengurangi jatah trial sebanyak satu, tanpa membedakan kategori.
+- Setelah trial habis, saldo Rupiah dipotong sebesar harga kategori dokumen. Harga ditetapkan dan dipotong di Supabase, bukan dipercaya dari browser.
+- Paket isi saldo saat ini bernilai sesuai nominal pembayaran; tidak ada bonus saldo tersembunyi.
+- Cetak/bagikan ulang dokumen yang sama gratis. Penerbitan dikunci di server agar satu dokumen tidak menagih berulang.
+- Dokumen yang sudah terbit tidak dapat dikembalikan ke status draft.
+
+## Harga per dokumen
+
+| Kategori | Biaya terbit |
+|---|---:|
+| Finance | Rp1.000 |
+| UMKM | Rp500 |
+| Legal | Rp2.000 |
+| Logistik | Rp500 |
+| Pajak | Rp1.500 |
+| Proyek | Rp1.500 |
+| Operasional | Rp750 |
+
+Harga diambil server-side dari `document_categories`. Template ID dipetakan ke kategorinya pada tabel `document_templates`; kategori yang dikirim oleh browser harus cocok dengan pemetaan itu.
+
+## Paket isi saldo
+
+| Paket | Transfer | Saldo masuk |
+|---|---:|---:|
+| Starter | Rp15.000 | Rp15.000 |
+| Bisnis | Rp40.000 | Rp40.000 |
+| Pro | Rp85.000 | Rp85.000 |
+
+Nominal paket mengikuti harga yang sudah ada di konfigurasi paket. Paket dan harga otoritatif berasal dari Supabase `packages`.
+
+## Alur penerbitan
+
+1. Pengguna menekan Print, Bagikan JPEG, atau WhatsApp.
+2. Jika jatah gratis masih ada, konfirmasi menyebut jatah trial yang akan dipakai dan saldo tidak dipotong.
+3. Setelah trial habis, konfirmasi menunjukkan biaya kategori dan saldo sesudah transaksi.
+4. Frontend mengirim data dokumen ke RPC `issue_document(ref, category, template, data)`. RPC menyimpan atau memperbarui draft, memvalidasi template dan harga, memotong trial/saldo, lalu menandai dokumen terbit dalam satu transaksi.
+5. Server memakai trial terlebih dahulu. Jika trial habis, server memotong saldo Rupiah sesuai harga kategori.
+6. Ekspor ulang dokumen yang sudah terbit tidak memotong trial atau saldo.
+
+## Alur top-up manual via WhatsApp
+
+1. Pengguna memilih paket dan sistem membuat permintaan `pending` dengan ID unik.
+2. UI menampilkan nominal transfer, saldo yang akan masuk, nomor WhatsApp **+62 895-0805-3795**, dan format pesan berisi nama, email akun, ID permintaan, nominal transfer, serta saldo masuk.
+3. Tombol konfirmasi membuka WhatsApp dengan pesan tersebut. Pengguna mengirim bukti transfer di chat.
+4. Admin memeriksa bukti lalu menyetujui permintaan di panel admin. RPC `approve_topup` menambahkan saldo berdasarkan nilai yang tersimpan di server.
+5. Satu akun hanya boleh memiliki satu permintaan top-up pending. Pembayaran tidak otomatis dikonfirmasi; jangan menyetujui sebelum bukti cocok.
+
+Format pesan:
+
+```text
+KONFIRMASI TOP-UP FAKTURKU
+Nama: [nama akun]
+Email akun: [email akun]
+ID permintaan: [FKT-XXXXXX]
+Nominal transfer: [Rp ...]
+Saldo yang diminta: [Rp ...]
+Bukti transfer: saya lampirkan di chat ini.
+```
+
+Admin transfer/review manual dipakai untuk tahap awal. Payment gateway dapat ditambahkan kemudian tanpa mengubah model saldo; alur gateway perlu membuat top-up dan mengkreditkan saldo hanya dari webhook yang diverifikasi server.
+
+## Database dan transaksi
+
+- `ledger_accounts.trial_credits`: sisa trial.
+- `ledger_accounts.balance`: saldo Rupiah.
+- `topup_requests.balance_amount`: saldo yang akan ditambahkan setelah admin menyetujui.
+- `credit_transactions`: mencatat perubahan trial dan saldo secara terpisah.
+- RPC penting: `get_my_billing`, `issue_document`, `request_topup`, `approve_topup`, `adjust_balance`.
+- Migrasi implementasi: `supabase/migrations/20261013130000_category_wallet_billing.sql`.
+
+Migrasi ini menginisialisasi akun yang sudah ada ke 10 trial dan saldo Rp0 sesuai keputusan bahwa belum ada saldo pengguna nyata. Terapkan hanya setelah memastikan asumsi tersebut tetap benar; jalankan migrasi melalui Supabase, bukan hanya menyimpan file di repo.
+
+## Mode offline
+
+Tanpa koneksi akun/Supabase, aplikasi hanya bisa memakai trial lokal. Saldo Rupiah dan persetujuan top-up tetap memerlukan server; localStorage bukan sumber saldo yang otoritatif.
 
 ---
 
-## Alur Terbit Dokumen
-
-```
-User klik "Terbit" / "Cetak"
-  │
-  ├─ Sudah login?
-  │   ├─ Ya → Remote mode
-  │   │   ├─ GET profile (kuota)
-  │   │   ├─ Cek kuota > 0
-  │   │   ├─ CALL issue_document(ref, category)
-  │   │   │   → debit + tandai terbit
-  │   │   ├─ Update UI (kuota berkurang)
-  │   │   └─ Render watermark TERBIT
-  │   │
-  │   └─ Tidak → Local mode (fallback)
-  │       ├─ Cek localStorage kuota
-  │       ├─ issueLocal(ref, category)
-  │       └─ Simpan history lokal
-  │
-  └─ Re-print / re-share? → GRATIS (gak debit lagi)
-```
-
----
-
-## Model A — Flat (sederhana) ✅ Rekomendasi MVP
-
-> 1 kuota = 1 dokumen terbit, apapun kategorinya. Harga kategori hanya **tampilan informatif**.
-
-### Kelebihan
-- Paling gampang diimplementasi
-- User gak bingung — semua dokumen sama
-- Frontend & backend sederhana
-
-### Kekurangan
-- Dokumen legal (mahal) gak "berbayar" lebih mahal
-- Revenue kurang optimal untuk dokumen kompleks
-
-### Implementasi
-
-```sql
--- RPC issue_document (Model A)
-create or replace function issue_document(p_ref text, p_category text)
-returns jsonb
-language plpgsql security definer
-as $$
-declare
-  v_user_id uuid := auth.uid();
-  v_quota int;
-begin
-  if v_user_id is null then
-    return jsonb_build_object('ok', false, 'error', 'not_authenticated');
-  end if;
-
-  select credits into v_quota from ledger_accounts where user_id = v_user_id;
-  
-  if v_quota is null or v_quota <= 0 then
-    return jsonb_build_object('ok', false, 'error', 'insufficient_quota');
-  end if;
-
-  update ledger_accounts 
-    set credits = credits - 1 
-    where user_id = v_user_id;
-
-  insert into credit_transactions (user_id, type, credits, category)
-    values (v_user_id, 'issue', -1, p_category);
-
-  update invoices 
-    set issued_at = now(), category = p_category
-    where ref = p_ref and user_id = v_user_id;
-
-  return jsonb_build_object('ok', true, 'remaining', v_quota - 1);
-end;
-$$;
-```
-
-### Frontend
-
-```js
-// js/modules/backend.js
-async issueDocument(ref, category) {
-  const { data, error } = await supabase.rpc('issue_document', {
-    p_ref: ref,
-    p_category: category
-  });
-  return data; // { ok, remaining, error? }
-}
-```
-
----
-
-## Model B — Tiered (weighted)
-
-> Tiap kategori punya bobot. Debit kuota = `ceil(price_per_doc / base_price)`.
-
-### Kelebihan
-- Fair: dokumen mahal makan lebih banyak kuota
-- Revenue proporsional
-
-### Kekurangan
-- Perlu edukasi user ("kenapa kwitansi 1, kontrak 2?")
-- Frontend & backend lebih kompleks
-- Hitung sisa kuota bisa membingungkan
-
-### Implementasi
-
-```sql
--- RPC issue_document (Model B)
-create or replace function issue_document(p_ref text, p_category text)
-returns jsonb
-language plpgsql security definer
-as $$
-declare
-  v_user_id uuid := auth.uid();
-  v_quota int;
-  v_price int;
-  v_base_price int;
-  v_weight int;
-  v_remaining int;
-begin
-  if v_user_id is null then
-    return jsonb_build_object('ok', false, 'error', 'not_authenticated');
-  end if;
-
-  select credits into v_quota from ledger_accounts where user_id = v_user_id;
-  select price_per_doc into v_price from document_categories where id = p_category;
-  
-  -- Base price = harga termurah
-  select min(price_per_doc) into v_base_price from document_categories where active = true;
-  
-  v_weight := ceil(v_price::numeric / v_base_price::numeric);
-
-  if v_quota is null or v_quota < v_weight then
-    return jsonb_build_object('ok', false, 'error', 'insufficient_quota');
-  end if;
-
-  v_remaining := v_quota - v_weight;
-
-  update ledger_accounts 
-    set credits = v_remaining 
-    where user_id = v_user_id;
-
-  insert into credit_transactions (user_id, type, credits, category)
-    values (v_user_id, 'issue', -v_weight, p_category);
-
-  update invoices 
-    set issued_at = now(), category = p_category
-    where ref = p_ref and user_id = v_user_id;
-
-  return jsonb_build_object('ok', true, 'remaining', v_remaining, 'weight', v_weight);
-end;
-$$;
-```
-
-### Contoh Perhitungan
-
-| Base price | Kategori | Harga | Weight |
-|---|---|---|---|
-| 500 | umkm | 500 | 1 |
-| 500 | finance | 1000 | 2 |
-| 500 | legal | 2000 | 4 |
-
-> User dengan 60 kuota bisa terbit 60 dokumen UMKM atau 15 dokumen Legal.
-
----
-
-## Alur Top-Up
-
-```
-User klik "Top Up"
-  │
-  ├─ Pilih paket (Starter/Bisnis/Pro)
-  │
-  ├─ CALL request_topup(package_id)
-  │   → buat topup_requests (pending)
-  │
-  ├─ User transfer manual / QRIS
-  │   → screenshot bukti
-  │
-  └─ Admin approve
-      │
-      └─ CALL approve_topup(request_id)
-          → tambah credits ke ledger_accounts
-          → tandai approved
-```
-
-### Frontend (Remote mode)
-
-```js
-async requestTopup(packageId) {
-  const { data, error } = await supabase.rpc('request_topup', {
-    p_package_id: packageId
-  });
-  return data; // { ok, request_id }
-}
-```
-
-### Frontend (Local mode — redeem kode offline)
-
-```js
-// credit-ledger.js — kode offline per akun
-redeemCode(code) {
-  const expected = adminCode(this.userId);
-  if (code !== expected) return { ok: false, error: 'invalid_code' };
-  const pkg = PACKAGES.find(p => p.id === packageId);
-  this.credits += pkg.credits;
-  this.save();
-  return { ok: true, remaining: this.credits };
-}
-```
-
----
-
-## Re-print & Re-share
-
-> **GRATIS** — dokumen yang sudah terbit bisa dicetak ulang / dibagikan ulang tanpa debit lagi.
-
-```js
-// app.js — hanya debit saat PERTAMA KALI terbit
-if (!state.isIssued) {
-  const result = await backend.issueDocument(state.ref, state.category);
-  if (!result.ok) { showError(result.error); return; }
-  state.isIssued = true;
-}
-// Lanjut cetak / share tanpa cek kuota
-```
-
----
-
-## Riwayat Transaksi
-
-| type | credits | category | Keterangan |
-|---|---|---|---|
-| `trial` | +10 | NULL | Bonus awal |
-| `issue` | -1 | `finance` | Terbit faktur |
-| `issue` | -4 | `legal` | Terbit kontrak (Model B) |
-| `topup` | +60 | NULL | Top-up Bisnis |
-| `cancel` | +0 | `legal` | Top-up ditolak |
-| `adjust` | +5 | NULL | Bonus manual admin |
-
----
-
-## Mode Fallback (Offline / Belum Login)
-
-```js
-// credit-ledger.js — localStorage
-issueLocal(ref, category) {
-  if (this.credits <= 0) return { ok: false };
-  this.credits -= 1;
-  this.history.push({
-    type: 'issue',
-    credits: -1,
-    category,
-    ref,
-    date: Date.now()
-  });
-  this.save();
-  return { ok: true, remaining: this.credits };
-}
-```
-
-> Catatan: mode lokal **bisa diakali** (edit localStorage). Ini known limitation, sudah dilaporkan.
-
----
-
-*Lihat juga: [02-database](02-database.md) untuk SQL lengkap, [04-ui-ux](04-ui-ux.md) untuk tampilan billing.*
+Lihat juga: [02-database](02-database.md) dan [04-ui-ux](04-ui-ux.md).

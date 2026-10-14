@@ -20,6 +20,11 @@
       border-radius: var(--r-sm);
     }
     .admin-sub { font-size: 12.5px; color: var(--ink-500); margin: 0 0 20px; line-height: 1.5; }
+    .admin-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .admin-actions .act { min-height: 42px; padding: 8px 12px; }
+    .notify-status { font-size: 12.5px; color: var(--ink-500); margin: 0 0 12px; line-height: 1.5; }
+    .notify-status[data-state="on"] { color: var(--teal-600); }
+    .notify-status[data-state="error"] { color: var(--danger-600); }
     .panel {
       background: var(--paper);
       border: 1px solid var(--line);
@@ -44,6 +49,16 @@
       border-radius: var(--r-sm);
       padding: 12px 14px;
     }
+    .cashflow-controls { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+    .cashflow-controls .act[aria-pressed="true"] { background: var(--navy-700); border-color: var(--navy-700); color: white; }
+    .cashflow-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 12px; }
+    .cashflow-summary .stat { min-width: 0; }
+    .cashflow-chart { display: grid; gap: 8px; margin: 10px 0 14px; }
+    .flow-row { display: grid; grid-template-columns: 72px 1fr 112px; gap: 10px; align-items: center; font-size: 12px; }
+    .flow-label { color: var(--ink-500); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .flow-track { height: 10px; border-radius: 999px; background: var(--line); overflow: hidden; }
+    .flow-fill { height: 100%; border-radius: inherit; background: var(--teal-600); min-width: 2px; }
+    .flow-value { font-family: var(--font-mono); text-align: right; color: var(--ink-700); }
     .stat .n { font-family: var(--font-mono); font-size: 26px; font-weight: 600; color: var(--navy-700); }
     .stat .l { font-size: 11px; color: var(--ink-500); text-transform: uppercase; letter-spacing: 0.06em; }
     .stat.hot { background: var(--amber-100); border-color: var(--amber-100); }
@@ -80,6 +95,39 @@
     .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
     .who { font-size: 12px; color: var(--ink-500); }
     .who b { color: var(--ink-700); font-weight: 600; }
+    @media (max-width: 700px) {
+      .admin-wrap { padding: 18px 12px calc(40px + env(safe-area-inset-bottom)); }
+      .panel { padding: 14px 12px; overflow: hidden; }
+      .stats, .cashflow-summary { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .stat { min-width: 0; padding: 10px; }
+      .flow-row { grid-template-columns: 64px 1fr; }
+      .flow-value { grid-column: 2; text-align: left; }
+      .stat .n { font-size: 22px; }
+      .log-table, .log-table tbody { display: block; width: 100%; }
+      .log-table thead { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+      .log-table tr {
+        display: block; margin: 0 0 12px; padding: 8px 10px;
+        border: 1px solid var(--line); border-radius: var(--r-sm);
+      }
+      .log-table td {
+        display: flex; justify-content: space-between; align-items: flex-start; gap: 12px;
+        padding: 7px 0; border-bottom: 1px solid var(--line); text-align: right;
+        overflow-wrap: anywhere;
+      }
+      .log-table td:last-child { border-bottom: 0; }
+      .log-table td::before {
+        content: attr(data-label); flex: 0 0 34%; color: var(--ink-500);
+        font-size: 10px; font-weight: 600; letter-spacing: .04em; text-align: left;
+        text-transform: uppercase;
+      }
+      .log-table td > .row-actions { justify-content: flex-end; flex-wrap: wrap; }
+      .log-table td .act { min-height: 38px; padding: 7px 10px; }
+      .log-table td select.mini { max-width: 60%; }
+      .log-table td .cred-cell { max-width: 65%; }
+      .log-table td .cred-cell input { width: 84px; min-height: 38px; }
+      .toolbar { align-items: flex-start; }
+      .toolbar .row-actions { margin-left: auto; }
+    }
   </style>
 </head>
 <body>
@@ -115,6 +163,16 @@
         </span>
       </div>
 
+      <section class="panel" id="admin-notifications">
+        <h2>Notifikasi Top-Up</h2>
+        <p class="notify-status" id="push-status" data-state="off" role="status" aria-live="polite">Memeriksa dukungan notifikasi…</p>
+        <div class="admin-actions">
+          <button class="act ok" type="button" id="push-enable" hidden>Aktifkan notifikasi di perangkat ini</button>
+          <button class="act" type="button" id="push-disable" hidden>Matikan notifikasi di perangkat ini</button>
+        </div>
+        <p class="admin-sub" id="push-help" style="margin:10px 0 0"></p>
+      </section>
+
       <section class="panel">
         <h2>Statistik</h2>
         <div class="stats">
@@ -125,22 +183,46 @@
       </section>
 
       <section class="panel">
+        <h2>Dashboard Cashflow</h2>
+        <div class="cashflow-controls" role="group" aria-label="Periode cashflow">
+          <button class="act" type="button" data-flow="week" aria-pressed="true">Minggu ini</button>
+          <button class="act" type="button" data-flow="month" aria-pressed="false">Bulan ini</button>
+          <button class="act" type="button" data-flow="year" aria-pressed="false">Tahun ini</button>
+        </div>
+        <div class="cashflow-summary">
+          <div class="stat"><div class="n" id="cf-in">—</div><div class="l">Uang masuk</div></div>
+          <div class="stat"><div class="n" id="cf-out">—</div><div class="l">Saldo terpakai</div></div>
+          <div class="stat"><div class="n" id="cf-net">—</div><div class="l">Net saldo</div></div>
+          <div class="stat hot"><div class="n" id="cf-pending">—</div><div class="l">Menunggu transfer</div></div>
+        </div>
+        <div class="cashflow-chart" id="cf-chart"></div>
+        <table class="log-table">
+          <thead>
+            <tr><th>Periode</th><th>Top-up approve</th><th>Saldo dipakai</th><th>Transaksi</th></tr>
+          </thead>
+          <tbody id="cf-body"></tbody>
+        </table>
+        <div class="empty-line" id="cf-empty">Belum ada cashflow di periode ini.</div>
+        <p class="admin-sub" style="margin:10px 0 0">Uang masuk dihitung dari top-up yang sudah approved. Saldo terpakai dihitung dari pemakaian saldo dokumen.</p>
+      </section>
+
+      <section class="panel">
         <h2>Permintaan Top-Up</h2>
         <table class="log-table">
           <thead>
-            <tr><th>Waktu</th><th>User</th><th>Paket</th><th>Harga</th><th>ID</th><th>Status</th><th></th></tr>
+            <tr><th>Waktu</th><th>User</th><th>Saldo masuk</th><th>Transfer</th><th>ID</th><th>Status</th><th></th></tr>
           </thead>
           <tbody id="tu-body"></tbody>
         </table>
         <div class="empty-line" id="tu-empty">Belum ada permintaan.</div>
-        <p class="admin-sub" style="margin:10px 0 0">Approve hanya setelah bukti transfer masuk — kuota user bertambah otomatis.</p>
+        <p class="admin-sub" style="margin:10px 0 0">Approve hanya setelah bukti transfer diverifikasi — saldo Rupiah user bertambah otomatis.</p>
       </section>
 
       <section class="panel">
         <h2>User &amp; Kuota</h2>
         <table class="log-table">
           <thead>
-            <tr><th>Nama</th><th>Email</th><th>Role</th><th>Kuota</th><th>Adjust</th></tr>
+            <tr><th>Nama</th><th>Email</th><th>Role</th><th>Trial</th><th>Saldo</th><th>Adjust Saldo</th></tr>
           </thead>
           <tbody id="us-body"></tbody>
         </table>
@@ -148,10 +230,10 @@
       </section>
 
       <section class="panel">
-        <h2>Log Transaksi Kuota</h2>
+        <h2>Log Transaksi</h2>
         <table class="log-table">
           <thead>
-            <tr><th>Waktu</th><th>User</th><th>Delta</th><th>Ref</th><th>Sisa</th></tr>
+            <tr><th>Waktu</th><th>User</th><th>Perubahan</th><th>Ref</th><th>Sisa</th></tr>
           </thead>
           <tbody id="tx-body"></tbody>
         </table>
@@ -159,44 +241,10 @@
       </section>
     </div>
 
-    <!-- ===== mode lokal (tanpa Supabase) ===== -->
     <div id="adm-local" hidden>
-      <p class="admin-sub">Mode lokal: backend Supabase belum diisi (<code>js/config.js</code>). Panel di bawah memakai kode offline per-device — tidak realtime.</p>
-
       <section class="panel">
-        <h2>1 · Approve Permintaan</h2>
-        <div class="form-row">
-          <div class="field">
-            <label for="a-id">ID Permintaan User</label>
-            <input id="a-id" class="mono" type="text" placeholder="FKT-XXXXXX" autocomplete="off">
-          </div>
-          <div class="field">
-            <label for="a-pkg">Paket Dibayar</label>
-            <select id="a-pkg"></select>
-          </div>
-        </div>
-        <button class="btn primary" type="button" id="a-go" style="margin-top:12px;width:100%">Setujui &amp; Buat Kode</button>
-        <div class="code-out" id="a-out" hidden>
-          <div class="lbl">Kode konfirmasi untuk user</div>
-          <div class="code" id="a-code">------</div>
-          <button class="btn" type="button" id="a-copy">Salin Kode</button>
-        </div>
-        <div class="note" id="a-note" hidden></div>
-      </section>
-
-      <section class="panel">
-        <h2>2 · Riwayat Approval</h2>
-        <table class="log-table">
-          <thead>
-            <tr><th>Waktu</th><th>ID</th><th>Paket</th><th>Kode</th><th></th></tr>
-          </thead>
-          <tbody id="log-body"></tbody>
-        </table>
-        <div class="empty-line" id="log-empty">Belum ada approval.</div>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px">
-          <span id="log-sum" style="font-size:12px;color:var(--ink-500)"></span>
-          <button class="btn" type="button" id="log-clear">Bersihkan Riwayat</button>
-        </div>
+        <h2>Backend Belum Terhubung</h2>
+        <p class="admin-sub">Persetujuan pembayaran dan perubahan saldo hanya tersedia melalui Supabase agar saldo tercatat aman di server.</p>
       </section>
     </div>
 
@@ -205,38 +253,88 @@
     </p>
   </div>
 
-  <style>
-    .code-out {
-      margin-top: 14px;
-      border: 1px solid var(--teal-600);
-      background: var(--teal-100);
-      border-radius: var(--r-sm);
-      padding: 14px;
-      text-align: center;
-    }
-    .code-out .lbl { font-size: 11px; color: var(--ink-500); }
-    .code-out .code {
-      font-family: var(--font-mono);
-      font-size: 30px;
-      font-weight: 600;
-      letter-spacing: 0.24em;
-      color: var(--teal-600);
-      margin: 4px 0 8px;
-    }
-    .note { font-size: 11.5px; color: var(--amber-600); line-height: 1.5; margin-top: 12px; }
-  </style>
-
   <script type="module">
-    import { adminCode, PACKAGES } from "./js/modules/credit-ledger.js";
     import * as backend from "./js/modules/backend.js";
+    import { PUSH_VAPID_PUBLIC_KEY } from "./js/config.js";
 
     const $ = (s) => document.querySelector(s);
-    const LOG_KEY = "fakturku:adminlog";
+    const pushStatus = $("#push-status");
+    const pushEnable = $("#push-enable");
+    const pushDisable = $("#push-disable");
 
     function fmtTime(iso) {
       const d = new Date(iso);
       return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) + " " +
              d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    }
+
+    function rupiah(value) {
+      return "Rp " + Number(value || 0).toLocaleString("id-ID");
+    }
+
+    let cashflowMode = "week";
+    let cashflowData = { transactions: [], topups: [] };
+
+    function periodStart(mode) {
+      const d = new Date();
+      d.setHours(0, 0, 0, 0);
+      d.setDate(d.getDate() - (mode === "week" ? 6 : mode === "month" ? 29 : 364));
+      return d;
+    }
+
+    function periodKey(date, mode) {
+      const d = new Date(date);
+      if (mode === "year") return d.toLocaleDateString("id-ID", { month: "short" });
+      return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" });
+    }
+
+    function renderCashflow() {
+      const start = periodStart(cashflowMode);
+      const txs = cashflowData.transactions.filter((t) => new Date(t.created_at) >= start);
+      const topups = cashflowData.topups.filter((t) => new Date(t.created_at) >= start);
+      const approvedTopups = topups.filter((t) => t.status === "approved");
+      const income = approvedTopups.reduce((sum, t) => sum + Number(t.price || 0), 0);
+      const pending = topups.filter((t) => t.status === "pending").reduce((sum, t) => sum + Number(t.price || 0), 0);
+      const spent = txs.filter((t) => Number(t.balance_delta) < 0).reduce((sum, t) => sum + Math.abs(Number(t.balance_delta || 0)), 0);
+      const net = approvedTopups.reduce((sum, t) => sum + Number(t.balance_amount || 0), 0) - spent;
+
+      $("#cf-in").textContent = rupiah(income);
+      $("#cf-out").textContent = rupiah(spent);
+      $("#cf-net").textContent = rupiah(net);
+      $("#cf-pending").textContent = rupiah(pending);
+
+      const buckets = new Map();
+      const addBucket = (key) => {
+        if (!buckets.has(key)) buckets.set(key, { label: key, income: 0, spent: 0, count: 0 });
+        return buckets.get(key);
+      };
+      for (const t of approvedTopups) {
+        const b = addBucket(periodKey(t.created_at, cashflowMode));
+        b.income += Number(t.price || 0);
+        b.count += 1;
+      }
+      for (const t of txs) {
+        if (Number(t.balance_delta) >= 0) continue;
+        const b = addBucket(periodKey(t.created_at, cashflowMode));
+        b.spent += Math.abs(Number(t.balance_delta || 0));
+        b.count += 1;
+      }
+      const rows = Array.from(buckets.values());
+      const max = Math.max(1, ...rows.map((r) => r.income));
+      $("#cf-chart").innerHTML = rows.slice(0, cashflowMode === "week" ? 7 : 12).map((r) => `
+        <div class="flow-row">
+          <div class="flow-label">${esc(r.label)}</div>
+          <div class="flow-track"><div class="flow-fill" style="width:${Math.max(2, Math.round((r.income / max) * 100))}%"></div></div>
+          <div class="flow-value">${rupiah(r.income)}</div>
+        </div>`).join("");
+      $("#cf-body").innerHTML = rows.map((r) => `
+        <tr>
+          <td data-label="Periode">${esc(r.label)}</td>
+          <td class="mono" data-label="Top-up approve">${rupiah(r.income)}</td>
+          <td class="mono" data-label="Saldo dipakai">${rupiah(r.spent)}</td>
+          <td class="mono" data-label="Transaksi">${r.count}</td>
+        </tr>`).join("");
+      $("#cf-empty").hidden = rows.length > 0;
     }
 
     /* ================= MODE SERVER ================= */
@@ -255,6 +353,14 @@
         $("#adm-login").hidden = true;
         const me = await backend
           .client().from("profiles").select("role, email, full_name").eq("id", session.user.id).single();
+        if (me.error) {
+          $("#adm-denied").hidden = false;
+          $("#ad-denied-msg").textContent =
+            `Gagal memeriksa role admin: ${me.error.message || me.error.code || "query error"}. ` +
+            `Coba muat ulang / login ulang. (user: ${session.user.email})`;
+          console.error("admin profile check", me.error);
+          return;
+        }
         const role = me.data?.role;
         if (role !== "admin") {
           $("#adm-denied").hidden = false;
@@ -265,33 +371,157 @@
         $("#adm-denied").hidden = true;
         $("#adm-dash").hidden = false;
         $("#ad-who").textContent = me.data?.email || session.user.email;
+        await refreshPushStatus();
         await loadDash();
       });
     }
 
+    function isInstalledIOS() {
+      const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      return ios && (navigator.standalone === true ||
+        window.matchMedia("(display-mode: standalone)").matches);
+    }
+
+    function setPushStatus(text, state = "off") {
+      pushStatus.textContent = text;
+      pushStatus.dataset.state = state;
+    }
+
+    async function refreshPushStatus() {
+      pushEnable.hidden = true;
+      pushDisable.hidden = true;
+      $("#push-help").textContent = "";
+
+      const supported = window.isSecureContext && "serviceWorker" in navigator &&
+        "PushManager" in window && "Notification" in window;
+      if (!supported) {
+        setPushStatus("Browser ini belum mendukung push notification. Coba Chrome atau Edge versi terbaru.");
+        return;
+      }
+
+      const ios = /iPhone|iPad|iPod/i.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      if (ios && !isInstalledIOS()) {
+        setPushStatus("Di iPhone/iPad, tambahkan FakturKu ke Home Screen dulu untuk mengaktifkan notifikasi.");
+        $("#push-help").textContent = "Buka menu Bagikan di Safari, pilih Tambahkan ke Layar Utama, lalu buka FakturKu dari ikon tersebut.";
+        return;
+      }
+
+      if (!PUSH_VAPID_PUBLIC_KEY) {
+        setPushStatus("Notifikasi belum dikonfigurasi oleh pengelola aplikasi.", "error");
+        return;
+      }
+
+      if (Notification.permission === "denied") {
+        setPushStatus("Izin notifikasi diblokir di pengaturan browser/perangkat.", "error");
+        $("#push-help").textContent = "Ubah izin Notifikasi untuk situs FakturKu di pengaturan browser, lalu muat ulang halaman ini.";
+        return;
+      }
+
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const subscription = await registration?.pushManager.getSubscription();
+        if (subscription) {
+          setPushStatus("Notifikasi aktif di perangkat ini.", "on");
+          pushDisable.hidden = false;
+          return;
+        }
+      } catch (error) {
+        console.error("Unable to check push subscription", error);
+        setPushStatus("Gagal memeriksa status notifikasi. Muat ulang halaman untuk mencoba lagi.", "error");
+        return;
+      }
+
+      setPushStatus("Notifikasi belum aktif di perangkat ini.");
+      $("#push-help").textContent = "Aktifkan sekali di setiap perangkat tempat kamu ingin menerima pemberitahuan top-up.";
+      pushEnable.hidden = false;
+    }
+
+    function decodeVapidKey(value) {
+      const padding = "=".repeat((4 - value.length % 4) % 4);
+      const base64 = (value + padding).replace(/-/g, "+").replace(/_/g, "/");
+      return Uint8Array.from(atob(base64), (char) => char.charCodeAt(0));
+    }
+
+    pushEnable.addEventListener("click", async () => {
+      pushEnable.disabled = true;
+      setPushStatus("Meminta izin notifikasi…");
+      try {
+        let permission = Notification.permission;
+        if (permission === "default") permission = await Notification.requestPermission();
+        if (permission !== "granted") {
+          throw new Error("Izin notifikasi belum diberikan. Izinkan notifikasi untuk menerima pemberitahuan top-up.");
+        }
+
+        const registration = await navigator.serviceWorker.register("/sw.js");
+        await navigator.serviceWorker.ready;
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: decodeVapidKey(PUSH_VAPID_PUBLIC_KEY),
+          });
+        }
+        await backend.registerAdminPush(subscription);
+        setPushStatus("Notifikasi aktif di perangkat ini.", "on");
+        $("#push-help").textContent = "Kamu akan mendapat notifikasi saat ada permintaan top-up baru.";
+        pushEnable.hidden = true;
+        pushDisable.hidden = false;
+      } catch (error) {
+        console.error("Unable to enable admin push notifications", error);
+        setPushStatus(error?.message || "Gagal mengaktifkan notifikasi.", "error");
+      } finally {
+        pushEnable.disabled = false;
+      }
+    });
+
+    pushDisable.addEventListener("click", async () => {
+      pushDisable.disabled = true;
+      try {
+        const registration = await navigator.serviceWorker.getRegistration();
+        const subscription = await registration?.pushManager.getSubscription();
+        if (subscription) {
+          await backend.unregisterAdminPush(subscription.endpoint);
+          await subscription.unsubscribe();
+        }
+        setPushStatus("Notifikasi dimatikan di perangkat ini.");
+        pushDisable.hidden = true;
+        pushEnable.hidden = false;
+      } catch (error) {
+        console.error("Unable to disable admin push notifications", error);
+        setPushStatus(error?.message || "Gagal mematikan notifikasi.", "error");
+      } finally {
+        pushDisable.disabled = false;
+      }
+    });
+
     async function loadDash() {
       try {
-        const [stats, reqs, users, txs] = await Promise.all([
+        const [stats, reqs, users, txs, flow] = await Promise.all([
           backend.adminStats(),
           backend.adminPending(),
           backend.adminUsers(),
           backend.adminTransactions(),
+          backend.adminCashflow(),
         ]);
         $("#st-users").textContent = stats.users;
         $("#st-invoices").textContent = stats.invoices;
         $("#st-pending").textContent = stats.pending;
+        cashflowData = flow;
+        renderCashflow();
 
         $("#tu-body").innerHTML = reqs.map((r) => {
           const who = r.profiles?.full_name || r.profiles?.role || r.user_id.slice(0, 8);
           const canAct = r.status === "pending";
           return `<tr>
-            <td>${fmtTime(r.created_at)}</td>
-            <td>${esc(who)}</td>
-            <td>${r.credits} dok</td>
-            <td class="mono">Rp ${Number(r.price).toLocaleString("id-ID")}</td>
-            <td class="mono">${r.code}</td>
-            <td><span class="chip ${r.status}">${r.status}</span></td>
-            <td>${canAct ? `<span class="row-actions">
+            <td data-label="Waktu">${fmtTime(r.created_at)}</td>
+            <td data-label="User">${esc(who)}</td>
+            <td class="mono" data-label="Saldo masuk">${rupiah(r.balance_amount)}</td>
+            <td class="mono" data-label="Transfer">${rupiah(r.price)}</td>
+            <td class="mono" data-label="ID">${esc(r.code)}</td>
+            <td data-label="Status"><span class="chip ${r.status}">${r.status}</span></td>
+            <td data-label="Tindakan">${canAct ? `<span class="row-actions">
               <button class="act ok" data-appr="${r.code}">Approve</button>
               <button class="act no" data-rej="${r.code}">Tolak</button>
             </span>` : ""}</td>
@@ -301,16 +531,17 @@
 
         $("#us-body").innerHTML = users.map((u) => `
           <tr>
-            <td>${esc(u.name)}</td>
-            <td class="mono">${esc(u.email)}</td>
-            <td><select class="mini" data-role="${u.id}">
+            <td data-label="Nama">${esc(u.name)}</td>
+            <td class="mono" data-label="Email">${esc(u.email)}</td>
+            <td data-label="Role"><select class="mini" data-role="${u.id}">
               <option value="pic" ${u.role === "pic" ? "selected" : ""}>pic</option>
               <option value="admin" ${u.role === "admin" ? "selected" : ""}>admin</option>
               <option value="viewer" ${u.role === "viewer" ? "selected" : ""}>viewer</option>
             </select></td>
-            <td class="mono">${u.credits}</td>
-            <td><span class="cred-cell">
-              <input type="number" data-adj="${u.id}" value="10" step="1">
+            <td class="mono" data-label="Trial">${u.trialCredits} dok.</td>
+            <td class="mono" data-label="Saldo">${rupiah(u.balance)}</td>
+            <td data-label="Adjust saldo"><span class="cred-cell">
+              <input type="number" data-adj="${u.id}" value="" placeholder="10000" step="1000">
               <button class="act" data-adjgo="${u.id}">Kirim</button>
             </span></td>
           </tr>`).join("");
@@ -318,11 +549,13 @@
 
         $("#tx-body").innerHTML = txs.map((t) => `
           <tr>
-            <td>${fmtTime(t.created_at)}</td>
-            <td>${esc(t.profiles?.full_name || t.user_id.slice(0, 8))}</td>
-            <td class="mono" style="color:${t.delta > 0 ? "var(--teal-600)" : "var(--danger-600)"}">${t.delta > 0 ? "+" : ""}${t.delta}</td>
-            <td class="mono">${esc(t.ref || "")}</td>
-            <td class="mono">${t.credits_after ?? "—"}</td>
+            <td data-label="Waktu">${fmtTime(t.created_at)}</td>
+            <td data-label="User">${esc(t.profiles?.full_name || t.user_id.slice(0, 8))}</td>
+            <td class="mono" data-label="Perubahan" style="color:${(t.balance_delta || t.trial_delta) > 0 ? "var(--teal-600)" : "var(--danger-600)"}">${t.balance_delta
+              ? `${t.balance_delta > 0 ? "+" : ""}${rupiah(t.balance_delta)}`
+              : `${t.trial_delta > 0 ? "+" : ""}${t.trial_delta || 0} dok. gratis`}</td>
+            <td class="mono" data-label="Ref">${esc(t.ref || "")}</td>
+            <td class="mono" data-label="Sisa">${rupiah(t.balance_after)} · ${t.trial_after ?? 0} trial</td>
           </tr>`).join("");
         $("#tx-empty").hidden = txs.length > 0;
       } catch (e) {
@@ -352,12 +585,20 @@
     $("#ad-logout").addEventListener("click", () => backend.signOut());
     $("#ad-refresh").addEventListener("click", loadDash);
 
+    document.querySelectorAll("[data-flow]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        cashflowMode = btn.dataset.flow;
+        document.querySelectorAll("[data-flow]").forEach((b) => b.setAttribute("aria-pressed", String(b === btn)));
+        renderCashflow();
+      });
+    });
+
     $("#tu-body").addEventListener("click", async (e) => {
       const a = e.target.dataset && e.target.dataset.appr;
       const r = e.target.dataset && e.target.dataset.rej;
       try {
         if (a) {
-          if (!confirm(`Approve ${a}? Kuota user bertambah otomatis.`)) return;
+          if (!confirm(`Approve ${a}? Saldo Rupiah user bertambah otomatis.`)) return;
           await backend.approveTopup(a);
         } else if (r) {
           if (!confirm(`Tolak ${r}?`)) return;
@@ -383,90 +624,22 @@
       const id = e.target.dataset && e.target.dataset.adjgo;
       if (!id) return;
       const inp = $(`input[data-adj="${id}"]`);
-      const delta = Number(inp?.value) || 0;
-      if (!delta) return;
+      const raw = (inp?.value ?? "").trim();
+      if (!raw) { alert("Isi perubahan saldo Rupiah dulu."); inp?.focus(); return; }
+      const delta = Number(raw);
+      if (!Number.isSafeInteger(delta) || delta === 0) { alert("Jumlah saldo tidak valid."); return; }
+      if (!confirm(`Ubah saldo user sebesar ${rupiah(delta)}?`)) return;
       try {
-        await backend.adjustCredits(id, delta, "manual admin");
+        await backend.adjustBalance(id, delta, "manual admin");
         await loadDash();
       } catch (err) {
         alert("Gagal adjust: " + (err?.message || ""));
       }
     });
 
-    /* ================= MODE LOKAL ================= */
-
     function startLocal() {
       $("#mode-mark").textContent = "LOKAL";
       $("#adm-local").hidden = false;
-
-      function loadLog() {
-        try { return JSON.parse(localStorage.getItem(LOG_KEY)) || []; }
-        catch { return []; }
-      }
-      function saveLog(l) {
-        try { localStorage.setItem(LOG_KEY, JSON.stringify(l)); }
-        catch (e) { console.warn("log save gagal", e); }
-      }
-
-      $("#a-pkg").innerHTML = PACKAGES.map((p, i) =>
-        `<option value="${i}">${p.credits} dokumen — Rp ${p.price.toLocaleString("id-ID")}</option>`
-      ).join("");
-
-      function renderLog() {
-        const log = loadLog();
-        $("#log-body").innerHTML = log.map((r, i) => `
-          <tr>
-            <td>${fmtTime(r.at)}</td>
-            <td class="mono">${r.id}</td>
-            <td>${r.credits} dok · Rp ${Number(r.price).toLocaleString("id-ID")}</td>
-            <td class="mono">${r.code}</td>
-            <td><button class="act no" data-rm="${i}">Hapus</button></td>
-          </tr>`).join("");
-        $("#log-empty").hidden = log.length > 0;
-        const total = log.reduce((s, r) => s + Number(r.price || 0), 0);
-        $("#log-sum").textContent = log.length
-          ? `${log.length} approve · total Rp ${total.toLocaleString("id-ID")}` : "";
-      }
-
-      $("#a-go").addEventListener("click", () => {
-        const id = $("#a-id").value.trim().toUpperCase();
-        if (!/^FKT-[A-Z0-9]{4,10}$/.test(id)) {
-          alert("ID tidak valid. Format: FKT-XXXXXX");
-          return;
-        }
-        const pkg = PACKAGES[Number($("#a-pkg").value)] || PACKAGES[0];
-        const code = adminCode(id);
-        const log = loadLog();
-        log.unshift({ id, code, credits: pkg.credits, price: pkg.price, at: new Date().toISOString() });
-        saveLog(log.slice(0, 200));
-        $("#a-code").textContent = code;
-        $("#a-out").hidden = false;
-        renderLog();
-      });
-
-      $("#a-copy").addEventListener("click", async () => {
-        const code = $("#a-code").textContent;
-        try { await navigator.clipboard.writeText(code); } catch { /* noop */ }
-        $("#a-copy").textContent = "Tersalin!";
-        setTimeout(() => { $("#a-copy").textContent = "Salin Kode"; }, 1500);
-      });
-
-      $("#log-body").addEventListener("click", (e) => {
-        const i = e.target.dataset && e.target.dataset.rm;
-        if (i == null) return;
-        const log = loadLog();
-        log.splice(Number(i), 1);
-        saveLog(log);
-        renderLog();
-      });
-
-      $("#log-clear").addEventListener("click", () => {
-        if (!confirm("Bersihkan seluruh riwayat approval?")) return;
-        saveLog([]);
-        renderLog();
-      });
-
-      renderLog();
     }
 
     /* ================= BOOT ================= */

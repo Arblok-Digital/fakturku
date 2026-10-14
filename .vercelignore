@@ -1,0 +1,7 @@
+.kilo/
+PLAN-billing-kategori/
+supabase/
+traces/
+actual.txt
+telemetry.json
+telemetry.json.tmp.*
