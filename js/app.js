@@ -170,60 +170,47 @@ $("#btn-add-item").addEventListener("click", () => {
   rows[rows.length - 1].focus();
 });
 
-/* ---------- template picker (grid + filter kategori) ---------- */
+/* ---------- compact template picker ---------- */
 let activeFilter = "all";
 
 function renderTemplatePicker() {
   const filterEl = $("#tpl-filter");
   const gridEl = $("#tpl-grid");
-
-  /* build filter buttons dari categories */
   const cats = categoriesCache.length ? categoriesCache : [
-    { id: "all", label: "Semua", icon: "" },
     { id: "finance", label: "Finance", icon: "💰" },
     { id: "umkm", label: "UMKM", icon: "🏪" },
   ];
-  const filterCats = [{ id: "all", label: "Semua", icon: "" }, ...cats.filter((c) => c.active !== false)];
+  const filterCats = [{ id: "all", label: "Semua kategori", icon: "" }, ...cats.filter((c) => c.active !== false)];
+  if (!filterCats.some((c) => c.id === activeFilter)) activeFilter = "all";
   filterEl.innerHTML = filterCats.map((c) =>
-    `<button type="button" data-cat="${c.id}" class="${activeFilter === c.id ? "active" : ""}">${c.icon ? c.icon + " " : ""}${esc(c.label)}</button>`
+    `<option value="${esc(c.id)}" ${activeFilter === c.id ? "selected" : ""}>${esc((c.icon ? c.icon + " " : "") + c.label)}</option>`
   ).join("");
 
-  /* filter templates */
-  const visible = TEMPLATES.filter((t) => {
+  let visible = TEMPLATES.filter((t) => {
     const cat = t.category || "finance";
     return activeFilter === "all" || cat === activeFilter;
   });
-
+  if (!visible.some((t) => t.id === state.template)) {
+    const selected = TEMPLATES.find((t) => t.id === state.template);
+    if (selected && activeFilter !== "all") activeFilter = selected.category || "finance";
+    visible = TEMPLATES.filter((t) => activeFilter === "all" || (t.category || "finance") === activeFilter);
+  }
   gridEl.innerHTML = visible.map((t) => {
-    const cat = t.category || "finance";
-    const meta = categoriesCache.find((c) => c.id === cat);
-    const icon = meta?.icon || "";
-    const color = meta?.color || "#16324F";
+    const meta = categoriesCache.find((c) => c.id === (t.category || "finance"));
     const price = meta?.price_per_doc || 1000;
-    const isActive = state.template === t.id;
-    return `<button class="tpl-card ${isActive ? "active" : ""}" type="button"
-      data-tpl="${t.id}" data-cat="${cat}"
-      style="--card-accent:${color};--card-ring:${color}22">
-      <span class="tpl-cat-dot" style="background:${color}"></span>
-      <span class="tpl-name">${esc(t.label)}</span>
-      <span class="tpl-meta">${icon} ${esc(meta?.label || cat)} · ${rupiah(price)}/dok</span>
-    </button>`;
+    return `<option value="${esc(t.id)}" ${state.template === t.id ? "selected" : ""}>${esc(t.label)} · ${rupiah(price)}/dok</option>`;
   }).join("");
+  if (visible.some((t) => t.id === state.template)) gridEl.value = state.template;
 }
 
-$("#tpl-filter").addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-cat]");
-  if (!btn) return;
-  activeFilter = btn.dataset.cat;
+$("#tpl-filter").addEventListener("change", (e) => {
+  activeFilter = e.target.value || "all";
   renderTemplatePicker();
 });
 
-$("#tpl-grid").addEventListener("click", (e) => {
-  const card = e.target.closest("[data-tpl]");
-  if (!card) return;
-  const newId = card.dataset.tpl;
-  if (newId === state.template) return;
-  switchTemplate(newId);
+$("#tpl-grid").addEventListener("change", (e) => {
+  const newId = e.target.value;
+  if (newId && newId !== state.template) switchTemplate(newId);
 });
 
 function switchTemplate(newId) {
