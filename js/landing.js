@@ -18,6 +18,17 @@
     revealItems.forEach((item) => observer.observe(item));
   }
 
+  const authIn = document.querySelector("#auth-tab-in");
+  const authUp = document.querySelector("#auth-tab-up");
+  authIn?.addEventListener("click", () => {
+    authIn.setAttribute("aria-selected", "true");
+    authUp?.setAttribute("aria-selected", "false");
+  });
+  authUp?.addEventListener("click", () => {
+    authUp.setAttribute("aria-selected", "true");
+    authIn?.setAttribute("aria-selected", "false");
+  });
+
   root.querySelectorAll("[data-open-auth]").forEach((control) => {
     control.addEventListener("click", () => {
       const mode = control.getAttribute("data-open-auth");
