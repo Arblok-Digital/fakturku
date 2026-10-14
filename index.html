@@ -278,7 +278,9 @@
           <div class="field"><label for="f-detail-requestedBy">Diminta oleh</label><input id="f-detail-requestedBy" type="text" data-bind="details.requestedBy"></div>
           <div class="field"><label for="f-detail-approvedBy">Disetujui oleh</label><input id="f-detail-approvedBy" type="text" data-bind="details.approvedBy"></div>
           <div class="field"><label for="f-detail-deliveryDate">Tanggal dibutuhkan / dikirim</label><input id="f-detail-deliveryDate" type="date" data-bind="details.deliveryDate"></div>
-          <div class="field"><label for="f-detail-supplier">Pemasok</label><input id="f-detail-supplier" type="text" data-bind="details.supplier"></div></div>
+          <div class="field"><label for="f-detail-supplier">Pemasok</label><input id="f-detail-supplier" type="text" data-bind="details.supplier"></div>
+          <div class="field"><label for="f-detail-description">Uraian / keterangan</label><textarea id="f-detail-description" rows="2" data-bind="details.description"></textarea></div>
+          <div class="field"><label for="f-detail-invoicePeriod">Periode penagihan</label><input id="f-detail-invoicePeriod" type="text" data-bind="details.invoicePeriod" placeholder="Contoh: Oktober 2026"></div></div>
       </div>
 
       <div class="fsec" data-when="business-logistics">
@@ -327,7 +329,7 @@
           <div class="field"><label for="f-detail-allowances">Tunjangan (Rp)</label><input id="f-detail-allowances" type="number" data-bind="details.allowances"></div>
           <div class="field"><label for="f-detail-deductions">Potongan (Rp)</label><input id="f-detail-deductions" type="number" data-bind="details.deductions"></div>
           <div class="field"><label for="f-detail-netPay">Gaji bersih (Rp)</label><input id="f-detail-netPay" type="number" data-bind="details.netPay"></div>
-          <div class="field"><label for="f-detail-budget">Anggaran / biaya (Rp)</label><input id="f-detail-budget" type="number" data-bind="details.budget"></div>
+          <div class="field"><label for="f-detail-budget-hr">Anggaran / biaya (Rp)</label><input id="f-detail-budget-hr" type="number" data-bind="details.budget"></div>
           <div class="field"><label for="f-detail-bankRef">Referensi pembayaran</label><input id="f-detail-bankRef" type="text" data-bind="details.bankRef"></div></div>
       </div>
 
@@ -342,11 +344,8 @@
 
       <div class="fsec" data-when="business-purchase">
         <h3>Detail Pengadaan</h3>
-        <div class="grid2"><div class="field"><label for="f-detail-supplier">Pemasok</label><input id="f-detail-supplier" type="text" data-bind="details.supplier"></div>
-          <div class="field"><label for="f-detail-requestedBy">Diminta oleh</label><input id="f-detail-requestedBy" type="text" data-bind="details.requestedBy"></div>
-          <div class="field"><label for="f-detail-approvedBy">Disetujui oleh</label><input id="f-detail-approvedBy" type="text" data-bind="details.approvedBy"></div>
-          <div class="field"><label for="f-detail-deliveryDate">Tanggal dibutuhkan</label><input id="f-detail-deliveryDate" type="date" data-bind="details.deliveryDate"></div>
-          <div class="field"><label for="f-detail-budget">Anggaran (Rp)</label><input id="f-detail-budget" type="number" data-bind="details.budget"></div></div>
+        <div class="hint-line">Pemasok, pemesan, persetujuan, dan tanggal dibutuhkan tersedia di bagian Detail Dokumen.</div>
+        <div class="field"><label for="f-detail-budget-purchase">Anggaran pengadaan (Rp)</label><input id="f-detail-budget-purchase" type="number" data-bind="details.budget"></div>
       </div>
     </section>
 
