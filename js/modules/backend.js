@@ -144,7 +144,7 @@ export async function pendingTopup() {
   if (!user) return null;
   const { data, error } = await sb
     .from("topup_requests")
-    .select("code, credits, price, status, created_at")
+    .select("code, credits, price, balance_amount, status, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -155,6 +155,7 @@ export async function pendingTopup() {
     id: data.code,
     price: data.price,
     credits: data.credits,
+    balance_amount: data.balance_amount ?? data.price,
     status: data.status,
     at: data.created_at,
   };
