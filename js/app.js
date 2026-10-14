@@ -205,6 +205,11 @@ function renderTemplatePicker() {
 
 $("#tpl-filter").addEventListener("change", (e) => {
   activeFilter = e.target.value || "all";
+  const visible = TEMPLATES.filter((t) => activeFilter === "all" || (t.category || "finance") === activeFilter);
+  if (visible.length && !visible.some((t) => t.id === state.template)) {
+    switchTemplate(visible[0].id);
+    return;
+  }
   renderTemplatePicker();
 });
 
