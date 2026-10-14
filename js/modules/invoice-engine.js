@@ -28,10 +28,10 @@ export function blankState(templateId, opts = {}) {
       subject: "", reference: "", description: "", period: "", location: "", validity: "", paymentTerms: "", reason: "", status: "",
       origin: "", destination: "", driver: "", vehicle: "", condition: "", quantity: "", unit: "",
       contractRef: "", scope: "", effectiveDate: "", endDate: "", authority: "", witness: "",
-      project: "", progress: 0, contractValue: 0, previousPaid: 0, retention: 0, milestone: "", inspection: "",
-      employee: "", employeeId: "", position: "", department: "", baseSalary: 0, allowances: 0, deductions: 0, netPay: 0,
-      taxPeriod: "", taxType: "", taxBase: 0, taxAmount: 0, taxId: "",
-      requestedBy: "", approvedBy: "", deliveryDate: "", supplier: "", budget: 0, recipientRole: "",
+      project: "", progress: "", contractValue: "", previousPaid: "", retention: "", milestone: "", inspection: "",
+      employee: "", employeeId: "", position: "", department: "", baseSalary: "", allowances: "", deductions: "", netPay: "",
+      taxPeriod: "", taxType: "", taxBase: "", taxAmount: "", taxId: "",
+      requestedBy: "", approvedBy: "", deliveryDate: "", supplier: "", budget: "", recipientRole: "",
       returnReason: "", packing: "", invoiceRef: "", contractDate: "", invoicePeriod: "", bankRef: ""
     },
 
