@@ -23,7 +23,7 @@ Billing FakturKu berubah dari **flat** (1 kuota = 1 dokumen) menjadi **per-kateg
 | `05-templates.md` | Mapping template existing → kategori + roadmap template baru |
 | `06-implementation.md` | 5 fase implementasi + checklist |
 | `07-decisions.md` | Open questions yang nunggu keputusan diskusi |
-| `08-template-catalog.md` | Katalog template hasil riset, referensi, dan batasan compliance |
+| `08-template-research.md` | Katalog template hasil riset, referensi, QA, dan batasan compliance |
 
 ---
 
