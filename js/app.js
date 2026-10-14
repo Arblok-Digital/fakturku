@@ -178,7 +178,12 @@ function renderTemplatePicker() {
   const gridEl = $("#tpl-grid");
   const cats = categoriesCache.length ? categoriesCache : [
     { id: "finance", label: "Finance", icon: "💰" },
+    { id: "legal", label: "Legal", icon: "⚖️" },
     { id: "umkm", label: "UMKM", icon: "🏪" },
+    { id: "logistik", label: "Logistik", icon: "📦" },
+    { id: "pajak", label: "Pajak", icon: "🧾" },
+    { id: "proyek", label: "Proyek", icon: "🏗️" },
+    { id: "operasional", label: "Operasional", icon: "📋" },
   ];
   const filterCats = [{ id: "all", label: "Semua kategori", icon: "" }, ...cats.filter((c) => c.active !== false)];
   if (!filterCats.some((c) => c.id === activeFilter)) activeFilter = "all";
@@ -190,16 +195,11 @@ function renderTemplatePicker() {
     const cat = t.category || "finance";
     return activeFilter === "all" || cat === activeFilter;
   });
-  if (!visible.some((t) => t.id === state.template)) {
-    const selected = TEMPLATES.find((t) => t.id === state.template);
-    if (selected && activeFilter !== "all") activeFilter = selected.category || "finance";
-    visible = TEMPLATES.filter((t) => activeFilter === "all" || (t.category || "finance") === activeFilter);
-  }
-  gridEl.innerHTML = visible.map((t) => {
+  gridEl.innerHTML = visible.length ? visible.map((t) => {
     const meta = categoriesCache.find((c) => c.id === (t.category || "finance"));
     const price = meta?.price_per_doc || 1000;
     return `<option value="${esc(t.id)}" ${state.template === t.id ? "selected" : ""}>${esc(t.label)} · ${rupiah(price)}/dok</option>`;
-  }).join("");
+  }).join("") : `<option value="" selected disabled>Format belum tersedia di kategori ini</option>`;
   if (visible.some((t) => t.id === state.template)) gridEl.value = state.template;
 }
 
@@ -210,6 +210,7 @@ $("#tpl-filter").addEventListener("change", (e) => {
     switchTemplate(visible[0].id);
     return;
   }
+  // Keep the chosen category visible even when its template has not been implemented yet.
   renderTemplatePicker();
 });
 
