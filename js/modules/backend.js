@@ -110,15 +110,20 @@ export async function history() {
   if (!user) return [];
   const { data, error } = await sb
     .from("credit_transactions")
-    .select("created_at, delta, ref, credits_after")
+    .select("created_at, delta, ref, credits_after, reason, category, trial_delta, trial_after, balance_delta, balance_after")
     .order("created_at", { ascending: false })
     .limit(30);
   if (error) throw error;
   return (data ?? []).map((r) => ({
     at: r.created_at,
-    amount: r.delta,
+    amount: ["topup", "issue"].includes(r.reason) ? Number(r.balance_delta) || 0
+      : Number(r.trial_delta) || Number(r.delta) || 0,
+    reason: r.reason || "",
     ref: r.ref || "",
-    sisa: r.credits_after,
+    category: r.category || "",
+    sisa: ["topup", "issue"].includes(r.reason) ? r.balance_after : (r.trial_after ?? r.credits_after),
+    balanceAfter: r.balance_after,
+    trialAfter: r.trial_after,
   }));
 }
 
