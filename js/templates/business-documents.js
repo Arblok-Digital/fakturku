@@ -19,10 +19,10 @@ const definitions = [
 {id:"surat-pesanan",label:"Surat Pesanan",category:"umkm",title:"SURAT PESANAN",uses:["client","items","terms","business-core"],fields:["reference","deliveryDate","paymentTerms","description"],total:true,intro:"Catatan pesanan barang atau jasa dari pelanggan."},
 {id:"struk-pos",label:"Struk POS (58 mm)",category:"umkm",title:"STRUK PENJUALAN",output:"thermal",uses:["client","items","payment"],fields:["reference"],total:true,intro:"Struk ringkas transaksi kasir untuk cetak thermal."},
 {id:"daftar-harga",label:"Daftar Harga / Price List",category:"umkm",title:"DAFTAR HARGA",uses:["items","business-core"],fields:["subject","period","validity","description"],total:false,intro:"Daftar produk atau jasa beserta harga satuan."},
-{id:"surat-jalan",label:"Surat Jalan",category:"logistik",title:"SURAT JALAN",uses:["client","items","business-logistics","business-core"],fields:["reference","invoiceRef","origin","destination","driver","vehicle","deliveryDate","condition"],total:false,signatures:["Pengirim","Penerima"],intro:"Dokumen pendamping pengiriman barang; bukan bukti pembayaran."},
-{id:"bukti-terima-barang",label:"Bukti Terima Barang",category:"logistik",title:"BUKTI PENERIMAAN BARANG",uses:["client","items","business-logistics","business-core"],fields:["reference","invoiceRef","condition","inspection","location"],total:false,signatures:["Petugas Gudang","Penerima"],intro:"Catatan jumlah dan kondisi barang yang diterima."},
+{id:"surat-jalan",label:"Surat Jalan",category:"logistik",title:"SURAT JALAN",hidePrices:true,uses:["client","items","business-logistics","business-core"],fields:["reference","invoiceRef","origin","destination","driver","vehicle","deliveryDate","condition"],total:false,signatures:["Pengirim","Penerima"],intro:"Dokumen pendamping pengiriman barang; bukan bukti pembayaran."},
+{id:"bukti-terima-barang",label:"Bukti Terima Barang",category:"logistik",title:"BUKTI PENERIMAAN BARANG",hidePrices:true,uses:["client","items","business-logistics","business-core"],fields:["reference","invoiceRef","condition","inspection","location"],total:false,signatures:["Petugas Gudang","Penerima"],intro:"Catatan jumlah dan kondisi barang yang diterima."},
 {id:"surat-retur",label:"Surat Retur Barang",category:"logistik",title:"SURAT RETUR BARANG",uses:["client","items","business-logistics","business-core"],fields:["reference","invoiceRef","returnReason","condition","origin","destination"],total:false,signatures:["Pengirim","Penerima"],intro:"Dokumen pengembalian barang dan alasan retur."},
-{id:"packing-list",label:"Packing List",category:"logistik",title:"PACKING LIST",uses:["client","items","business-logistics","business-core"],fields:["reference","packing","origin","destination","vehicle","description"],total:false,intro:"Daftar isi kemasan untuk pemeriksaan pengiriman."},
+{id:"packing-list",label:"Packing List",category:"logistik",title:"PACKING LIST",hidePrices:true,uses:["client","items","business-logistics","business-core"],fields:["reference","packing","origin","destination","vehicle","description"],total:false,intro:"Daftar isi kemasan untuk pemeriksaan pengiriman."},
 {id:"perjanjian-kerja-sama",label:"Perjanjian Kerja Sama",category:"legal",title:"PERJANJIAN KERJA SAMA",uses:["client","terms","business-contract","business-core"],fields:["reference","contractDate","scope","effectiveDate","endDate","location"],signatures:["Pihak Pertama","Pihak Kedua"],legalNote:true,intro:"Kerangka administrasi kerja sama yang perlu ditinjau para pihak."},
 {id:"surat-kuasa",label:"Surat Kuasa",category:"legal",title:"SURAT KUASA",uses:["client","terms","business-contract","business-core"],fields:["reference","recipientRole","scope","effectiveDate","endDate","location","witness"],signatures:["Pemberi Kuasa","Penerima Kuasa"],legalNote:true,intro:"Kerangka surat kuasa untuk diisi sesuai kebutuhan dan kewenangan."},
 {id:"spk",label:"Surat Perintah Kerja (SPK)",category:"legal",title:"SURAT PERINTAH KERJA",uses:["client","items","terms","business-contract","business-core"],fields:["reference","contractRef","scope","location","effectiveDate","endDate","paymentTerms"],total:true,signatures:["Pemberi Kerja","Pelaksana"],legalNote:true,intro:"Ringkasan penugasan, lingkup, jadwal, dan nilai pekerjaan."},
@@ -52,14 +52,17 @@ function val(s,key,h) {
 }
 function renderRows(s,t,h) {
   return (t.fields || []).map(function(key) {
+    if (key === "description") return "";
     var v = val(s,key,h);
     if (!v) return "";
     return '<tr><td class="k">' + h.esc(labels[key] || key) + '</td><td>' + v + '</td></tr>';
   }).join("");
 }
-function itemRows(s,h) {
+function itemRows(s,h,t) {
   return (s.items || []).filter(function(it){return it.desc || it.qty || it.price;}).map(function(it,i) {
-    return '<tr><td class="mono">' + (i+1) + '</td><td>' + h.esc(it.desc || "") + '</td><td class="r mono">' + (Number(it.qty)||0) + '</td><td class="r mono">' + h.rupiah(it.price) + '</td><td class="r mono">' + h.rupiah((Number(it.qty)||0)*(Number(it.price)||0)) + '</td></tr>';
+    var row = '<td class="mono">' + (i+1) + '</td><td>' + h.esc(it.desc || "") + '</td><td class="r mono">' + (Number(it.qty)||0) + '</td>';
+    if (!t.hidePrices) row += '<td class="r mono">' + h.rupiah(it.price) + '</td><td class="r mono">' + h.rupiah((Number(it.qty)||0)*(Number(it.price)||0)) + '</td>';
+    return '<tr>' + row + '</tr>';
   }).join("");
 }
 function signatureBlock(s,t,h) {
@@ -88,8 +91,9 @@ function renderDocument(s,h,t) {
   var issuer='<div class="doc-issuer">' + logo + '<div class="nm">' + h.esc(s.issuer.name || '') + '</div><div class="addr">' + h.esc(s.issuer.address || '') + '</div><div class="mono">' + h.esc(s.issuer.phone || '') + (s.issuer.email ? ' · ' + h.esc(s.issuer.email) : '') + '</div></div>';
   var client=t.uses.indexOf("client")>=0 ? '<div><div class="doc-lbl">Kepada / Pihak Terkait</div><b>' + h.esc(s.client.name || '') + '</b><div class="addr">' + h.esc(s.client.address || '') + '</div></div>' : '';
   var meta=renderRows(s,t,h), details=meta ? '<table class="doc-meta" style="margin:14px 0">' + meta + '</table>' : '';
-  var rows=itemRows(s,h), itemTable=t.uses.indexOf("items")>=0 ? '<table class="doc-table"><thead><tr><th style="width:7%">No</th><th>Uraian</th><th class="r" style="width:10%">Qty</th><th class="r" style="width:18%">Harga</th><th class="r" style="width:20%">Jumlah</th></tr></thead><tbody>' + (rows || '<tr><td colspan="5">Belum ada rincian</td></tr>') + '</tbody></table>' : '';
-  var totals=t.uses.indexOf("items")>=0 && t.total ? '<div class="doc-totals"><table><tr><td>Subtotal</td><td class="r">' + h.rupiah(total.subtotal) + '</td></tr>' + (total.discount ? '<tr><td>Diskon</td><td class="r">(' + h.rupiah(total.discount) + ')</td></tr>' : '') + (total.tax ? '<tr><td>PPN ' + (Number(s.taxRate)||0) + '%</td><td class="r">' + h.rupiah(total.tax) + '</td></tr>' : '') + '<tr class="grand"><td>Total</td><td class="r">' + h.rupiah(total.total) + '</td></tr></table></div><div class="doc-terbilang">Terbilang: <b>' + h.terbilang(total.total) + '</b></div>' : '';
+  var rows=itemRows(s,h,t), itemTable=t.uses.indexOf("items")>=0 ? '<table class="doc-table"><thead><tr><th style="width:7%">No</th><th>Uraian</th><th class="r" style="width:10%">Qty</th>' + (t.hidePrices ? '' : '<th class="r" style="width:18%">Harga</th><th class="r" style="width:20%">Jumlah</th>') + '</tr></thead><tbody>' + (rows || '<tr><td colspan="' + (t.hidePrices ? '3' : '5') + '">Belum ada rincian</td></tr>') + '</tbody></table>' : '';
+  var totalLabel = t.id === "credit-note" ? "Nilai Kredit" : t.id === "debit-note" ? "Nilai Debit" : t.payroll ? "Gaji Bersih" : "Total";
+  var totals=t.uses.indexOf("items")>=0 && t.total ? '<div class="doc-totals"><table><tr><td>Subtotal</td><td class="r">' + h.rupiah(total.subtotal) + '</td></tr>' + (total.discount ? '<tr><td>Diskon</td><td class="r">(' + h.rupiah(total.discount) + ')</td></tr>' : '') + (total.tax ? '<tr><td>PPN ' + (Number(s.taxRate)||0) + '%</td><td class="r">' + h.rupiah(total.tax) + '</td></tr>' : '') + '<tr class="grand"><td>' + totalLabel + '</td><td class="r">' + h.rupiah(total.total) + '</td></tr></table></div><div class="doc-terbilang">Terbilang: <b>' + h.terbilang(total.total) + '</b></div>' : '';
   var payment=t.uses.indexOf("payment")>=0 && (s.payment.bank || s.payment.accountNo || s.payment.method) ? '<div class="doc-pay"><div class="doc-lbl">Informasi Pembayaran</div>' + (s.payment.bank ? 'Bank: <b>' + h.esc(s.payment.bank) + '</b><br>' : '') + (s.payment.accountNo ? 'No. Rekening: <b>' + h.esc(s.payment.accountNo) + '</b><br>' : '') + (s.payment.accountName ? 'Atas Nama: ' + h.esc(s.payment.accountName) + '<br>' : '') + (s.payment.method ? 'Metode: ' + h.esc(s.payment.method) : '') + '</div>' : '';
   var intro=t.intro ? '<p style="margin:14px 0;line-height:1.6">' + h.esc(t.intro) + '</p>' : '';
   var description=s.details && s.details.description ? '<div class="doc-foot"><b>Uraian:</b> ' + h.esc(s.details.description) + '</div>' : '';
