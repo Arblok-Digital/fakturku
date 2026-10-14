@@ -263,6 +263,91 @@
           <textarea id="f-terms" rows="3" data-bind="terms"></textarea>
         </div>
       </div>
+
+      <div class="fsec" data-when="business-core">
+        <h3>Detail Dokumen</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-subject">Perihal</label><input id="f-detail-subject" type="text" data-bind="details.subject"></div>
+          <div class="field"><label for="f-detail-reference">Referensi dokumen</label><input id="f-detail-reference" type="text" data-bind="details.reference"></div>
+          <div class="field"><label for="f-detail-period">Periode</label><input id="f-detail-period" type="text" data-bind="details.period"></div>
+          <div class="field"><label for="f-detail-location">Lokasi</label><input id="f-detail-location" type="text" data-bind="details.location"></div>
+          <div class="field"><label for="f-detail-validity">Berlaku sampai</label><input id="f-detail-validity" type="text" data-bind="details.validity"></div>
+          <div class="field"><label for="f-detail-paymentTerms">Syarat pembayaran</label><input id="f-detail-paymentTerms" type="text" data-bind="details.paymentTerms"></div>
+          <div class="field"><label for="f-detail-reason">Alasan / dasar</label><input id="f-detail-reason" type="text" data-bind="details.reason"></div>
+          <div class="field"><label for="f-detail-status">Status / hasil</label><input id="f-detail-status" type="text" data-bind="details.status"></div>
+          <div class="field"><label for="f-detail-authority">Pihak / instansi terkait</label><input id="f-detail-authority" type="text" data-bind="details.authority"></div>
+          <div class="field"><label for="f-detail-requestedBy">Diminta oleh</label><input id="f-detail-requestedBy" type="text" data-bind="details.requestedBy"></div>
+          <div class="field"><label for="f-detail-approvedBy">Disetujui oleh</label><input id="f-detail-approvedBy" type="text" data-bind="details.approvedBy"></div>
+          <div class="field"><label for="f-detail-deliveryDate">Tanggal dibutuhkan / dikirim</label><input id="f-detail-deliveryDate" type="date" data-bind="details.deliveryDate"></div>
+          <div class="field"><label for="f-detail-supplier">Pemasok</label><input id="f-detail-supplier" type="text" data-bind="details.supplier"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-logistics">
+        <h3>Detail Logistik</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-origin">Lokasi asal</label><input id="f-detail-origin" type="text" data-bind="details.origin"></div>
+          <div class="field"><label for="f-detail-destination">Tujuan pengiriman</label><input id="f-detail-destination" type="text" data-bind="details.destination"></div>
+          <div class="field"><label for="f-detail-driver">Pengantar / pengemudi</label><input id="f-detail-driver" type="text" data-bind="details.driver"></div>
+          <div class="field"><label for="f-detail-vehicle">Kendaraan / ekspedisi</label><input id="f-detail-vehicle" type="text" data-bind="details.vehicle"></div>
+          <div class="field"><label for="f-detail-condition">Kondisi barang</label><input id="f-detail-condition" type="text" data-bind="details.condition"></div>
+          <div class="field"><label for="f-detail-quantity">Jumlah / volume</label><input id="f-detail-quantity" type="number" data-bind="details.quantity"></div>
+          <div class="field"><label for="f-detail-unit">Satuan</label><input id="f-detail-unit" type="text" data-bind="details.unit"></div>
+          <div class="field"><label for="f-detail-returnReason">Alasan retur</label><input id="f-detail-returnReason" type="text" data-bind="details.returnReason"></div>
+          <div class="field"><label for="f-detail-packing">Jumlah kemasan</label><input id="f-detail-packing" type="text" data-bind="details.packing"></div>
+          <div class="field"><label for="f-detail-invoiceRef">Nomor invoice terkait</label><input id="f-detail-invoiceRef" type="text" data-bind="details.invoiceRef"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-contract">
+        <h3>Detail Perjanjian / Kuasa</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-contractRef">Nomor kontrak / SPK</label><input id="f-detail-contractRef" type="text" data-bind="details.contractRef"></div>
+          <div class="field"><label for="f-detail-contractDate">Tanggal kontrak</label><input id="f-detail-contractDate" type="date" data-bind="details.contractDate"></div>
+          <div class="field"><label for="f-detail-scope">Lingkup pekerjaan / kuasa</label><input id="f-detail-scope" type="text" data-bind="details.scope"></div>
+          <div class="field"><label for="f-detail-effectiveDate">Mulai berlaku</label><input id="f-detail-effectiveDate" type="date" data-bind="details.effectiveDate"></div>
+          <div class="field"><label for="f-detail-endDate">Akhir berlaku</label><input id="f-detail-endDate" type="date" data-bind="details.endDate"></div>
+          <div class="field"><label for="f-detail-recipientRole">Jabatan penerima</label><input id="f-detail-recipientRole" type="text" data-bind="details.recipientRole"></div>
+          <div class="field"><label for="f-detail-witness">Saksi</label><input id="f-detail-witness" type="text" data-bind="details.witness"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-project">
+        <h3>Detail Proyek</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-project">Nama proyek</label><input id="f-detail-project" type="text" data-bind="details.project"></div>
+          <div class="field"><label for="f-detail-milestone">Termin / tahap</label><input id="f-detail-milestone" type="text" data-bind="details.milestone"></div>
+          <div class="field"><label for="f-detail-progress">Progres (%)</label><input id="f-detail-progress" type="number" data-bind="details.progress"></div>
+          <div class="field"><label for="f-detail-contractValue">Nilai kontrak (Rp)</label><input id="f-detail-contractValue" type="number" data-bind="details.contractValue"></div>
+          <div class="field"><label for="f-detail-previousPaid">Pembayaran sebelumnya (Rp)</label><input id="f-detail-previousPaid" type="number" data-bind="details.previousPaid"></div>
+          <div class="field"><label for="f-detail-retention">Retensi / potongan (Rp)</label><input id="f-detail-retention" type="number" data-bind="details.retention"></div>
+          <div class="field"><label for="f-detail-inspection">Hasil pemeriksaan</label><input id="f-detail-inspection" type="text" data-bind="details.inspection"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-hr">
+        <h3>Detail Karyawan / Gaji</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-employee">Nama karyawan</label><input id="f-detail-employee" type="text" data-bind="details.employee"></div>
+          <div class="field"><label for="f-detail-employeeId">ID / NIK karyawan</label><input id="f-detail-employeeId" type="text" data-bind="details.employeeId"></div>
+          <div class="field"><label for="f-detail-position">Jabatan</label><input id="f-detail-position" type="text" data-bind="details.position"></div>
+          <div class="field"><label for="f-detail-department">Departemen</label><input id="f-detail-department" type="text" data-bind="details.department"></div>
+          <div class="field"><label for="f-detail-baseSalary">Gaji pokok (Rp)</label><input id="f-detail-baseSalary" type="number" data-bind="details.baseSalary"></div>
+          <div class="field"><label for="f-detail-allowances">Tunjangan (Rp)</label><input id="f-detail-allowances" type="number" data-bind="details.allowances"></div>
+          <div class="field"><label for="f-detail-deductions">Potongan (Rp)</label><input id="f-detail-deductions" type="number" data-bind="details.deductions"></div>
+          <div class="field"><label for="f-detail-netPay">Gaji bersih (Rp)</label><input id="f-detail-netPay" type="number" data-bind="details.netPay"></div>
+          <div class="field"><label for="f-detail-budget">Anggaran / biaya (Rp)</label><input id="f-detail-budget" type="number" data-bind="details.budget"></div>
+          <div class="field"><label for="f-detail-bankRef">Referensi pembayaran</label><input id="f-detail-bankRef" type="text" data-bind="details.bankRef"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-tax">
+        <h3>Detail Pajak (Lembar Kerja Internal)</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-taxId">NPWP / identitas pajak</label><input id="f-detail-taxId" type="text" data-bind="details.taxId"></div>
+          <div class="field"><label for="f-detail-taxPeriod">Masa pajak</label><input id="f-detail-taxPeriod" type="text" data-bind="details.taxPeriod"></div>
+          <div class="field"><label for="f-detail-taxType">Jenis pajak</label><input id="f-detail-taxType" type="text" data-bind="details.taxType"></div>
+          <div class="field"><label for="f-detail-taxBase">Dasar pengenaan (Rp)</label><input id="f-detail-taxBase" type="number" data-bind="details.taxBase"></div>
+          <div class="field"><label for="f-detail-taxAmount">Nilai pajak (Rp)</label><input id="f-detail-taxAmount" type="number" data-bind="details.taxAmount"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-purchase">
+        <h3>Detail Pengadaan</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-supplier">Pemasok</label><input id="f-detail-supplier" type="text" data-bind="details.supplier"></div>
+          <div class="field"><label for="f-detail-requestedBy">Diminta oleh</label><input id="f-detail-requestedBy" type="text" data-bind="details.requestedBy"></div>
+          <div class="field"><label for="f-detail-approvedBy">Disetujui oleh</label><input id="f-detail-approvedBy" type="text" data-bind="details.approvedBy"></div>
+          <div class="field"><label for="f-detail-deliveryDate">Tanggal dibutuhkan</label><input id="f-detail-deliveryDate" type="date" data-bind="details.deliveryDate"></div>
+          <div class="field"><label for="f-detail-budget">Anggaran (Rp)</label><input id="f-detail-budget" type="number" data-bind="details.budget"></div></div>
+      </div>
     </section>
 
     <!-- ============ PREVIEW ============ -->
