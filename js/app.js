@@ -13,7 +13,7 @@ let state = loadCurrent() || blankState("faktur-a4");
 let renderTimer = null;
 
 /* remote billing cache (Supabase) */
-const remote = { session: null, credits: null, history: [], pending: null };
+const remote = { session: null, credits: null, trialCredits: null, balance: null, history: [], pending: null, packages: [] };
 
 /* category cache */
 let categoriesCache = [];
@@ -59,13 +59,23 @@ function currentCredits() {
 
 function updateKuota() {
   const el = $("#kuota");
-  if (backend.isRemote() && remote.credits === null) {
-    el.textContent = "Kuota: —";
+  if (backend.isRemote() && remote.trialCredits === null) {
+    el.textContent = "T— · Saldo —";
+    el.title = "Saldo dan kuota belum tersinkron";
     el.classList.remove("empty");
+    return;
+  }
+  if (backend.isRemote()) {
+    const trial = Number(remote.trialCredits) || 0;
+    const balance = Number(remote.balance) || 0;
+    el.textContent = `T${trial} · ${rupiah(balance)}`;
+    el.title = `Trial tersisa: ${trial} dokumen. Saldo: ${rupiah(balance)}`;
+    el.classList.toggle("empty", trial <= 0 && balance <= 0);
     return;
   }
   const n = currentCredits();
   el.textContent = n > 0 ? `Kuota: ${n}` : "Kuota habis";
+  el.title = `Sisa kuota lokal: ${n}`;
   el.classList.toggle("empty", n <= 0);
 }
 
@@ -314,7 +324,7 @@ async function markIssued() {
   if (backend.isRemote()) {
     if (!remote.session) { openAuth(); return false; }
     let ok = false;
-    try { ok = await backend.tryDebit(state.number, category); }
+    try { ok = await backend.tryDebit(state.number, category, state.template, state); }
     catch { toast("Server tidak terhubung — coba lagi."); return false; }
     if (!ok) { openTopUp(); return false; }
     await refreshRemoteBilling();
@@ -385,45 +395,36 @@ $("#btn-print").addEventListener("click", async () => {
 
 const safeName = (n) => String(n || "dokumen").replace(/[^\w-]+/g, "_");
 
-$("#btn-image").addEventListener("click", async () => {
+$("#btn-save-as").addEventListener("click", async () => {
   if (!(await markIssued())) return;
   try {
-    toast("Menyiapkan gambarâ€¦");
-    const res = await shareImage(docEl, `fakturku-${safeName(state.number)}.jpg`);
-    if (res === "shared") toast("Gambar dibagikan");
-    else if (res === "downloaded") toast("JPEG diunduh â€” lampir ke chat WA/Telegram");
+    toast("Menyiapkan file JPEG…");
+    await downloadImage(docEl, `fakturku-${safeName(state.number)}.jpg`);
+    toast("Dokumen disimpan sebagai JPEG");
   } catch {
-    toast("Gagal membuat gambar. Coba tombol Print.");
+    toast("Gagal menyimpan file. Coba Print.");
   }
 });
 
 $("#btn-wa").addEventListener("click", async () => {
   if (!(await markIssued())) return;
   openWhatsApp(buildSummary());
-  try {
-    const res = await shareImage(docEl, `fakturku-${safeName(state.number)}.jpg`);
-    if (res === "shared") return;
-    if (res === "cancelled") return;
-    toast("JPEG diunduh â€” lampir ke chat WhatsApp tadi");
-  } catch {
-    toast("WhatsApp terbuka â€” salin rincian via tombol Salin");
-  }
-});
-
-$("#btn-copy").addEventListener("click", async () => {
-  await copySummary(buildSummary());
-  toast("Rincian disalin ke clipboard");
+  toast("WhatsApp dibuka dengan rincian dokumen. Lampirkan file jika diperlukan.");
 });
 
 /* ---------- top-up modal ---------- */
 const modal = $("#topup-modal");
 
 function showPackages() {
-  $("#pkg-list").innerHTML = ledger.PACKAGES.map((p, i) =>
-    `<button class="pkg" type="button" data-pkg="${i}">
-       <span class="c">${p.credits} dokumen</span>
-       <span class="p">${rupiah(p.price)}</span>
+  const packages = backend.isRemote()
+    ? remote.packages
+    : ledger.PACKAGES.map((p, i) => ({ ...p, id: String(i), label: `${p.credits} dokumen`, balance_amount: p.price }));
+  $("#pkg-list").innerHTML = (packages || []).map((p) =>
+    `<button class="pkg" type="button" data-pkg="${esc(p.id)}">
+       <span class="c">${esc(p.label || (p.credits + " dokumen"))}</span>
+       <span class="p">${rupiah(p.balance_amount ?? p.price)}</span>
      </button>`).join("");
+  if (!packages?.length) $("#pkg-list").innerHTML = '<p class="modal-sub">Paket belum tersedia. Coba lagi sebentar.</p>';
   $("#topup-packages").hidden = false;
   $("#topup-pending").hidden = true;
 }
@@ -431,7 +432,7 @@ function showPackages() {
 function showPending(rec) {
   $("#req-id").textContent = rec.id;
   $("#req-price").textContent = rupiah(rec.price);
-  $("#req-credits").textContent = `${rec.credits} dokumen`;
+  $("#req-credits").textContent = rupiah(rec.balance_amount ?? rec.price ?? 0);
   $("#req-contact").textContent = ledger.CONTACT;
   const rm = backend.isRemote();
   $("#topup-local").hidden = rm;
@@ -439,9 +440,9 @@ function showPending(rec) {
   $("#req-wait").hidden = !rm;
   if (rm) {
     $("#req-wait").textContent =
-      rec.status === "approved" ? "Disetujui — kuota sudah masuk. Muat ulang kalau belum terlihat."
+      rec.status === "approved" ? "Disetujui — saldo sudah masuk. Panel saldo akan disinkronkan otomatis."
       : rec.status === "rejected" ? "Permintaan ditolak admin. Pilih paket lain."
-      : "Menunggu persetujuan admin — kuota masuk otomatis setelah di-approve. Transfer sesuai nominal dulu ya.";
+      : "Menunggu persetujuan admin — saldo masuk otomatis setelah disetujui. Transfer sesuai nominal dulu ya.";
   }
   $("#topup-packages").hidden = true;
   $("#topup-pending").hidden = false;
@@ -486,15 +487,24 @@ function renderCatPrices() {
 }
 
 async function openTopUp() {
-  if (backend.isRemote()) await refreshRemoteBilling();
+  if (backend.isRemote()) {
+    await refreshRemoteBilling();
+    try { remote.packages = await backend.getPackages(true); }
+    catch (e) { console.warn("paket top-up gagal dimuat", e); remote.packages = []; }
+  }
   /* load categories (cache) */
   if (!categoriesCache.length) {
     try { categoriesCache = await backend.getCategories(); } catch { /* ignore */ }
   }
   renderCatPrices();
   const n = currentCredits();
-  $("#q-n").textContent = n;
-  $("#q-status").classList.toggle("empty", n <= 0);
+  if (backend.isRemote()) {
+    $("#q-status").innerHTML = `Trial tersisa: <b id="q-n">${Number(remote.trialCredits) || 0}</b> · Saldo: <b>${rupiah(Number(remote.balance) || 0)}</b>`;
+    $("#q-status").classList.toggle("empty", (Number(remote.trialCredits) || 0) <= 0 && (Number(remote.balance) || 0) <= 0);
+  } else {
+    $("#q-n").textContent = n;
+    $("#q-status").classList.toggle("empty", n <= 0);
+  }
   $("#topup-contact").textContent = ledger.CONTACT;
   renderBillingHistory(backend.isRemote() ? remote.history : ledger.requestHistory());
   const pending = backend.isRemote()
@@ -507,15 +517,19 @@ async function openTopUp() {
 }
 
 $("#pkg-list").addEventListener("click", async (e) => {
-  const i = e.target.dataset && e.target.dataset.pkg;
-  if (i == null) return;
-  const pkg = ledger.PACKAGES[Number(i)];
+  const btn = e.target.closest("[data-pkg]");
+  const key = btn?.dataset.pkg;
+  if (key == null) return;
+  const pkg = backend.isRemote()
+    ? remote.packages.find((p) => p.id === key)
+    : ledger.PACKAGES[Number(key)];
+  if (!pkg) { toast("Paket tidak ditemukan. Muat ulang panel top-up."); return; }
   if (backend.isRemote()) {
     try {
       const rec = await backend.createTopup(pkg);
       remote.pending = rec;
       showPending(rec);
-      toast("Permintaan top-up dibuat — transfer sesuai nominal, tunggu approve admin.");
+      toast("Permintaan top-up dibuat — transfer sesuai nominal, tunggu persetujuan admin.");
     } catch (err) {
       toast("Gagal membuat permintaan: " + (err?.message || "server"));
     }
@@ -625,14 +639,17 @@ $("#auth-pass").addEventListener("keydown", (e) => { if (e.key === "Enter") auth
 
 async function refreshRemoteBilling() {
   try {
-    const [c, h, p] = await Promise.all([
-      backend.creditsLeft(), backend.history(), backend.pendingTopup(),
+    const [billing, h, p] = await Promise.all([
+      backend.billingState(), backend.history(), backend.pendingTopup(),
     ]);
-    remote.credits = c;
+    remote.credits = billing.credits;
+    remote.trialCredits = billing.trialCredits;
+    remote.balance = billing.balance;
     remote.history = h;
     remote.pending = p;
   } catch (e) {
     console.warn("billing refresh gagal", e);
+    toast("Saldo belum tersinkron. Coba muat ulang.");
   }
   updateKuota();
 }
@@ -656,6 +673,8 @@ async function handleSession(session) {
     $("#auth-avatar").textContent = "?";
     btn.title = "Masuk";
     remote.credits = null;
+    remote.trialCredits = null;
+    remote.balance = null;
     remote.history = [];
     remote.pending = null;
     updateKuota();
