@@ -133,6 +133,7 @@ export async function createTopup(pkg) {
     id: data,
     packageId: pkg.id,
     price: Number(pkg.price) || 0,
+    balance_amount: Number(pkg.balance_amount ?? pkg.price) || 0,
     credits: Number(pkg.credits) || 0,
     status: "pending",
   };
