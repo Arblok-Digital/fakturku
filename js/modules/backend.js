@@ -336,7 +336,7 @@ export async function adjustCredits(userId, delta, note) {
 export async function adminTransactions() {
   const [txRes, profMap] = await Promise.all([
     sb.from("credit_transactions")
-      .select("created_at, delta, reason, ref, credits_after, user_id")
+      .select("created_at, delta, reason, ref, credits_after, user_id, category, trial_delta, trial_after, balance_delta, balance_after")
       .order("created_at", { ascending: false })
       .limit(30),
     fetchProfileMap(),
