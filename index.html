@@ -451,8 +451,8 @@
           <h1>Dokumen rapi.<br><span>Urusan beres.</span></h1>
           <p class="hero-lead">Saat dokumen diminta mendadak, pilih format siap pakai, isi data, periksa pratinjau, lalu cetak atau bagikan sesuai perangkat.</p>
           <div class="hero-ctas">
-            <a class="hero-btn hero-btn-primary" href="#landing-auth-panel" data-open-auth="up">Mulai buat dokumen <span aria-hidden="true">↗</span></a>
-            <a class="hero-btn hero-btn-secondary" href="#landing-categories">Lihat jenis dokumen <span aria-hidden="true">↓</span></a>
+            <a class="hero-btn hero-btn-primary" href="#hero-document-preview" data-preview-focus>Coba preview dokumen <span aria-hidden="true">↗</span></a>
+            <a class="hero-btn hero-btn-secondary" href="#landing-auth-panel" data-open-auth="up">Buat akun gratis <span aria-hidden="true">↓</span></a>
           </div>
           <div class="hero-proof" aria-label="Manfaat FakturKu">
             <span><b>✓</b> Pratinjau langsung</span>
@@ -461,8 +461,13 @@
           </div>
         </div>
 
-        <div class="hero-visual" aria-label="Contoh pratinjau invoice">
-          <article class="invoice-card">
+        <div class="hero-visual" id="hero-document-preview" aria-label="Preview interaktif contoh dokumen">
+          <div class="preview-switcher" role="group" aria-label="Pilih jenis preview dokumen">
+            <button type="button" class="preview-switch is-active" data-hero-preview="invoice" aria-pressed="true">Invoice</button>
+            <button type="button" class="preview-switch" data-hero-preview="receipt" aria-pressed="false">Kuitansi</button>
+            <button type="button" class="preview-switch" data-hero-preview="thermal" aria-pressed="false">Struk</button>
+          </div>
+          <article class="invoice-card hero-document-variant is-active" data-hero-variant="invoice">
             <div class="invoice-top">
               <span class="invoice-mark" aria-hidden="true">F</span>
               <div><div class="invoice-brand">CONTOH DOKUMEN</div><div class="invoice-caption">PRATINJAU INVOICE</div></div>
@@ -481,12 +486,20 @@
             <div class="invoice-row"><span>Paket konten media sosial</span><span>1</span><span>Rp 1.250.000</span></div>
             <div class="invoice-total"><small>TOTAL TAGIHAN</small><strong>Rp 3.750.000</strong></div>
           </article>
-          <div class="floating-note floating-one"><span class="note-icon" style="background:#ddf8e7;color:#18734b">✓</span><span><strong>Dokumen rapi</strong><small>Siap disimpan dan dibagikan</small></span></div>
-          <div class="floating-note floating-two"><span class="note-icon" style="background:#fff0d9;color:#a35c12">↗</span><span><strong>Ekspor praktis</strong><small>Print • Save as • WhatsApp</small></span></div>
+          <article class="invoice-card hero-document-variant receipt-variant" data-hero-variant="receipt" hidden>
+            <div class="invoice-top"><span class="invoice-mark" aria-hidden="true">F</span><div><div class="invoice-brand">CONTOH DOKUMEN</div><div class="invoice-caption">BUKTI PENERIMAAN</div></div><span class="invoice-paid">TERCATAT</span></div>
+            <div class="invoice-title-row"><div><h3>KUITANSI</h3><div class="invoice-number">KW-2026-0018</div></div><div class="invoice-date">TANGGAL<br><strong>15 Okt 2026</strong></div></div>
+            <div class="receipt-amount"><small>JUMLAH DITERIMA</small><strong>Rp 850.000</strong></div>
+            <div class="receipt-detail"><span>Telah diterima dari</span><b>CV Sumber Rezeki</b><span>Untuk pembayaran</span><b>Pengadaan perlengkapan</b></div>
+            <div class="receipt-sign"><span>Yang menerima,</span><b>Admin FakturKu</b></div>
+          </article>
+          <article class="invoice-card hero-document-variant thermal-variant" data-hero-variant="thermal" hidden>
+            <div class="thermal-hero-paper"><div class="thermal-hero-brand">FAKTURKU</div><strong>BUKTI TRANSAKSI</strong><span>15/10/2026 · 09:42</span><i></i><div class="thermal-hero-line"><span>Kopi susu</span><b>18.000</b></div><div class="thermal-hero-line"><span>Roti bakar</span><b>22.000</b></div><i></i><div class="thermal-hero-total"><span>TOTAL</span><b>Rp 40.000</b></div><small>TERIMA KASIH</small></div>
+          </article>
+          <div class="floating-note floating-one"><span class="note-icon" style="background:#ddf8e7;color:#18734b">✓</span><span><strong id="hero-note-title">Total otomatis dihitung</strong><small id="hero-note-sub">Contoh preview dokumen</small></span></div>
+          <div class="floating-note floating-two"><span class="note-icon" style="background:#fff0d9;color:#a35c12">↗</span><span><strong>Output fleksibel</strong><small>Print • Save as • WhatsApp</small></span></div>
         </div>
       </div>
-
-      <section class="hero-auth-inline" aria-label="Akses akun FakturKu">
         <div class="hero-auth-copy">
           <p class="eyebrow">MULAI DARI SINI</p>
           <h2>Dokumen bisnis dimulai dengan langkah sederhana.</h2>
@@ -531,15 +544,21 @@
             <div class="problem-point reveal"><span class="problem-x">03</span><div><strong>Pelanggan menunggu</strong><p>Dokumen harus bisa ditunjukkan, dicetak, atau dikirim saat dibutuhkan.</p></div></div>
           </div>
         </div>
-        <aside class="field-solution reveal">
-          <span class="solution-label"><span class="solution-dot"></span> ALUR DENGAN FAKTURKU</span>
-          <div class="solution-step"><span>1</span><div><strong>Pilih format</strong><small>Invoice atau kuitansi</small></div></div>
-          <div class="solution-connector"></div>
-          <div class="solution-step"><span>2</span><div><strong>Isi data penting</strong><small>Periksa hasil di pratinjau</small></div></div>
-          <div class="solution-connector"></div>
-          <div class="solution-step"><span>3</span><div><strong>Kirim atau cetak</strong><small>Pilih cara yang cocok di perangkat</small></div></div>
-          <div class="solution-result"><span aria-hidden="true">✓</span> Lebih siap saat dokumen diminta mendadak</div>
-          <p class="solution-disclaimer">Ilustrasi alur penggunaan, bukan testimoni pelanggan.</p>
+        <aside class="before-after reveal" aria-label="Ilustrasi sebelum dan sesudah menggunakan alur FakturKu">
+          <div class="comparison-column chaos-column">
+            <div class="comparison-top"><span class="comparison-status">SEBELUM</span><b>Dokumen masih tercecer</b></div>
+            <div class="chaos-chat"><span class="chat-avatar">P</span><div><b>Pelanggan</b><p>Mas, invoice-nya bisa dikirim sekarang?</p></div></div>
+            <div class="chaos-chat right"><span class="chat-avatar">S</span><div><b>Staf lapangan</b><p>Sebentar ya, saya cari file-nya dulu.</p></div></div>
+            <div class="chaos-file"><span>DOC</span><div><b>invoice_final_fix2.docx</b><small>Folder unduhan · perlu dicek lagi</small></div><span class="chaos-warning">!</span></div>
+            <p class="comparison-caption">Ilustrasi kendala yang mungkin terjadi.</p>
+          </div>
+          <div class="comparison-arrow" aria-hidden="true">→</div>
+          <div class="comparison-column order-column">
+            <div class="comparison-top"><span class="comparison-status">DENGAN FAKTURKU</span><b>Alur lebih terstruktur</b></div>
+            <div class="order-document"><div class="order-doc-head"><span>F</span><b>INVOICE</b><small>INV-2026-0108</small></div><i></i><i></i><i></i><div class="order-doc-total"><span>TOTAL</span><b>Rp 3.750.000</b></div></div>
+            <div class="order-confirmation"><span>✓</span><div><b>Pratinjau siap diperiksa</b><small>Lanjutkan dengan print atau bagikan dari perangkat</small></div></div>
+            <p class="comparison-caption">Mockup ilustratif, bukan bukti pengiriman aktual.</p>
+          </div>
         </aside>
       </div>
     </section>
@@ -549,14 +568,32 @@
         <p class="section-kicker reveal">SATU WORKSPACE, TUJUH KEBUTUHAN</p>
         <h2 class="section-heading reveal">Bukan cuma faktur.</h2>
         <p class="section-intro reveal">Jelajahi kategori dokumen yang tersedia di FakturKu. Pilih kategori di editor untuk melihat format yang bisa digunakan.</p>
-        <div class="category-grid">
-          <article class="category-card reveal" style="--fk-delay:0ms"><span class="category-icon" style="background:#e0f2fe;color:#176a9a">↗</span><h3>Finance</h3><p>Kebutuhan faktur, invoice, dan bukti transaksi keuangan.</p><span class="category-tag">Keuangan</span></article>
-          <article class="category-card reveal" style="--fk-delay:55ms"><span class="category-icon" style="background:#f0e8ff;color:#6a45a5">§</span><h3>Legal</h3><p>Dokumen administrasi dan kebutuhan kesepakatan bisnis.</p><span class="category-tag">Administrasi</span></article>
-          <article class="category-card reveal" style="--fk-delay:110ms"><span class="category-icon" style="background:#e2f8e9;color:#20784b">▦</span><h3>UMKM</h3><p>Kebutuhan transaksi usaha kecil dan menengah sehari-hari.</p><span class="category-tag">Usaha</span></article>
-          <article class="category-card reveal" style="--fk-delay:165ms"><span class="category-icon" style="background:#fff0d9;color:#a35c12">⇄</span><h3>Logistik</h3><p>Kebutuhan administrasi barang, pengiriman, dan distribusi.</p><span class="category-tag">Distribusi</span></article>
-          <article class="category-card reveal" style="--fk-delay:220ms"><span class="category-icon" style="background:#ffe7e5;color:#b5473d">%</span><h3>Pajak</h3><p>Dokumen pendukung administrasi perpajakan bisnis.</p><span class="category-tag">Perpajakan</span></article>
-          <article class="category-card reveal" style="--fk-delay:275ms"><span class="category-icon" style="background:#e7eafe;color:#4d55b5">⌁</span><h3>Proyek</h3><p>Kebutuhan dokumen terkait pekerjaan dan progres proyek.</p><span class="category-tag">Pekerjaan</span></article>
-          <article class="category-card reveal" style="--fk-delay:330ms"><span class="category-icon" style="background:#e0f5f4;color:#167c79">⚙</span><h3>Operasional</h3><p>Dokumen pendukung aktivitas dan proses internal bisnis.</p><span class="category-tag">Operasional</span></article>
+        <div class="category-showcase reveal">
+          <div class="category-tabs" role="tablist" aria-label="Pilih kategori dokumen">
+            <button type="button" class="category-tab is-active" role="tab" aria-selected="true" data-category="finance">Finance</button>
+            <button type="button" class="category-tab" role="tab" aria-selected="false" data-category="legal">Legal</button>
+            <button type="button" class="category-tab" role="tab" aria-selected="false" data-category="umkm">UMKM</button>
+            <button type="button" class="category-tab" role="tab" aria-selected="false" data-category="logistik">Logistik</button>
+            <button type="button" class="category-tab" role="tab" aria-selected="false" data-category="pajak">Pajak</button>
+            <button type="button" class="category-tab" role="tab" aria-selected="false" data-category="proyek">Proyek</button>
+            <button type="button" class="category-tab" role="tab" aria-selected="false" data-category="operasional">Operasional</button>
+          </div>
+          <div class="category-showcase-panel">
+            <div class="category-showcase-copy">
+              <span class="showcase-label">CONTOH KATEGORI</span>
+              <h3 id="category-preview-title">Invoice & tagihan</h3>
+              <p id="category-preview-copy">Dokumen keuangan untuk menagih pembayaran dan merapikan catatan transaksi bisnis.</p>
+              <div class="showcase-tags" id="category-preview-tags"><span>Invoice</span><span>Kuitansi</span><span>Bukti transaksi</span></div>
+              <p class="showcase-disclaimer">Contoh visual kategori. Format yang tersedia dapat dilihat di editor FakturKu.</p>
+            </div>
+            <div class="category-document-preview" aria-live="polite">
+              <div class="showcase-doc-top"><span class="showcase-doc-mark">F</span><div><b id="category-doc-brand">FAKTURKU · FINANCE</b><small>CONTOH DOKUMEN</small></div><span class="showcase-doc-status">PREVIEW</span></div>
+              <div class="showcase-doc-title" id="category-doc-title">INVOICE</div>
+              <div class="showcase-doc-number" id="category-doc-number">INV-2026-0108</div>
+              <div class="showcase-doc-lines"><i></i><i></i><i></i><i></i></div>
+              <div class="showcase-doc-total"><span id="category-doc-total-label">TOTAL TAGIHAN</span><b id="category-doc-total">Rp 3.750.000</b></div>
+            </div>
+          </div>
         </div>
       </div>
     </section>
@@ -597,11 +634,26 @@
       </div>
     </section>
 
-    <section class="landing-section landing-cta">
-      <div class="section-inner cta-inner">
-        <div><p class="section-kicker" style="color:#b8f36b">SIAP MULAI?</p><h2 class="section-heading">Dokumen rapi, bisnis terasa siap.</h2><p class="section-intro">Masuk atau buat akun FakturKu untuk melanjutkan.</p></div>
-        <a class="hero-btn hero-btn-primary" href="#landing-auth-panel" data-open-auth="up">Mulai sekarang <span aria-hidden="true">↗</span></a>
+    <section class="landing-section landing-auth-section" id="landing-register">
+      <div class="section-inner final-auth-layout">
+        <div class="final-auth-copy"><p class="section-kicker reveal">SIAP MULAI?</p><h2 class="section-heading reveal">Dokumen rapi. Urusan beres.</h2><p class="section-intro reveal">Lihat contoh, pahami alurnya, lalu masuk atau buat akun untuk melanjutkan di workspace FakturKu.</p><div class="auth-mini-points reveal"><span>7 kategori kebutuhan</span><span>Preview dokumen</span><span>Print & bagikan</span></div></div>
+        <section class="auth-card reveal" id="landing-auth-panel" aria-label="Masuk atau daftar akun">
+          <h2 id="auth-title">Selamat datang</h2>
+          <p class="modal-sub">Masuk ke akun atau buat akun baru untuk melanjutkan.</p>
+          <div class="auth-tabs" role="tablist" aria-label="Jenis akses akun">
+            <button type="button" id="auth-tab-in" class="on" role="tab" aria-selected="true">Masuk</button>
+            <button type="button" id="auth-tab-up" role="tab" aria-selected="false">Daftar</button>
+          </div>
+          <div class="field" id="auth-name-field" hidden><label for="auth-name">Nama</label><input id="auth-name" type="text" autocomplete="name" placeholder="Nama lengkap"></div>
+          <div class="field"><label for="auth-email">Email</label><input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com"></div>
+          <div class="field"><label for="auth-pass">Password</label><input id="auth-pass" type="password" autocomplete="current-password" placeholder="Minimal 6 karakter"></div>
+          <p class="auth-err" id="auth-err" hidden></p>
+          <button class="btn primary" type="button" id="auth-go">Masuk</button>
+          <p class="auth-note">Dengan melanjutkan, Anda dapat mengelola dokumen dan informasi akun melalui FakturKu.</p>
+        </section>
       </div>
+    </section>
+    <section class="landing-section landing-cta">
       <div class="section-inner landing-footer"><span>FakturKu · Workspace dokumen bisnis</span><span>Praktis dibuat. Rapi dibagikan.</span></div>
     </section>
   </main>
