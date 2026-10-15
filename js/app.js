@@ -17,7 +17,7 @@ let sampleDraftPristine = false;
 let renderTimer = null;
 let numberReservationPromise = Promise.resolve(true);
 let numberReservationFor = null;
-const serverReservedStates = new WeakSet();
+
 
 /* remote billing cache (Supabase) */
 const remote = { session: null, credits: null, trialCredits: null, balance: null, history: [], pending: null, packages: [] };
@@ -99,7 +99,7 @@ function reserveServerNumberForCurrentState() {
       state.number = number;
       state.numbers = state.numbers || {};
       state.numbers[targetTemplate] = number;
-      serverReservedStates.add(targetState);
+      state._serverNumberRequired = false;
       render();
       saveCurrent(state);
     }
@@ -287,8 +287,9 @@ function switchTemplate(newId) {
   } else {
     state.number = nextNumberByCategory(state.category);
     state.numbers[newId] = state.number;
-    if (backend.isRemote() && remote.session) {
-      queueMicrotask(() => reserveServerNumberForCurrentState());
+    if (backend.isRemote()) {
+      state._serverNumberRequired = true;
+      if (remote.session) queueMicrotask(() => reserveServerNumberForCurrentState());
     }
   }
 
@@ -377,7 +378,10 @@ function newDoc() {
   renderTemplatePicker();
   renderItems(); render();
   saveCurrent(state);
-  if (backend.isRemote() && remote.session) reserveServerNumberForCurrentState();
+  if (backend.isRemote()) {
+    state._serverNumberRequired = true;
+    if (remote.session) reserveServerNumberForCurrentState();
+  }
   toast("Dokumen baru dibuat");
 }
 $("#btn-new").addEventListener("click", newDoc);
@@ -400,7 +404,10 @@ $("#btn-clear-sample").addEventListener("click", () => {
   renderItems();
   render();
   saveCurrent(state);
-  if (backend.isRemote() && remote.session) reserveServerNumberForCurrentState();
+  if (backend.isRemote()) {
+    state._serverNumberRequired = true;
+    if (remote.session) reserveServerNumberForCurrentState();
+  }
   toast("Dokumen kosong siap diisi");
 });
 $("#btn-new-fab").addEventListener("click", newDoc);
@@ -411,9 +418,11 @@ async function markIssued() {
   const category = state.category || getCategory(state.template);
   if (backend.isRemote()) {
     if (!remote.session) { openAuth(); return false; }
-    if (numberReservationFor === state) {
-      const reserved = await numberReservationPromise;
-      if (!reserved || !serverReservedStates.has(state)) return false;
+    if (state._serverNumberRequired) {
+      const reserved = numberReservationFor === state
+        ? await numberReservationPromise
+        : await reserveServerNumberForCurrentState();
+      if (!reserved || state._serverNumberRequired) return false;
     }
     let ok = false;
     try { ok = await backend.tryDebit(state.number, category, state.template, state); }
