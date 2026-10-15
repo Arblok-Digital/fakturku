@@ -1508,3 +1508,20 @@ button, input, select, textarea { font: inherit; color: inherit; }
   border-color: #2f6f9f !important;
   box-shadow: inset 4px 0 0 #2f6f9f, 0 0 0 3px rgba(77, 134, 181, .18);
 }
+
+/* Editable sample data affordances */
+.section-heading-row { display:flex; align-items:center; justify-content:space-between; gap:12px; }
+.section-heading-row h3 { margin:0; }
+.sample-fill-btn { flex:0 0 auto; white-space:nowrap; font-size:12px; }
+.sample-editor-banner { display:flex; align-items:center; gap:12px; margin:0 0 14px; padding:13px; border:1px solid #b9f56b55; border-radius:12px; background:#b9f56b0d; }
+.sample-editor-icon { display:grid; place-items:center; flex:0 0 32px; height:32px; border-radius:9px; background:#b9f56b20; color:#b9f56b; font-size:18px; }
+.sample-editor-banner>div { min-width:0; flex:1; }
+.sample-editor-banner strong { display:block; color:var(--ink-900); font-size:12px; }
+.sample-editor-banner p { margin:4px 0 0; color:var(--ink-500); font-size:11px; line-height:1.5; }
+.sample-editor-banner .btn { flex:0 0 auto; font-size:11px; }
+@media(max-width:560px) {
+  .sample-editor-banner { align-items:flex-start; flex-wrap:wrap; }
+  .sample-editor-banner>div { flex:1 1 calc(100% - 48px); }
+  .sample-editor-banner .btn { margin-left:44px; }
+  .sample-fill-btn { padding:7px 9px; font-size:10px; }
+}
