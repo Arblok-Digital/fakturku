@@ -92,9 +92,14 @@ function scheduleRender() {
 
 let syncTimer = null;
 function scheduleCloudSync() {
-  if (!backend.isRemote() || !remote.session) return;
+  if (!backend.isRemote() || !remote.session || state.issued) return;
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => { backend.saveInvoice(state).catch(() => {}); }, 1200);
+  syncTimer = setTimeout(() => {
+    backend.saveInvoice(state).catch((err) => {
+      console.warn("sinkronisasi draft ke cloud gagal", err);
+      toast("Draft belum tersinkron ke cloud. Periksa koneksi.");
+    });
+  }, 1200);
 }
 
 function applySections(tpl) {
