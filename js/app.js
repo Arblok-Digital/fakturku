@@ -695,13 +695,160 @@ $("#btn-auth").addEventListener("click", async () => {
   }
 });
 
-/* ---------- mobile tabs ---------- */
+/* ---------- mobile tabs + filled template example ---------- */
 $("#tab-edit").addEventListener("click", () => switchTab("edit"));
 $("#tab-preview").addEventListener("click", () => switchTab("preview"));
+$("#tab-example").addEventListener("click", () => switchTab("example"));
+
+function buildExampleState() {
+  const today = new Date();
+  const dateValue = (d) => {
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  };
+  const plusDays = (days) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + days);
+    return dateValue(d);
+  };
+  const sample = blankState(state.template, {
+    keepNumber: "CONTOH/" + String(state.template || "DOC").toUpperCase() + "/001"
+  });
+  sample.category = state.category || getCategory(state.template);
+  sample.date = dateValue(today);
+  sample.dueDate = plusDays(14);
+  sample.issued = true;
+  sample.notes = "Contoh data fiktif — sesuaikan seluruh isi sebelum digunakan.";
+  sample.issuer = {
+    name: "PT Nusantara Karya (Contoh)",
+    address: "Jl. HZ Mustofa No. 88, Tasikmalaya",
+    npwp: "00.000.000.0-000.000",
+    phone: "(0265) 000000",
+    email: "admin@example.test"
+  };
+  sample.client = {
+    name: "CV Mitra Sejahtera (Contoh)",
+    address: "Jl. Contoh Usaha No. 12, Tasikmalaya",
+    npwp: "00.000.000.0-000.000",
+    phone: "(0265) 111111"
+  };
+  sample.items = [
+    { desc: "Jasa / barang contoh", qty: 2, price: 750000 },
+    { desc: "Biaya pendukung (contoh)", qty: 1, price: 250000 }
+  ];
+  sample.discount = 0;
+  sample.taxRate = 0;
+  sample.payment = {
+    bank: "Bank Contoh",
+    accountNo: "0000000000",
+    accountName: "PT Nusantara Karya (Contoh)",
+    method: "Transfer bank (contoh)"
+  };
+  sample.terms = "Contoh syarat: ruang lingkup dan jadwal mengikuti kesepakatan tertulis para pihak. Ganti klausul ini sesuai kebutuhan.";
+  sample.signatures = {
+    maker: { name: "Andi Pratama (Contoh)", title: "Administrasi" },
+    receiver: { name: "Budi Santoso (Contoh)", title: "Penerima / Penanggung Jawab" }
+  };
+  Object.assign(sample.details, {
+    subject: "Pengadaan / pekerjaan contoh",
+    reference: "REF-CONTOH-001",
+    description: "Contoh uraian untuk membantu memahami bagian dokumen yang perlu diisi.",
+    period: "Oktober 2026",
+    location: "Tasikmalaya",
+    validity: plusDays(30),
+    paymentTerms: "Pembayaran maksimal 14 hari setelah dokumen diterima",
+    reason: "Contoh kebutuhan operasional",
+    status: "Diperiksa — contoh",
+    authority: "Bagian Operasional",
+    origin: "Gudang Tasikmalaya",
+    destination: "Lokasi penerima, Tasikmalaya",
+    driver: "Dedi (Contoh)",
+    vehicle: "Mobil boks — contoh",
+    condition: "Baik; contoh data",
+    quantity: 3,
+    unit: "paket",
+    contractRef: "SPK-CONTOH-001",
+    scope: "Penyediaan barang dan jasa sesuai daftar",
+    effectiveDate: dateValue(today),
+    endDate: plusDays(30),
+    authority: "Bagian Operasional",
+    witness: "Saksi (Contoh)",
+    project: "Peningkatan Fasilitas Kantor (Contoh)",
+    progress: 50,
+    contractValue: 10000000,
+    previousPaid: 2500000,
+    retention: 500000,
+    milestone: "Termin 2 — contoh",
+    inspection: "Sesuai pemeriksaan contoh",
+    employee: "Siti Rahma (Contoh)",
+    employeeId: "KARYAWAN-CONTOH-001",
+    position: "Staf Administrasi",
+    department: "Operasional",
+    baseSalary: 4500000,
+    allowances: 500000,
+    deductions: 100000,
+    netPay: 4900000,
+    taxPeriod: "Oktober 2026 (contoh)",
+    taxType: "Data simulasi — verifikasi aturan berlaku",
+    taxBase: 2500000,
+    taxAmount: 275000,
+    taxId: "00.000.000.0-000.000",
+    requestedBy: "Andi Pratama (Contoh)",
+    approvedBy: "Budi Santoso (Contoh)",
+    deliveryDate: plusDays(3),
+    supplier: "PT Pemasok Contoh",
+    budget: 2500000,
+    recipientRole: "Penerima Kuasa (Contoh)",
+    returnReason: "Barang tidak sesuai pesanan (contoh)",
+    packing: "3 karton",
+    invoiceRef: "INV-CONTOH-001",
+    contractDate: dateValue(today),
+    invoicePeriod: "Oktober 2026",
+    bankRef: "TRX-CONTOH-001"
+  });
+
+  if (sample.template === "kwitansi-a4") {
+    sample.receivedFrom = "CV Mitra Sejahtera (Contoh)";
+    sample.forPayment = "Pembayaran jasa tahap pertama (contoh)";
+    sample.amount = 1750000;
+  }
+  if (sample.template === "struk-ansuran") {
+    sample.contractNo = "KRD-CONTOH-001";
+    sample.installmentNo = 3;
+    sample.customerName = "Budi Santoso (Contoh)";
+    sample.principal = 500000;
+    sample.interest = 75000;
+    sample.fine = 0;
+    sample.installmentDue = plusDays(7);
+    sample.remaining = 2500000;
+  }
+  return sample;
+}
+
+function renderExample() {
+  const sample = buildExampleState();
+  const tpl = renderDoc(sample);
+  $("#out-hint").textContent = "CONTOH DATA FIKTIF · " + tpl.label + " · " + (tpl.category || "finance");
+  $("#example-banner").hidden = false;
+  ["#btn-print", "#btn-save-as", "#btn-wa"].forEach((sel) => { $(sel).disabled = true; });
+  requestAnimationFrame(fitPreview);
+}
+
 function switchTab(tab) {
-  $("#workspace").dataset.tab = tab;
+  const exampleMode = tab === "example";
+  $("#workspace").dataset.tab = tab === "edit" ? "edit" : "preview";
   $("#tab-edit").classList.toggle("on", tab === "edit");
   $("#tab-preview").classList.toggle("on", tab === "preview");
+  $("#tab-example").classList.toggle("on", exampleMode);
+
+  if (exampleMode) {
+    renderExample();
+    return;
+  }
+
+  $("#example-banner").hidden = true;
+  ["#btn-print", "#btn-save-as", "#btn-wa"].forEach((sel) => { $(sel).disabled = false; });
+  render();
   if (tab === "preview") requestAnimationFrame(fitPreview);
 }
 
