@@ -243,7 +243,7 @@ export async function saveInvoice(state) {
   // Issued documents are immutable from the draft autosync path.
   // issue_document() already persists the final document atomically with billing.
   // Skipping issued states prevents a delayed autosync from overwriting issued data.
-  if (!sb || !state?.number || state.issued) return;
+  if (!sb || !state?.number || state.issued || state._serverNumberRequired) return;
   const user = await getUser();
   if (!user) throw new Error("Sesi login tidak tersedia untuk sinkronisasi draft.");
   const { error } = await sb.from("invoices").upsert(
