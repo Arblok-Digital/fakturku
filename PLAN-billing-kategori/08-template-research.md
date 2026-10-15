@@ -59,3 +59,22 @@ Template bukan pengganti sistem inventory, approval, payroll, manajemen proyek, 
 - [x] Template pajak memiliki disclaimer dokumen internal/non-resmi.
 - [x] Service worker v14 memasukkan modul katalog.
 - [ ] User memeriksa preview dari HP sebelum merge ke production.
+
+
+## Catatan validasi format & contoh terisi (15 Oktober 2026)
+
+Referensi tambahan untuk meninjau struktur dokumen:
+- Mekari Jurnal — [Komponen Purchase Order](https://www.jurnal.id/id/blog/contoh-template-surat-purchase-order/): identitas pihak, nomor/tanggal, rincian barang, kuantitas, harga/pajak, syarat, dan otorisasi.
+- Mekari Jurnal — [Komponen Surat Jalan](https://www.jurnal.id/id/blog/contoh-cara-membuat-surat-jalan-barang/): identitas pengirim/penerima, referensi, daftar barang, pengiriman, dan tanda terima.
+- Direktorat Jenderal Pajak — [Faktur Pajak](https://www.pajak.go.id/id/peraturan/faktur-pajak): e-Faktur mengikuti sistem yang disediakan/ditentukan DJP dan memiliki elemen formal yang diatur.
+- Mekari Sign — [Dokumen procurement dan penerimaan barang](https://mekarisign.com/id/solusi/procurement/): referensi untuk PO, perjanjian vendor, dan penerimaan barang.
+
+### Status format
+Katalog ini adalah format administrasi umum yang bisa disesuaikan, bukan sertifikasi bahwa setiap dokumen memenuhi seluruh kebijakan internal, hukum sektoral, atau aturan pajak. Lembar pajak FakturKu secara eksplisit berstatus internal/non-resmi. Dokumen legal perlu ditinjau pihak berwenang sebelum ditandatangani.
+
+### Fitur Contoh
+- Tab **Contoh** pada navigasi bawah menampilkan template terpilih dengan data ilustrasi yang sudah terisi.
+- Mode contoh tidak mengganti state/draft pengguna.
+- Print, Save as, dan Share via WhatsApp dinonaktifkan selama mode contoh agar data ilustrasi tidak terpakai sebagai dokumen nyata.
+- Kembali ke Edit atau Preview mengembalikan dokumen pengguna.
+- Data contoh memakai nama, referensi, nomor, dan kontak ilustratif; ganti semua nilai sebelum penggunaan nyata.
