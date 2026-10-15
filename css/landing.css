@@ -3,6 +3,7 @@
 body:has(#auth-modal:not([hidden])) { background: #f7f9fc; }
 body:has(#auth-modal:not([hidden])) .appbar { display: none; }
 body:has(#auth-modal:not([hidden])) .bottomnav { display: none; }
+body:has(#auth-modal:not([hidden])) #btn-new-fab { display: none !important; }
 
 .landing-v2 {
   --fk-ink: #142f45;
