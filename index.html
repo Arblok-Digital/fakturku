@@ -433,13 +433,14 @@
         <span class="logo" aria-hidden="true">F</span><span>FakturKu</span><span class="mark">BETA</span>
       </a>
       <nav class="nav-links" aria-label="Navigasi halaman">
-        <a href="#landing-categories">Kategori</a>
+        <a href="#landing-problem">Situasi lapangan</a>
+        <a href="#landing-categories">Jenis dokumen</a>
+        <a href="#landing-output">Cetak & bagikan</a>
         <a href="#landing-steps">Cara kerja</a>
-        <a href="#landing-auth-panel">Akun</a>
       </nav>
       <div class="nav-actions">
         <button class="nav-btn nav-btn-quiet" type="button" data-open-auth="in">Masuk</button>
-        <button class="nav-btn nav-btn-bright" type="button" data-open-auth="up">Daftar gratis</button>
+        <button class="nav-btn nav-btn-bright" type="button" data-open-auth="up">Mulai gratis <span aria-hidden="true">↗</span></button>
       </div>
     </header>
 
@@ -448,7 +449,7 @@
         <div class="hero-copy">
           <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> DOKUMEN BISNIS, TANPA RIBET</p>
           <h1>Dokumen rapi.<br><span>Urusan beres.</span></h1>
-          <p class="hero-lead">Buat invoice, kuitansi, surat, dan dokumen operasional dari template siap pakai. Isi data, periksa hasilnya, lalu cetak atau bagikan.</p>
+          <p class="hero-lead">Saat dokumen diminta mendadak, pilih format siap pakai, isi data, periksa pratinjau, lalu cetak atau bagikan sesuai perangkat.</p>
           <div class="hero-ctas">
             <a class="hero-btn hero-btn-primary" href="#landing-auth-panel" data-open-auth="up">Mulai buat dokumen <span aria-hidden="true">↗</span></a>
             <a class="hero-btn hero-btn-secondary" href="#landing-categories">Lihat jenis dokumen <span aria-hidden="true">↓</span></a>
@@ -518,11 +519,36 @@
       </section>
     </section>
 
+    <section class="landing-section problem-section" id="landing-problem">
+      <div class="section-inner problem-layout">
+        <div class="problem-copy">
+          <p class="section-kicker reveal">SIMULASI KASUS LAPANGAN</p>
+          <h2 class="section-heading reveal">Diminta faktur sekarang. File-nya masih entah di mana.</h2>
+          <p class="section-intro reveal">Bayangkan lagi di lokasi pelanggan, barang sudah diterima, lalu mereka minta invoice atau bukti transaksi sebelum pulang. Bikin dari nol di HP, cari format lama, atau balik ke laptop bisa bikin urusan sederhana jadi panjang.</p>
+          <div class="problem-points">
+            <div class="problem-point reveal"><span class="problem-x">01</span><div><strong>Format tercecer</strong><p>Template beda-beda di chat, folder, atau laptop kantor.</p></div></div>
+            <div class="problem-point reveal"><span class="problem-x">02</span><div><strong>Data rawan terlewat</strong><p>Nomor, tanggal, nama pelanggan, dan nominal harus dicek lagi.</p></div></div>
+            <div class="problem-point reveal"><span class="problem-x">03</span><div><strong>Pelanggan menunggu</strong><p>Dokumen harus bisa ditunjukkan, dicetak, atau dikirim saat dibutuhkan.</p></div></div>
+          </div>
+        </div>
+        <aside class="field-solution reveal">
+          <span class="solution-label"><span class="solution-dot"></span> ALUR DENGAN FAKTURKU</span>
+          <div class="solution-step"><span>1</span><div><strong>Pilih format</strong><small>Invoice atau kuitansi</small></div></div>
+          <div class="solution-connector"></div>
+          <div class="solution-step"><span>2</span><div><strong>Isi data penting</strong><small>Periksa hasil di pratinjau</small></div></div>
+          <div class="solution-connector"></div>
+          <div class="solution-step"><span>3</span><div><strong>Kirim atau cetak</strong><small>Pilih cara yang cocok di perangkat</small></div></div>
+          <div class="solution-result"><span aria-hidden="true">✓</span> Lebih siap saat dokumen diminta mendadak</div>
+          <p class="solution-disclaimer">Ilustrasi alur penggunaan, bukan testimoni pelanggan.</p>
+        </aside>
+      </div>
+    </section>
+
     <section class="landing-section category-section" id="landing-categories">
       <div class="section-inner">
         <p class="section-kicker reveal">SATU WORKSPACE, TUJUH KEBUTUHAN</p>
         <h2 class="section-heading reveal">Bukan cuma faktur.</h2>
-        <p class="section-intro reveal">Kenali tujuh kategori kebutuhan dokumen FakturKu. Format yang dapat dibuat akan ditampilkan langsung di editor—jadi jelas mana yang sudah tersedia.</p>
+        <p class="section-intro reveal">Jelajahi kategori dokumen yang tersedia di FakturKu. Pilih kategori di editor untuk melihat format yang bisa digunakan.</p>
         <div class="category-grid">
           <article class="category-card reveal" style="--fk-delay:0ms"><span class="category-icon" style="background:#e0f2fe;color:#176a9a">↗</span><h3>Finance</h3><p>Kebutuhan faktur, invoice, dan bukti transaksi keuangan.</p><span class="category-tag">Keuangan</span></article>
           <article class="category-card reveal" style="--fk-delay:55ms"><span class="category-icon" style="background:#f0e8ff;color:#6a45a5">§</span><h3>Legal</h3><p>Dokumen administrasi dan kebutuhan kesepakatan bisnis.</p><span class="category-tag">Administrasi</span></article>
@@ -532,6 +558,29 @@
           <article class="category-card reveal" style="--fk-delay:275ms"><span class="category-icon" style="background:#e7eafe;color:#4d55b5">⌁</span><h3>Proyek</h3><p>Kebutuhan dokumen terkait pekerjaan dan progres proyek.</p><span class="category-tag">Pekerjaan</span></article>
           <article class="category-card reveal" style="--fk-delay:330ms"><span class="category-icon" style="background:#e0f5f4;color:#167c79">⚙</span><h3>Operasional</h3><p>Dokumen pendukung aktivitas dan proses internal bisnis.</p><span class="category-tag">Operasional</span></article>
         </div>
+      </div>
+    </section>
+
+    <section class="landing-section output-section" id="landing-output">
+      <div class="section-inner">
+        <p class="section-kicker reveal">HASILNYA BISA DIPAKAI</p>
+        <h2 class="section-heading reveal">Satu dokumen, beberapa cara menyelesaikan urusan.</h2>
+        <p class="section-intro reveal">Bukan cuma mengisi formulir. Lihat hasilnya, lalu pilih output sesuai kebutuhan dan perangkat yang tersedia.</p>
+        <div class="output-grid">
+          <article class="output-card reveal">
+            <div class="output-visual paper-preview" aria-hidden="true"><div class="paper-sheet"><span>FAKTURKU</span><b>INVOICE</b><i></i><i></i><i></i><div class="paper-total"></div></div></div>
+            <div class="output-content"><span class="output-index">OUTPUT 01</span><h3>Print dokumen ukuran kertas</h3><p>Untuk invoice, surat, dan dokumen administrasi yang perlu dicetak atau disimpan sebagai PDF melalui dialog print perangkat.</p><span class="output-chip">Printer biasa · Save as PDF</span></div>
+          </article>
+          <article class="output-card reveal">
+            <div class="output-visual thermal-preview" aria-hidden="true"><div class="thermal-paper"><b>FAKTURKU</b><strong>BUKTI TRANSAKSI</strong><i></i><i></i><i></i><span>TOTAL 125.000</span><small>TERIMA KASIH</small></div></div>
+            <div class="output-content"><span class="output-index">OUTPUT 02</span><h3>Struk printer thermal</h3><p>Untuk kebutuhan struk ringkas. Hasil cetak bergantung pada layout dokumen, browser, driver, dan dukungan printer thermal yang digunakan.</p><span class="output-chip">Printer thermal kompatibel</span></div>
+          </article>
+          <article class="output-card reveal">
+            <div class="output-visual whatsapp-preview" aria-hidden="true"><div class="wa-bubble"><span>Dokumen sudah siap.</span><small>Invoice untuk diperiksa</small><b>✓✓</b></div><div class="wa-file"><span>JPG</span><div><strong>Invoice-001.jpg</strong><small>Pratinjau dokumen</small></div></div></div>
+            <div class="output-content"><span class="output-index">OUTPUT 03</span><h3>Bagikan lewat WhatsApp</h3><p>Bagikan hasil dokumen kepada pelanggan atau tim lewat WhatsApp. Ketersediaan format berbagi mengikuti opsi yang didukung perangkat.</p><span class="output-chip">Bagikan dari perangkat</span></div>
+          </article>
+        </div>
+        <p class="output-note reveal">Catatan: pilihan cetak dan berbagi dapat berbeda antara Android, iPhone, dan desktop. Periksa pratinjau sebelum mengirim dokumen ke penerima.</p>
       </div>
     </section>
 
