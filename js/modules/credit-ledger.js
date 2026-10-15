@@ -2,7 +2,7 @@ const KEY = "fakturku:ledger";
 const SECRET = "FakturKuSecret2026";
 
 /* Owner: ganti nomor kontak di bawah sebelum rilis ke user */
-export const CONTACT = "Hubungi admin — WhatsApp 0812-0000-0000";
+export const CONTACT = "E-wallet DANA: 089508053795";
 
 export const PACKAGES = [
   { credits: 5, price: 50000 },
