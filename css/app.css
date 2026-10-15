@@ -1589,3 +1589,31 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .ai-assistant-panel { animation: ai-assistant-in .16s ease-out; }
   @keyframes ai-assistant-in { from { opacity: .5; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 }
+
+/* Mobile: tuck the assistant against the screen edge so it no longer blocks document actions. */
+.ai-assistant-header-actions { display:flex; align-items:center; gap:6px; }
+.ai-assistant-tuck {
+  width:34px; height:34px; border:0; border-radius:9px;
+  background:rgba(255,255,255,.12); color:#fff; font-size:19px; cursor:pointer;
+}
+.ai-assistant-tuck:focus-visible { outline:3px solid #a3d95e; outline-offset:3px; }
+@media screen and (max-width: 900px) {
+  .ai-assistant { right: 8px; bottom: calc(88px + env(safe-area-inset-bottom)); transition: transform .2s ease; }
+  .ai-assistant.is-tucked { transform: translateX(calc(100% - 20px)); }
+  .ai-assistant.is-tucked .ai-assistant-toggle {
+    width: 42px; min-width:42px; min-height:58px; padding:0;
+    flex-direction:column; gap:0; border-radius:14px 0 0 14px;
+    writing-mode:horizontal-tb; box-shadow:0 4px 16px rgba(22,50,79,.2);
+  }
+  .ai-assistant.is-tucked .ai-assistant-toggle-label { display:none; }
+  .ai-assistant.is-tucked .ai-assistant-toggle > span:first-child { font-size:18px; }
+  .ai-assistant.is-tucked .ai-assistant-panel { display:none !important; }
+  .ai-assistant-panel {
+    right: 8px; bottom: calc(148px + env(safe-area-inset-bottom));
+    width: calc(100vw - 16px); height: min(64dvh, 560px); min-height: 300px;
+  }
+}
+@media (max-width: 420px) {
+  .ai-assistant:not(.is-tucked) .ai-assistant-toggle { min-height:46px; padding:0 13px; }
+  .ai-assistant.is-tucked { transform: translateX(calc(100% - 17px)); }
+}
