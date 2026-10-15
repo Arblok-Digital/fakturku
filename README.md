@@ -56,6 +56,17 @@ Nama/path di atas adalah peta orientasi, bukan izin untuk mengubah semua area. C
 
 Template adalah alat bantu administrasi umum, bukan jaminan kepatuhan hukum/pajak atau pengganti formulir resmi. Lembar pajak internal bukan e-Faktur resmi. Draft hukum bersifat umum dan perlu ditinjau sesuai konteks. Jangan mengiklankan template sebagai dokumen resmi/tersertifikasi tanpa dasar yang terverifikasi.
 
+## Asisten AI Gemini
+
+Floating assistant menggunakan endpoint serverless `/api/gemini-assistant` dan memanggil Gemini dari server. API key tidak boleh diletakkan di frontend atau di-commit ke repository.
+
+Untuk mengaktifkan AI pada deployment Preview:
+1. Tambahkan environment variable `GEMINI_API_KEY` pada project Vercel dengan scope **Preview** saja.
+2. Redeploy Preview setelah variabel tersedia.
+3. Uji chat, respons error saat provider gagal, dan tombol **Terapkan saran**.
+
+Jika variabel belum tersedia, endpoint mengembalikan pesan konfigurasi yang aman dan UI tetap dapat digunakan. Request dibatasi panjangnya, output saran hanya dapat menargetkan path field yang dikirim oleh editor, dan perubahan tidak diterapkan otomatis. Pembatasan request dalam memori berfungsi sebagai guardrail dasar, bukan sistem rate-limit terdistribusi. Nilai kolom editor yang dikirim sebagai konteks AI dapat berisi data pengguna; UI memberi peringatan agar data rahasia yang tidak diperlukan tidak dimasukkan.
+
 ## Setup lokal
 
 1. Clone repo atau buka working tree yang sudah ada.
