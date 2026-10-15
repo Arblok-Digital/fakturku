@@ -1,4 +1,4 @@
-const CACHE = "fakturku-v15";
+const CACHE = "fakturku-v16";
 const SHELL = [
   "./",
   "./index.html",
@@ -6,7 +6,9 @@ const SHELL = [
   "./manifest.webmanifest",
   "./css/tokens.css",
   "./css/app.css",
+  "./css/landing.css",
   "./js/app.js",
+  "./js/landing.js",
   "./js/config.js",
   "./js/vendor-html2canvas.js",
   "./js/modules/backend.js",
@@ -43,16 +45,30 @@ self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
 
   const url = new URL(e.request.url);
-  if (url.origin !== self.location.origin) {
-    e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
+  if (url.origin !== self.location.origin) return;
+
+  // Revalidate navigations so a stale cached shell cannot flash the editor before auth initializes.
+  if (e.request.mode === "navigate") {
+    e.respondWith(
+      fetch(e.request).then((res) => {
+        if (res.ok) {
+          const copy = res.clone();
+          caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+        }
+        return res;
+      }).catch(() => caches.match(e.request).then((hit) => hit || caches.match("./index.html")))
+    );
     return;
   }
 
+  // Cache successful same-origin assets only; never serve HTML as a missing JS/CSS/manifest response.
   e.respondWith(
-    caches.match(e.request).then((hit) => hit || fetch(e.request).then((res) => {
-      const copy = res.clone();
-      caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+    fetch(e.request).then((res) => {
+      if (res.ok && res.type === "basic") {
+        const copy = res.clone();
+        caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
+      }
       return res;
-    }).catch(() => caches.match("./index.html")))
+    }).catch(() => caches.match(e.request))
   );
 });
