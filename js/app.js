@@ -5,7 +5,7 @@ import {
 } from "./modules/invoice-engine.js";
 import { terbilang, rupiah, formatDate, esc } from "./modules/format.js";
 import { nextNumber, getPrefix, nextNumberByCategory } from "./modules/numbering.js";
-import { printDoc, shareImage, copySummary, openWhatsApp } from "./modules/output.js";
+import { printDoc, downloadImage, openWhatsApp } from "./modules/output.js";
 import * as ledger from "./modules/credit-ledger.js";
 import * as backend from "./modules/backend.js";
 
@@ -13,7 +13,7 @@ let state = loadCurrent() || blankState("faktur-a4");
 let renderTimer = null;
 
 /* remote billing cache (Supabase) */
-const remote = { session: null, credits: null, history: [], pending: null };
+const remote = { session: null, credits: null, trialCredits: null, balance: null, history: [], pending: null, packages: [] };
 
 /* category cache */
 let categoriesCache = [];
@@ -59,13 +59,23 @@ function currentCredits() {
 
 function updateKuota() {
   const el = $("#kuota");
-  if (backend.isRemote() && remote.credits === null) {
-    el.textContent = "Kuota: —";
+  if (backend.isRemote() && remote.trialCredits === null) {
+    el.textContent = "T— · Saldo —";
+    el.title = "Saldo dan kuota belum tersinkron";
     el.classList.remove("empty");
+    return;
+  }
+  if (backend.isRemote()) {
+    const trial = Number(remote.trialCredits) || 0;
+    const balance = Number(remote.balance) || 0;
+    el.textContent = `T${trial} · ${rupiah(balance)}`;
+    el.title = `Trial tersisa: ${trial} dokumen. Saldo: ${rupiah(balance)}`;
+    el.classList.toggle("empty", trial <= 0 && balance <= 0);
     return;
   }
   const n = currentCredits();
   el.textContent = n > 0 ? `Kuota: ${n}` : "Kuota habis";
+  el.title = `Sisa kuota lokal: ${n}`;
   el.classList.toggle("empty", n <= 0);
 }
 
@@ -160,60 +170,53 @@ $("#btn-add-item").addEventListener("click", () => {
   rows[rows.length - 1].focus();
 });
 
-/* ---------- template picker (grid + filter kategori) ---------- */
+/* ---------- compact template picker ---------- */
 let activeFilter = "all";
 
 function renderTemplatePicker() {
   const filterEl = $("#tpl-filter");
   const gridEl = $("#tpl-grid");
-
-  /* build filter buttons dari categories */
   const cats = categoriesCache.length ? categoriesCache : [
-    { id: "all", label: "Semua", icon: "" },
     { id: "finance", label: "Finance", icon: "💰" },
+    { id: "legal", label: "Legal", icon: "⚖️" },
     { id: "umkm", label: "UMKM", icon: "🏪" },
+    { id: "logistik", label: "Logistik", icon: "📦" },
+    { id: "pajak", label: "Pajak", icon: "🧾" },
+    { id: "proyek", label: "Proyek", icon: "🏗️" },
+    { id: "operasional", label: "Operasional", icon: "📋" },
   ];
-  const filterCats = [{ id: "all", label: "Semua", icon: "" }, ...cats.filter((c) => c.active !== false)];
+  const filterCats = [{ id: "all", label: "Semua kategori", icon: "" }, ...cats.filter((c) => c.active !== false)];
+  if (!filterCats.some((c) => c.id === activeFilter)) activeFilter = "all";
   filterEl.innerHTML = filterCats.map((c) =>
-    `<button type="button" data-cat="${c.id}" class="${activeFilter === c.id ? "active" : ""}">${c.icon ? c.icon + " " : ""}${esc(c.label)}</button>`
+    `<option value="${esc(c.id)}" ${activeFilter === c.id ? "selected" : ""}>${esc((c.icon ? c.icon + " " : "") + c.label)}</option>`
   ).join("");
 
-  /* filter templates */
-  const visible = TEMPLATES.filter((t) => {
+  let visible = TEMPLATES.filter((t) => {
     const cat = t.category || "finance";
     return activeFilter === "all" || cat === activeFilter;
   });
-
-  gridEl.innerHTML = visible.map((t) => {
-    const cat = t.category || "finance";
-    const meta = categoriesCache.find((c) => c.id === cat);
-    const icon = meta?.icon || "";
-    const color = meta?.color || "#16324F";
+  gridEl.innerHTML = visible.length ? visible.map((t) => {
+    const meta = categoriesCache.find((c) => c.id === (t.category || "finance"));
     const price = meta?.price_per_doc || 1000;
-    const isActive = state.template === t.id;
-    return `<button class="tpl-card ${isActive ? "active" : ""}" type="button"
-      data-tpl="${t.id}" data-cat="${cat}"
-      style="--card-accent:${color};--card-ring:${color}22">
-      <span class="tpl-cat-dot" style="background:${color}"></span>
-      <span class="tpl-name">${esc(t.label)}</span>
-      <span class="tpl-meta">${icon} ${esc(meta?.label || cat)} · ${rupiah(price)}/dok</span>
-    </button>`;
-  }).join("");
+    return `<option value="${esc(t.id)}" ${state.template === t.id ? "selected" : ""}>${esc(t.label)} · ${rupiah(price)}/dok</option>`;
+  }).join("") : `<option value="" selected disabled>Format belum tersedia di kategori ini</option>`;
+  if (visible.some((t) => t.id === state.template)) gridEl.value = state.template;
 }
 
-$("#tpl-filter").addEventListener("click", (e) => {
-  const btn = e.target.closest("[data-cat]");
-  if (!btn) return;
-  activeFilter = btn.dataset.cat;
+$("#tpl-filter").addEventListener("change", (e) => {
+  activeFilter = e.target.value || "all";
+  const visible = TEMPLATES.filter((t) => activeFilter === "all" || (t.category || "finance") === activeFilter);
+  if (visible.length && !visible.some((t) => t.id === state.template)) {
+    switchTemplate(visible[0].id);
+    return;
+  }
+  // Keep the chosen category visible even when its template has not been implemented yet.
   renderTemplatePicker();
 });
 
-$("#tpl-grid").addEventListener("click", (e) => {
-  const card = e.target.closest("[data-tpl]");
-  if (!card) return;
-  const newId = card.dataset.tpl;
-  if (newId === state.template) return;
-  switchTemplate(newId);
+$("#tpl-grid").addEventListener("change", (e) => {
+  const newId = e.target.value;
+  if (newId && newId !== state.template) switchTemplate(newId);
 });
 
 function switchTemplate(newId) {
@@ -314,7 +317,7 @@ async function markIssued() {
   if (backend.isRemote()) {
     if (!remote.session) { openAuth(); return false; }
     let ok = false;
-    try { ok = await backend.tryDebit(state.number, category); }
+    try { ok = await backend.tryDebit(state.number, category, state.template, state); }
     catch { toast("Server tidak terhubung — coba lagi."); return false; }
     if (!ok) { openTopUp(); return false; }
     await refreshRemoteBilling();
@@ -385,45 +388,36 @@ $("#btn-print").addEventListener("click", async () => {
 
 const safeName = (n) => String(n || "dokumen").replace(/[^\w-]+/g, "_");
 
-$("#btn-image").addEventListener("click", async () => {
+$("#btn-save-as").addEventListener("click", async () => {
   if (!(await markIssued())) return;
   try {
-    toast("Menyiapkan gambarâ€¦");
-    const res = await shareImage(docEl, `fakturku-${safeName(state.number)}.jpg`);
-    if (res === "shared") toast("Gambar dibagikan");
-    else if (res === "downloaded") toast("JPEG diunduh â€” lampir ke chat WA/Telegram");
+    toast("Menyiapkan file JPEG…");
+    await downloadImage(docEl, `fakturku-${safeName(state.number)}.jpg`);
+    toast("Dokumen disimpan sebagai JPEG");
   } catch {
-    toast("Gagal membuat gambar. Coba tombol Print.");
+    toast("Gagal menyimpan file. Coba Print.");
   }
 });
 
 $("#btn-wa").addEventListener("click", async () => {
   if (!(await markIssued())) return;
   openWhatsApp(buildSummary());
-  try {
-    const res = await shareImage(docEl, `fakturku-${safeName(state.number)}.jpg`);
-    if (res === "shared") return;
-    if (res === "cancelled") return;
-    toast("JPEG diunduh â€” lampir ke chat WhatsApp tadi");
-  } catch {
-    toast("WhatsApp terbuka â€” salin rincian via tombol Salin");
-  }
-});
-
-$("#btn-copy").addEventListener("click", async () => {
-  await copySummary(buildSummary());
-  toast("Rincian disalin ke clipboard");
+  toast("WhatsApp dibuka dengan rincian dokumen. Lampirkan file jika diperlukan.");
 });
 
 /* ---------- top-up modal ---------- */
 const modal = $("#topup-modal");
 
 function showPackages() {
-  $("#pkg-list").innerHTML = ledger.PACKAGES.map((p, i) =>
-    `<button class="pkg" type="button" data-pkg="${i}">
-       <span class="c">${p.credits} dokumen</span>
-       <span class="p">${rupiah(p.price)}</span>
+  const packages = backend.isRemote()
+    ? remote.packages
+    : ledger.PACKAGES.map((p, i) => ({ ...p, id: String(i), label: `${p.credits} dokumen`, balance_amount: p.price }));
+  $("#pkg-list").innerHTML = (packages || []).map((p) =>
+    `<button class="pkg" type="button" data-pkg="${esc(p.id)}">
+       <span class="c">${esc(p.label || (p.credits + " dokumen"))}</span>
+       <span class="p">${rupiah(p.balance_amount ?? p.price)}</span>
      </button>`).join("");
+  if (!packages?.length) $("#pkg-list").innerHTML = '<p class="modal-sub">Paket belum tersedia. Coba lagi sebentar.</p>';
   $("#topup-packages").hidden = false;
   $("#topup-pending").hidden = true;
 }
@@ -431,7 +425,7 @@ function showPackages() {
 function showPending(rec) {
   $("#req-id").textContent = rec.id;
   $("#req-price").textContent = rupiah(rec.price);
-  $("#req-credits").textContent = `${rec.credits} dokumen`;
+  $("#req-credits").textContent = rupiah(rec.balance_amount ?? rec.price ?? 0);
   $("#req-contact").textContent = ledger.CONTACT;
   const rm = backend.isRemote();
   $("#topup-local").hidden = rm;
@@ -439,9 +433,9 @@ function showPending(rec) {
   $("#req-wait").hidden = !rm;
   if (rm) {
     $("#req-wait").textContent =
-      rec.status === "approved" ? "Disetujui — kuota sudah masuk. Muat ulang kalau belum terlihat."
+      rec.status === "approved" ? "Disetujui — saldo sudah masuk. Panel saldo akan disinkronkan otomatis."
       : rec.status === "rejected" ? "Permintaan ditolak admin. Pilih paket lain."
-      : "Menunggu persetujuan admin — kuota masuk otomatis setelah di-approve. Transfer sesuai nominal dulu ya.";
+      : "Menunggu persetujuan admin — saldo masuk otomatis setelah disetujui. Transfer sesuai nominal dulu ya.";
   }
   $("#topup-packages").hidden = true;
   $("#topup-pending").hidden = false;
@@ -451,9 +445,13 @@ function renderBillingHistory(list) {
   const hist = (list || ledger.requestHistory()).slice().reverse().slice(0, 20);
   $("#hist-list").innerHTML = hist.length
     ? hist.map((h) => {
+        const monetary = h.reason === "topup" || h.reason === "issue";
         const plus = h.amount > 0;
-        const label = h.ref === "TRIAL" ? "Trial gratis"
-          : plus ? "Top-up masuk" : "Ekspor dokumen";
+        const label = h.ref === "TRIAL" || h.reason === "trial" ? "Trial gratis"
+          : h.reason === "topup" ? "Top-up saldo"
+          : h.reason === "issue" ? "Biaya dokumen"
+          : plus ? "Saldo masuk" : "Ekspor dokumen";
+        const amountLabel = monetary ? rupiah(Math.abs(h.amount)) : `${Math.abs(h.amount)} dokumen`;
         const d = new Date(h.at);
         const when = d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) + " " +
           d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
@@ -463,8 +461,8 @@ function renderBillingHistory(list) {
           : "";
         return `<div class="hist-row">
           <span class="lbl">${label}${catBadge}${h.ref && h.ref !== "TRIAL" ? `<span class="sub">${esc(h.ref)} · ${when}</span>` : `<span class="sub">${when}</span>`}</span>
-          <span class="amt ${plus ? "plus" : "minus"}">${plus ? "+" : ""}${h.amount}</span>
-          <span class="sisa">${h.sisa != null ? "sisa " + h.sisa : ""}</span>
+          <span class="amt ${plus ? "plus" : "minus"}">${plus ? "+" : ""}${amountLabel}</span>
+          <span class="sisa">${h.sisa != null ? (monetary ? "saldo " + rupiah(h.sisa) : "sisa " + h.sisa) : ""}</span>
         </div>`;
       }).join("")
     : `<div class="hist-empty">Belum ada transaksi.</div>`;
@@ -486,15 +484,24 @@ function renderCatPrices() {
 }
 
 async function openTopUp() {
-  if (backend.isRemote()) await refreshRemoteBilling();
+  if (backend.isRemote()) {
+    await refreshRemoteBilling();
+    try { remote.packages = await backend.getPackages(true); }
+    catch (e) { console.warn("paket top-up gagal dimuat", e); remote.packages = []; }
+  }
   /* load categories (cache) */
   if (!categoriesCache.length) {
     try { categoriesCache = await backend.getCategories(); } catch { /* ignore */ }
   }
   renderCatPrices();
   const n = currentCredits();
-  $("#q-n").textContent = n;
-  $("#q-status").classList.toggle("empty", n <= 0);
+  if (backend.isRemote()) {
+    $("#q-status").innerHTML = `Trial tersisa: <b id="q-n">${Number(remote.trialCredits) || 0}</b> · Saldo: <b>${rupiah(Number(remote.balance) || 0)}</b>`;
+    $("#q-status").classList.toggle("empty", (Number(remote.trialCredits) || 0) <= 0 && (Number(remote.balance) || 0) <= 0);
+  } else {
+    $("#q-n").textContent = n;
+    $("#q-status").classList.toggle("empty", n <= 0);
+  }
   $("#topup-contact").textContent = ledger.CONTACT;
   renderBillingHistory(backend.isRemote() ? remote.history : ledger.requestHistory());
   const pending = backend.isRemote()
@@ -507,15 +514,19 @@ async function openTopUp() {
 }
 
 $("#pkg-list").addEventListener("click", async (e) => {
-  const i = e.target.dataset && e.target.dataset.pkg;
-  if (i == null) return;
-  const pkg = ledger.PACKAGES[Number(i)];
+  const btn = e.target.closest("[data-pkg]");
+  const key = btn?.dataset.pkg;
+  if (key == null) return;
+  const pkg = backend.isRemote()
+    ? remote.packages.find((p) => p.id === key)
+    : ledger.PACKAGES[Number(key)];
+  if (!pkg) { toast("Paket tidak ditemukan. Muat ulang panel top-up."); return; }
   if (backend.isRemote()) {
     try {
       const rec = await backend.createTopup(pkg);
       remote.pending = rec;
       showPending(rec);
-      toast("Permintaan top-up dibuat — transfer sesuai nominal, tunggu approve admin.");
+      toast("Permintaan top-up dibuat — transfer sesuai nominal, tunggu persetujuan admin.");
     } catch (err) {
       toast("Gagal membuat permintaan: " + (err?.message || "server"));
     }
@@ -570,8 +581,15 @@ let authMode = "in";
 let lastUid = null;
 let sessionHandled = false;
 
-function openAuth() { authModal.hidden = false; }
-function closeAuth() { authModal.hidden = true; }
+function openAuth() {
+  authModal.hidden = false;
+  $("#workspace").hidden = true;
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+function closeAuth() {
+  authModal.hidden = true;
+  $("#workspace").hidden = false;
+}
 
 function setAuthMode(mode) {
   authMode = mode;
@@ -625,14 +643,17 @@ $("#auth-pass").addEventListener("keydown", (e) => { if (e.key === "Enter") auth
 
 async function refreshRemoteBilling() {
   try {
-    const [c, h, p] = await Promise.all([
-      backend.creditsLeft(), backend.history(), backend.pendingTopup(),
+    const [billing, h, p] = await Promise.all([
+      backend.billingState(), backend.history(), backend.pendingTopup(),
     ]);
-    remote.credits = c;
+    remote.credits = billing.credits;
+    remote.trialCredits = billing.trialCredits;
+    remote.balance = billing.balance;
     remote.history = h;
     remote.pending = p;
   } catch (e) {
     console.warn("billing refresh gagal", e);
+    toast("Saldo belum tersinkron. Coba muat ulang.");
   }
   updateKuota();
 }
@@ -656,6 +677,8 @@ async function handleSession(session) {
     $("#auth-avatar").textContent = "?";
     btn.title = "Masuk";
     remote.credits = null;
+    remote.trialCredits = null;
+    remote.balance = null;
     remote.history = [];
     remote.pending = null;
     updateKuota();
@@ -672,13 +695,160 @@ $("#btn-auth").addEventListener("click", async () => {
   }
 });
 
-/* ---------- mobile tabs ---------- */
+/* ---------- mobile tabs + filled template example ---------- */
 $("#tab-edit").addEventListener("click", () => switchTab("edit"));
 $("#tab-preview").addEventListener("click", () => switchTab("preview"));
+$("#tab-example").addEventListener("click", () => switchTab("example"));
+
+function buildExampleState() {
+  const today = new Date();
+  const dateValue = (d) => {
+    const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
+    return local.toISOString().slice(0, 10);
+  };
+  const plusDays = (days) => {
+    const d = new Date(today);
+    d.setDate(d.getDate() + days);
+    return dateValue(d);
+  };
+  const sample = blankState(state.template, {
+    keepNumber: "CONTOH/" + String(state.template || "DOC").toUpperCase() + "/001"
+  });
+  sample.category = state.category || getCategory(state.template);
+  sample.date = dateValue(today);
+  sample.dueDate = plusDays(14);
+  sample.issued = true;
+  sample.notes = "Contoh data fiktif — sesuaikan seluruh isi sebelum digunakan.";
+  sample.issuer = {
+    name: "PT Nusantara Karya (Contoh)",
+    address: "Jl. HZ Mustofa No. 88, Tasikmalaya",
+    npwp: "00.000.000.0-000.000",
+    phone: "(0265) 000000",
+    email: "admin@example.test"
+  };
+  sample.client = {
+    name: "CV Mitra Sejahtera (Contoh)",
+    address: "Jl. Contoh Usaha No. 12, Tasikmalaya",
+    npwp: "00.000.000.0-000.000",
+    phone: "(0265) 111111"
+  };
+  sample.items = [
+    { desc: "Jasa / barang contoh", qty: 2, price: 750000 },
+    { desc: "Biaya pendukung (contoh)", qty: 1, price: 250000 }
+  ];
+  sample.discount = 0;
+  sample.taxRate = 0;
+  sample.payment = {
+    bank: "Bank Contoh",
+    accountNo: "0000000000",
+    accountName: "PT Nusantara Karya (Contoh)",
+    method: "Transfer bank (contoh)"
+  };
+  sample.terms = "Contoh syarat: ruang lingkup dan jadwal mengikuti kesepakatan tertulis para pihak. Ganti klausul ini sesuai kebutuhan.";
+  sample.signatures = {
+    maker: { name: "Andi Pratama (Contoh)", title: "Administrasi" },
+    receiver: { name: "Budi Santoso (Contoh)", title: "Penerima / Penanggung Jawab" }
+  };
+  Object.assign(sample.details, {
+    subject: "Pengadaan / pekerjaan contoh",
+    reference: "REF-CONTOH-001",
+    description: "Contoh uraian untuk membantu memahami bagian dokumen yang perlu diisi.",
+    period: "Oktober 2026",
+    location: "Tasikmalaya",
+    validity: plusDays(30),
+    paymentTerms: "Pembayaran maksimal 14 hari setelah dokumen diterima",
+    reason: "Contoh kebutuhan operasional",
+    status: "Diperiksa — contoh",
+    authority: "Bagian Operasional",
+    origin: "Gudang Tasikmalaya",
+    destination: "Lokasi penerima, Tasikmalaya",
+    driver: "Dedi (Contoh)",
+    vehicle: "Mobil boks — contoh",
+    condition: "Baik; contoh data",
+    quantity: 3,
+    unit: "paket",
+    contractRef: "SPK-CONTOH-001",
+    scope: "Penyediaan barang dan jasa sesuai daftar",
+    effectiveDate: dateValue(today),
+    endDate: plusDays(30),
+    authority: "Bagian Operasional",
+    witness: "Saksi (Contoh)",
+    project: "Peningkatan Fasilitas Kantor (Contoh)",
+    progress: 50,
+    contractValue: 10000000,
+    previousPaid: 2500000,
+    retention: 500000,
+    milestone: "Termin 2 — contoh",
+    inspection: "Sesuai pemeriksaan contoh",
+    employee: "Siti Rahma (Contoh)",
+    employeeId: "KARYAWAN-CONTOH-001",
+    position: "Staf Administrasi",
+    department: "Operasional",
+    baseSalary: 4500000,
+    allowances: 500000,
+    deductions: 100000,
+    netPay: 4900000,
+    taxPeriod: "Oktober 2026 (contoh)",
+    taxType: "Data simulasi — verifikasi aturan berlaku",
+    taxBase: 2500000,
+    taxAmount: 275000,
+    taxId: "00.000.000.0-000.000",
+    requestedBy: "Andi Pratama (Contoh)",
+    approvedBy: "Budi Santoso (Contoh)",
+    deliveryDate: plusDays(3),
+    supplier: "PT Pemasok Contoh",
+    budget: 2500000,
+    recipientRole: "Penerima Kuasa (Contoh)",
+    returnReason: "Barang tidak sesuai pesanan (contoh)",
+    packing: "3 karton",
+    invoiceRef: "INV-CONTOH-001",
+    contractDate: dateValue(today),
+    invoicePeriod: "Oktober 2026",
+    bankRef: "TRX-CONTOH-001"
+  });
+
+  if (sample.template === "kwitansi-a4") {
+    sample.receivedFrom = "CV Mitra Sejahtera (Contoh)";
+    sample.forPayment = "Pembayaran jasa tahap pertama (contoh)";
+    sample.amount = 1750000;
+  }
+  if (sample.template === "struk-ansuran") {
+    sample.contractNo = "KRD-CONTOH-001";
+    sample.installmentNo = 3;
+    sample.customerName = "Budi Santoso (Contoh)";
+    sample.principal = 500000;
+    sample.interest = 75000;
+    sample.fine = 0;
+    sample.installmentDue = plusDays(7);
+    sample.remaining = 2500000;
+  }
+  return sample;
+}
+
+function renderExample() {
+  const sample = buildExampleState();
+  const tpl = renderDoc(sample);
+  $("#out-hint").textContent = "CONTOH DATA FIKTIF · " + tpl.label + " · " + (tpl.category || "finance");
+  $("#example-banner").hidden = false;
+  ["#btn-print", "#btn-save-as", "#btn-wa"].forEach((sel) => { $(sel).disabled = true; });
+  requestAnimationFrame(fitPreview);
+}
+
 function switchTab(tab) {
-  $("#workspace").dataset.tab = tab;
+  const exampleMode = tab === "example";
+  $("#workspace").dataset.tab = tab === "edit" ? "edit" : "preview";
   $("#tab-edit").classList.toggle("on", tab === "edit");
   $("#tab-preview").classList.toggle("on", tab === "preview");
+  $("#tab-example").classList.toggle("on", exampleMode);
+
+  if (exampleMode) {
+    renderExample();
+    return;
+  }
+
+  $("#example-banner").hidden = true;
+  ["#btn-print", "#btn-save-as", "#btn-wa"].forEach((sel) => { $(sel).disabled = false; });
+  render();
   if (tab === "preview") requestAnimationFrame(fitPreview);
 }
 
@@ -694,6 +864,10 @@ async function boot() {
 
   /* pastikan state.category terisi */
   if (!state.category) state.category = getCategory(state.template);
+
+  // Public landing/auth is the entry point; never expose the editor before session resolution.
+  $("#workspace").hidden = backend.isRemote();
+  $("#auth-modal").hidden = false;
 
   renderTemplatePicker();
   renderItems();
@@ -713,5 +887,15 @@ boot();
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
   navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+
+/* Keep the balance chip fresh after admin approves a top-up. */
+if (backend.isRemote()) {
+  const syncBilling = () => {
+    if (remote.session && !document.hidden) refreshRemoteBilling();
+  };
+  window.setInterval(syncBilling, 20000);
+  window.addEventListener("focus", syncBilling);
+  document.addEventListener("visibilitychange", syncBilling);
 }
 

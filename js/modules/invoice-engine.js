@@ -24,6 +24,17 @@ export function blankState(templateId, opts = {}) {
     dueDate: "",
     notes: "",
     terms: "",
+    details: {
+      subject: "", reference: "", description: "", period: "", location: "", validity: "", paymentTerms: "", reason: "", status: "",
+      origin: "", destination: "", driver: "", vehicle: "", condition: "", quantity: "", unit: "",
+      contractRef: "", scope: "", effectiveDate: "", endDate: "", authority: "", witness: "",
+      project: "", progress: "", contractValue: "", previousPaid: "", retention: "", milestone: "", inspection: "",
+      employee: "", employeeId: "", position: "", department: "", baseSalary: "", allowances: "", deductions: "", netPay: "",
+      taxPeriod: "", taxType: "", taxBase: "", taxAmount: "", taxId: "",
+      requestedBy: "", approvedBy: "", deliveryDate: "", supplier: "", budget: "", recipientRole: "",
+      returnReason: "", packing: "", invoiceRef: "", contractDate: "", invoicePeriod: "", bankRef: ""
+    },
+
     logo: "",
     issuer: { name: "", address: "", npwp: "", phone: "", email: "" },
     client: { name: "", address: "", npwp: "", phone: "" },
@@ -86,6 +97,7 @@ export function hydrate(raw) {
   out.issuer = { ...d.issuer, ...(raw.issuer || {}) };
   out.client = { ...d.client, ...(raw.client || {}) };
   out.payment = { ...d.payment, ...(raw.payment || {}) };
+  out.details = { ...d.details, ...(raw.details || {}) };
   out.signatures = {
     maker: { ...d.signatures.maker, ...((raw.signatures || {}).maker || {}) },
     receiver: { ...d.signatures.receiver, ...((raw.signatures || {}).receiver || {}) },

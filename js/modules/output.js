@@ -67,3 +67,20 @@ export async function copySummary(text) {
     return true;
   }
 }
+
+/* Simpan file secara eksplisit; tidak memanggil native share sheet. */
+export async function downloadImage(docEl, filename) {
+  const canvas = await renderCanvas(docEl);
+  const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.94));
+  if (!blob) throw new Error("Gagal membuat gambar dokumen");
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename || "fakturku.jpg";
+  a.style.display = "none";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  return true;
+}

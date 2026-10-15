@@ -1,4 +1,4 @@
-const CACHE = "fakturku-v11";
+const CACHE = "fakturku-v15";
 const SHELL = [
   "./",
   "./index.html",
@@ -20,6 +20,7 @@ const SHELL = [
   "./js/templates/kwitansi-a4.js",
   "./js/templates/struk-ansuran.js",
   "./js/templates/invoice-digital.js",
+  "./js/templates/business-documents.js",
   "./icon.svg",
   "./icon-180.png",
   "./icon-192.png",

@@ -23,6 +23,7 @@ Billing FakturKu berubah dari **flat** (1 kuota = 1 dokumen) menjadi **per-kateg
 | `05-templates.md` | Mapping template existing → kategori + roadmap template baru |
 | `06-implementation.md` | 5 fase implementasi + checklist |
 | `07-decisions.md` | Open questions yang nunggu keputusan diskusi |
+| `08-template-research.md` | Katalog template hasil riset, referensi, QA, dan batasan compliance |
 
 ---
 
@@ -37,7 +38,7 @@ js/modules/
   ├── invoice-engine.js      — State editor (isi data → render)
   ├── template-engine.js     — Pilih template → render preview
   └── numbering.js           — Penomoran per template (FKT-XXXXXX)
-js/templates/                — 4 template: faktur-a4, kwitansi-a4, struk-ansuran, invoice-digital
+js/templates/                — 4 template existing + katalog 32 template lintas kategori
 css/app.css                  — Gaya native (appbar, bottomnav, sheet, grid)
 index.html                   — Shell: appbar, sec-doc, bottomnav, FAB, modals
 admin.html                   — Dashboard admin (mode SERVER / LOKAL)
@@ -77,7 +78,7 @@ User pilih template (filter kategori)
 | DB schema kategori | ✅ live (7 kategori + 3 paket) |
 | Template picker grouped | ✅ selesai |
 | Admin CRUD kategori (Fase 4) | 🔴 belum |
-| Template per kategori baru (Fase 5) | 🔴 belum |
+| Template lintas 7 kategori | 🟡 32 template baru diimplementasikan di preview |
 | Model B tiered (Fase 6) | 🔴 opsional |
 
 ---

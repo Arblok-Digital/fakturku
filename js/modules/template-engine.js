@@ -2,8 +2,9 @@ import fakturA4 from "../templates/faktur-a4.js";
 import kwitansiA4 from "../templates/kwitansi-a4.js";
 import strukAnsuran from "../templates/struk-ansuran.js";
 import invoiceDigital from "../templates/invoice-digital.js";
+import { BUSINESS_TEMPLATES } from "../templates/business-documents.js";
 
-export const TEMPLATES = [fakturA4, kwitansiA4, strukAnsuran, invoiceDigital];
+export const TEMPLATES = [fakturA4, kwitansiA4, strukAnsuran, invoiceDigital, ...BUSINESS_TEMPLATES];
 
 /* kategori default per template (fallback kalau template gak punya field category) */
 export const CATEGORY_MAP = Object.fromEntries(

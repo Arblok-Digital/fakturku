@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <title>FakturKu — Generator Faktur &amp; Kwitansi</title>
-  <meta name="description" content="Generator faktur, kwitansi, dan struk angsuran. Editable, print A4 / thermal, share ke WhatsApp &amp; Telegram.">
+  <title>FakturKu — Workspace Dokumen Bisnis</title>
+  <meta name="description" content="Workspace dokumen bisnis FakturKu. Jelajahi kategori Finance, Legal, UMKM, Logistik, Pajak, Proyek, dan Operasional; buat dokumen, pratinjau, cetak, dan bagikan.">
   <meta name="theme-color" content="#16324F">
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
@@ -14,6 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/tokens.css">
   <link rel="stylesheet" href="css/app.css">
+  <link rel="stylesheet" href="css/landing.css">
 </head>
 <body>
   <header class="appbar noprint">
@@ -46,9 +47,9 @@
         <h3>Dokumen</h3>
         <div class="tpl-picker" id="tpl-picker">
           <div class="tpl-filter-wrap">
-            <div class="tpl-filter" id="tpl-filter"></div>
+            <select class="tpl-filter-select" id="tpl-filter" aria-label="Pilih kategori dokumen"></select>
           </div>
-          <div class="tpl-grid" id="tpl-grid"></div>
+          <select class="tpl-select" id="tpl-grid" aria-label="Pilih template dokumen"></select>
         </div>
         <div class="grid2">
           <div class="field">
@@ -262,19 +263,110 @@
           <textarea id="f-terms" rows="3" data-bind="terms"></textarea>
         </div>
       </div>
+
+      <div class="fsec" data-when="business-core">
+        <h3>Detail Dokumen</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-subject">Perihal</label><input id="f-detail-subject" type="text" data-bind="details.subject"></div>
+          <div class="field"><label for="f-detail-reference">Referensi dokumen</label><input id="f-detail-reference" type="text" data-bind="details.reference"></div>
+          <div class="field"><label for="f-detail-period">Periode</label><input id="f-detail-period" type="text" data-bind="details.period"></div>
+          <div class="field"><label for="f-detail-location">Lokasi</label><input id="f-detail-location" type="text" data-bind="details.location"></div>
+          <div class="field"><label for="f-detail-validity">Berlaku sampai</label><input id="f-detail-validity" type="text" data-bind="details.validity"></div>
+          <div class="field"><label for="f-detail-paymentTerms">Syarat pembayaran</label><input id="f-detail-paymentTerms" type="text" data-bind="details.paymentTerms"></div>
+          <div class="field"><label for="f-detail-reason">Alasan / dasar</label><input id="f-detail-reason" type="text" data-bind="details.reason"></div>
+          <div class="field"><label for="f-detail-status">Status / hasil</label><input id="f-detail-status" type="text" data-bind="details.status"></div>
+          <div class="field"><label for="f-detail-authority">Pihak / instansi terkait</label><input id="f-detail-authority" type="text" data-bind="details.authority"></div>
+          <div class="field"><label for="f-detail-requestedBy">Diminta oleh</label><input id="f-detail-requestedBy" type="text" data-bind="details.requestedBy"></div>
+          <div class="field"><label for="f-detail-approvedBy">Disetujui oleh</label><input id="f-detail-approvedBy" type="text" data-bind="details.approvedBy"></div>
+          <div class="field"><label for="f-detail-deliveryDate">Tanggal dibutuhkan / dikirim</label><input id="f-detail-deliveryDate" type="date" data-bind="details.deliveryDate"></div>
+          <div class="field"><label for="f-detail-supplier">Pemasok</label><input id="f-detail-supplier" type="text" data-bind="details.supplier"></div>
+          <div class="field"><label for="f-detail-description">Uraian / keterangan</label><textarea id="f-detail-description" rows="2" data-bind="details.description"></textarea></div>
+          <div class="field"><label for="f-detail-invoicePeriod">Periode penagihan</label><input id="f-detail-invoicePeriod" type="text" data-bind="details.invoicePeriod" placeholder="Contoh: Oktober 2026"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-logistics">
+        <h3>Detail Logistik</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-origin">Lokasi asal</label><input id="f-detail-origin" type="text" data-bind="details.origin"></div>
+          <div class="field"><label for="f-detail-destination">Tujuan pengiriman</label><input id="f-detail-destination" type="text" data-bind="details.destination"></div>
+          <div class="field"><label for="f-detail-driver">Pengantar / pengemudi</label><input id="f-detail-driver" type="text" data-bind="details.driver"></div>
+          <div class="field"><label for="f-detail-vehicle">Kendaraan / ekspedisi</label><input id="f-detail-vehicle" type="text" data-bind="details.vehicle"></div>
+          <div class="field"><label for="f-detail-condition">Kondisi barang</label><input id="f-detail-condition" type="text" data-bind="details.condition"></div>
+          <div class="field"><label for="f-detail-inspection-logistics">Hasil pemeriksaan</label><input id="f-detail-inspection-logistics" type="text" data-bind="details.inspection"></div>
+          <div class="field"><label for="f-detail-quantity">Jumlah / volume</label><input id="f-detail-quantity" type="number" data-bind="details.quantity"></div>
+          <div class="field"><label for="f-detail-unit">Satuan</label><input id="f-detail-unit" type="text" data-bind="details.unit"></div>
+          <div class="field"><label for="f-detail-returnReason">Alasan retur</label><input id="f-detail-returnReason" type="text" data-bind="details.returnReason"></div>
+          <div class="field"><label for="f-detail-packing">Jumlah kemasan</label><input id="f-detail-packing" type="text" data-bind="details.packing"></div>
+          <div class="field"><label for="f-detail-invoiceRef">Nomor invoice terkait</label><input id="f-detail-invoiceRef" type="text" data-bind="details.invoiceRef"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-contract">
+        <h3>Detail Perjanjian / Kuasa</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-contractRef">Nomor kontrak / SPK</label><input id="f-detail-contractRef" type="text" data-bind="details.contractRef"></div>
+          <div class="field"><label for="f-detail-contractDate">Tanggal kontrak</label><input id="f-detail-contractDate" type="date" data-bind="details.contractDate"></div>
+          <div class="field"><label for="f-detail-scope">Lingkup pekerjaan / kuasa</label><input id="f-detail-scope" type="text" data-bind="details.scope"></div>
+          <div class="field"><label for="f-detail-effectiveDate">Mulai berlaku</label><input id="f-detail-effectiveDate" type="date" data-bind="details.effectiveDate"></div>
+          <div class="field"><label for="f-detail-endDate">Akhir berlaku</label><input id="f-detail-endDate" type="date" data-bind="details.endDate"></div>
+          <div class="field"><label for="f-detail-recipientRole">Jabatan penerima</label><input id="f-detail-recipientRole" type="text" data-bind="details.recipientRole"></div>
+          <div class="field"><label for="f-detail-witness">Saksi</label><input id="f-detail-witness" type="text" data-bind="details.witness"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-project">
+        <h3>Detail Proyek</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-project">Nama proyek</label><input id="f-detail-project" type="text" data-bind="details.project"></div>
+          <div class="field"><label for="f-detail-contractRef-project">Nomor kontrak / SPK</label><input id="f-detail-contractRef-project" type="text" data-bind="details.contractRef"></div>
+          <div class="field"><label for="f-detail-effectiveDate-project">Tanggal efektif / serah terima</label><input id="f-detail-effectiveDate-project" type="date" data-bind="details.effectiveDate"></div>
+          <div class="field"><label for="f-detail-condition-project">Kondisi / catatan serah terima</label><input id="f-detail-condition-project" type="text" data-bind="details.condition"></div>
+          <div class="field"><label for="f-detail-milestone">Termin / tahap</label><input id="f-detail-milestone" type="text" data-bind="details.milestone"></div>
+          <div class="field"><label for="f-detail-progress">Progres (%)</label><input id="f-detail-progress" type="number" data-bind="details.progress"></div>
+          <div class="field"><label for="f-detail-contractValue">Nilai kontrak (Rp)</label><input id="f-detail-contractValue" type="number" data-bind="details.contractValue"></div>
+          <div class="field"><label for="f-detail-previousPaid">Pembayaran sebelumnya (Rp)</label><input id="f-detail-previousPaid" type="number" data-bind="details.previousPaid"></div>
+          <div class="field"><label for="f-detail-retention">Retensi / potongan (Rp)</label><input id="f-detail-retention" type="number" data-bind="details.retention"></div>
+          <div class="field"><label for="f-detail-inspection">Hasil pemeriksaan</label><input id="f-detail-inspection" type="text" data-bind="details.inspection"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-hr">
+        <h3>Detail Karyawan / Gaji</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-employee">Nama karyawan</label><input id="f-detail-employee" type="text" data-bind="details.employee"></div>
+          <div class="field"><label for="f-detail-employeeId">ID / NIK karyawan</label><input id="f-detail-employeeId" type="text" data-bind="details.employeeId"></div>
+          <div class="field"><label for="f-detail-position">Jabatan</label><input id="f-detail-position" type="text" data-bind="details.position"></div>
+          <div class="field"><label for="f-detail-department">Departemen</label><input id="f-detail-department" type="text" data-bind="details.department"></div>
+          <div class="field"><label for="f-detail-baseSalary">Gaji pokok (Rp)</label><input id="f-detail-baseSalary" type="number" data-bind="details.baseSalary"></div>
+          <div class="field"><label for="f-detail-allowances">Tunjangan (Rp)</label><input id="f-detail-allowances" type="number" data-bind="details.allowances"></div>
+          <div class="field"><label for="f-detail-deductions">Potongan (Rp)</label><input id="f-detail-deductions" type="number" data-bind="details.deductions"></div>
+          <div class="field"><label for="f-detail-netPay">Gaji bersih (Rp)</label><input id="f-detail-netPay" type="number" data-bind="details.netPay"></div>
+          <div class="field"><label for="f-detail-budget-hr">Anggaran / biaya (Rp)</label><input id="f-detail-budget-hr" type="number" data-bind="details.budget"></div>
+          <div class="field"><label for="f-detail-bankRef">Referensi pembayaran</label><input id="f-detail-bankRef" type="text" data-bind="details.bankRef"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-tax">
+        <h3>Detail Pajak (Lembar Kerja Internal)</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-taxId">NPWP / identitas pajak</label><input id="f-detail-taxId" type="text" data-bind="details.taxId"></div>
+          <div class="field"><label for="f-detail-taxPeriod">Masa pajak</label><input id="f-detail-taxPeriod" type="text" data-bind="details.taxPeriod"></div>
+          <div class="field"><label for="f-detail-taxType">Jenis pajak</label><input id="f-detail-taxType" type="text" data-bind="details.taxType"></div>
+          <div class="field"><label for="f-detail-taxBase">Dasar pengenaan (Rp)</label><input id="f-detail-taxBase" type="number" data-bind="details.taxBase"></div>
+          <div class="field"><label for="f-detail-taxAmount">Nilai pajak (Rp)</label><input id="f-detail-taxAmount" type="number" data-bind="details.taxAmount"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-purchase">
+        <h3>Detail Pengadaan</h3>
+        <div class="hint-line">Pemasok, pemesan, persetujuan, dan tanggal dibutuhkan tersedia di bagian Detail Dokumen.</div>
+        <div class="field"><label for="f-detail-budget-purchase">Anggaran pengadaan (Rp)</label><input id="f-detail-budget-purchase" type="number" data-bind="details.budget"></div>
+      </div>
     </section>
 
     <!-- ============ PREVIEW ============ -->
     <section class="preview">
-      <div class="preview-bar noprint">
-        <button class="btn primary" type="button" id="btn-image">Bagikan JPEG</button>
-        <button class="btn" type="button" id="btn-wa">WhatsApp</button>
-        <button class="btn" type="button" id="btn-print">Print</button>
-        <button class="btn" type="button" id="btn-copy">Salin</button>
-        <span class="hint" id="out-hint"></span>
+      <div class="preview-bar noprint"><span class="hint" id="out-hint"></span></div>
+      <div class="example-banner noprint" id="example-banner" hidden>
+        <span class="example-badge">CONTOH</span>
+        <div><strong>Data fiktif untuk panduan</strong><p>Lihat susunan dokumen dan contoh pengisian. Draft asli kamu tetap aman.</p></div>
       </div>
       <div class="stage" id="stage">
         <div class="doc doc-a4" id="doc"></div>
+      </div>
+      <div class="output-actions noprint" aria-label="Aksi dokumen">
+        <button class="btn primary" type="button" id="btn-print">Print</button>
+        <button class="btn" type="button" id="btn-save-as">Save as</button>
+        <button class="btn" type="button" id="btn-wa">Share via WA</button>
       </div>
     </section>
   </div>
@@ -289,6 +381,10 @@
       <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="1.5"/><line x1="8" y1="9" x2="16" y2="9"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
       <span>Preview</span>
     </button>
+    <button type="button" id="tab-example" aria-label="Lihat contoh dokumen terisi">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a6 6 0 0 0-3.5 10.87c.8.58 1.5 1.4 1.5 2.38h4c0-.98.7-1.8 1.5-2.38A6 6 0 0 0 12 3Z"/><path d="M10 20h4M10.5 17h3"/></svg>
+      <span>Contoh</span>
+    </button>
   </nav>
 
   <button class="fab noprint" id="btn-new-fab" type="button" aria-label="Dokumen baru">
@@ -300,7 +396,7 @@
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="topup-title">
       <div class="sheet-handle" aria-hidden="true"></div>
       <h3 id="topup-title">Kuota &amp; Tagihan</h3>
-      <div class="q-status" id="q-status">Sisa kuota: <b id="q-n">—</b> dokumen</div>
+      <div class="q-status" id="q-status">Trial tersisa: <b id="q-n">—</b> · Saldo: <b>—</b></div>
       <p class="modal-sub" id="topup-sub">Trial gratis 10 dokumen sudah terpakai. Top-up untuk lanjut — makin besar paket, makin hemat. Bayar per dokumen, re-print &amp; re-share gratis.</p>
 
       <div class="cat-prices" id="cat-prices">
@@ -317,7 +413,7 @@
         <div class="req-box">
           <div class="req-row"><span>ID Permintaan</span><b class="mono" id="req-id">—</b></div>
           <div class="req-row"><span>Transfer</span><b class="mono" id="req-price">—</b></div>
-          <div class="req-row"><span>Dapat</span><b class="mono" id="req-credits">—</b></div>
+          <div class="req-row"><span>Saldo masuk</span><b class="mono" id="req-credits">—</b></div>
           <div class="req-row"><span>Ke</span><b id="req-contact">—</b></div>
         </div>
         <p class="wait-note" id="req-wait" hidden></p>
@@ -341,33 +437,139 @@
     </div>
   </div>
 
-  <!-- ============ MODAL AUTH ============ -->
-  <div class="modal-back noprint" id="auth-modal" hidden>
-    <div class="modal auth" role="dialog" aria-modal="true" aria-labelledby="auth-title">
-      <div class="sheet-handle" aria-hidden="true"></div>
-      <h3 id="auth-title">Masuk FakturKu</h3>
-      <p class="modal-sub">Akun menyimpan kuota, riwayat, dan dokumen di server — bisa dari HP sekaligus laptop.</p>
-      <div class="auth-tabs">
-        <button type="button" id="auth-tab-in" class="on">Masuk</button>
-        <button type="button" id="auth-tab-up">Daftar</button>
+  <!-- ============ PUBLIC LANDING + AUTH ============ -->
+  <main class="landing-shell landing-v2" id="auth-modal">
+    <header class="landing-nav" aria-label="Navigasi FakturKu">
+      <a class="landing-brand" href="#landing-top" aria-label="FakturKu — beranda">
+        <span class="logo" aria-hidden="true">F</span><span>FakturKu</span><span class="mark">BETA</span>
+      </a>
+      <nav class="nav-links" aria-label="Navigasi halaman">
+        <a href="#landing-categories">Kategori</a>
+        <a href="#landing-steps">Cara kerja</a>
+        <a href="#landing-auth-panel">Akun</a>
+      </nav>
+      <div class="nav-actions">
+        <button class="nav-btn nav-btn-quiet" type="button" data-open-auth="in">Masuk</button>
+        <button class="nav-btn nav-btn-bright" type="button" data-open-auth="up">Daftar gratis</button>
       </div>
-      <div class="field" id="auth-name-field" hidden>
-        <label for="auth-name">Nama</label>
-        <input id="auth-name" type="text" autocomplete="name">
-      </div>
-      <div class="field">
-        <label for="auth-email">Email</label>
-        <input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com">
-      </div>
-      <div class="field">
-        <label for="auth-pass">Password</label>
-        <input id="auth-pass" type="password" autocomplete="current-password" placeholder="Minimal 6 karakter">
-      </div>
-      <p class="auth-err" id="auth-err" hidden></p>
-      <button class="btn primary" type="button" id="auth-go">Masuk</button>
-    </div>
-  </div>
+    </header>
 
+    <section class="hero" id="landing-top">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> WORKSPACE DOKUMEN BISNIS</p>
+          <h1>Semua dokumen <span>bisnis. Satu tempat.</span></h1>
+          <p class="hero-lead">Bikin dokumen transaksi dengan lebih rapi, lihat pratinjau sebelum dicetak, lalu simpan atau bagikan. Praktis untuk kebutuhan bisnis sehari-hari.</p>
+          <div class="hero-ctas">
+            <a class="hero-btn hero-btn-primary" href="#landing-auth-panel" data-open-auth="up">Mulai buat dokumen <span aria-hidden="true">↗</span></a>
+            <a class="hero-btn hero-btn-secondary" href="#landing-categories">Jelajahi kategori <span aria-hidden="true">↓</span></a>
+          </div>
+          <div class="hero-proof" aria-label="Manfaat FakturKu">
+            <span><b>✓</b> Pratinjau langsung</span>
+            <span><b>✓</b> Siap cetak</span>
+            <span><b>✓</b> Mudah dibagikan</span>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Contoh pratinjau invoice">
+          <article class="invoice-card">
+            <div class="invoice-top">
+              <span class="invoice-mark" aria-hidden="true">F</span>
+              <div><div class="invoice-brand">FAKTURKU STUDIO</div><div class="invoice-caption">DOKUMEN BISNIS • SIAP CETAK</div></div>
+              <span class="invoice-paid">LUNAS</span>
+            </div>
+            <div class="invoice-title-row">
+              <div><h3>INVOICE</h3><div class="invoice-number">INV-2026-0108</div></div>
+              <div class="invoice-date">TANGGAL<br><strong>14 Okt 2026</strong></div>
+            </div>
+            <div class="invoice-parties">
+              <div><div class="invoice-label">DARI</div><strong>Arunika Creative</strong><small>Tasikmalaya, Indonesia</small></div>
+              <div><div class="invoice-label">DITAGIHKAN KEPADA</div><strong>PT Maju Bersama</strong><small>Bandung, Jawa Barat</small></div>
+            </div>
+            <div class="invoice-table-head"><span>DESKRIPSI</span><span>QTY</span><span>JUMLAH</span></div>
+            <div class="invoice-row"><span>Desain identitas visual</span><span>1</span><span>Rp 2.500.000</span></div>
+            <div class="invoice-row"><span>Paket konten media sosial</span><span>1</span><span>Rp 1.250.000</span></div>
+            <div class="invoice-total"><small>TOTAL TAGIHAN</small><strong>Rp 3.750.000</strong></div>
+          </article>
+          <div class="floating-note floating-one"><span class="note-icon" style="background:#ddf8e7;color:#18734b">✓</span><span><strong>Dokumen rapi</strong><small>Siap disimpan dan dibagikan</small></span></div>
+          <div class="floating-note floating-two"><span class="note-icon" style="background:#fff0d9;color:#a35c12">↗</span><span><strong>Ekspor praktis</strong><small>Print • Save as • WhatsApp</small></span></div>
+        </div>
+      </div>
+
+      <section class="hero-auth-inline" aria-label="Akses akun FakturKu">
+        <div class="hero-auth-copy">
+          <p class="eyebrow">MULAI DARI SINI</p>
+          <h2>Dokumen bisnis dimulai dengan langkah sederhana.</h2>
+          <p>Masuk untuk melanjutkan ke workspace FakturKu, atau daftar akun baru. Pilih kategori dan format yang tersedia langsung di aplikasi.</p>
+          <div class="auth-mini-points"><span>7 kategori kebutuhan</span><span>Preview dokumen</span><span>Alur cetak & bagikan</span></div>
+        </div>
+        <section class="auth-card" id="landing-auth-panel" aria-label="Masuk atau daftar akun">
+          <h2 id="auth-title">Selamat datang</h2>
+          <p class="modal-sub">Masuk ke akun atau buat akun baru untuk melanjutkan.</p>
+          <div class="auth-tabs" role="tablist" aria-label="Jenis akses akun">
+            <button type="button" id="auth-tab-in" class="on" role="tab" aria-selected="true">Masuk</button>
+            <button type="button" id="auth-tab-up" role="tab" aria-selected="false">Daftar</button>
+          </div>
+          <div class="field" id="auth-name-field" hidden>
+            <label for="auth-name">Nama</label>
+            <input id="auth-name" type="text" autocomplete="name" placeholder="Nama lengkap">
+          </div>
+          <div class="field">
+            <label for="auth-email">Email</label>
+            <input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com">
+          </div>
+          <div class="field">
+            <label for="auth-pass">Password</label>
+            <input id="auth-pass" type="password" autocomplete="current-password" placeholder="Minimal 6 karakter">
+          </div>
+          <p class="auth-err" id="auth-err" hidden></p>
+          <button class="btn primary" type="button" id="auth-go">Masuk</button>
+          <p class="auth-note">Dengan melanjutkan, Anda dapat mengelola dokumen dan informasi akun melalui FakturKu.</p>
+        </section>
+      </section>
+    </section>
+
+    <section class="landing-section category-section" id="landing-categories">
+      <div class="section-inner">
+        <p class="section-kicker reveal">SATU WORKSPACE, TUJUH KEBUTUHAN</p>
+        <h2 class="section-heading reveal">Bukan cuma faktur.</h2>
+        <p class="section-intro reveal">Kenali tujuh kategori kebutuhan dokumen FakturKu. Format yang dapat dibuat akan ditampilkan langsung di editor—jadi jelas mana yang sudah tersedia.</p>
+        <div class="category-grid">
+          <article class="category-card reveal" style="--fk-delay:0ms"><span class="category-icon" style="background:#e0f2fe;color:#176a9a">↗</span><h3>Finance</h3><p>Kebutuhan faktur, invoice, dan bukti transaksi keuangan.</p><span class="category-tag">Keuangan</span></article>
+          <article class="category-card reveal" style="--fk-delay:55ms"><span class="category-icon" style="background:#f0e8ff;color:#6a45a5">§</span><h3>Legal</h3><p>Dokumen administrasi dan kebutuhan kesepakatan bisnis.</p><span class="category-tag">Administrasi</span></article>
+          <article class="category-card reveal" style="--fk-delay:110ms"><span class="category-icon" style="background:#e2f8e9;color:#20784b">▦</span><h3>UMKM</h3><p>Kebutuhan transaksi usaha kecil dan menengah sehari-hari.</p><span class="category-tag">Usaha</span></article>
+          <article class="category-card reveal" style="--fk-delay:165ms"><span class="category-icon" style="background:#fff0d9;color:#a35c12">⇄</span><h3>Logistik</h3><p>Kebutuhan administrasi barang, pengiriman, dan distribusi.</p><span class="category-tag">Distribusi</span></article>
+          <article class="category-card reveal" style="--fk-delay:220ms"><span class="category-icon" style="background:#ffe7e5;color:#b5473d">%</span><h3>Pajak</h3><p>Dokumen pendukung administrasi perpajakan bisnis.</p><span class="category-tag">Perpajakan</span></article>
+          <article class="category-card reveal" style="--fk-delay:275ms"><span class="category-icon" style="background:#e7eafe;color:#4d55b5">⌁</span><h3>Proyek</h3><p>Kebutuhan dokumen terkait pekerjaan dan progres proyek.</p><span class="category-tag">Pekerjaan</span></article>
+          <article class="category-card reveal" style="--fk-delay:330ms"><span class="category-icon" style="background:#e0f5f4;color:#167c79">⚙</span><h3>Operasional</h3><p>Dokumen pendukung aktivitas dan proses internal bisnis.</p><span class="category-tag">Operasional</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section steps-section" id="landing-steps">
+      <div class="section-inner">
+        <p class="section-kicker reveal">DARI IDE KE DOKUMEN</p>
+        <h2 class="section-heading reveal">Tiga langkah. Beres.</h2>
+        <p class="section-intro reveal">Alur yang ringkas supaya Anda bisa kembali fokus ke pekerjaan utama.</p>
+        <div class="steps-grid">
+          <article class="step-card reveal"><span class="step-number">01</span><h3>Pilih kategori</h3><p>Tentukan kebutuhan dokumen dan pilih format yang tersedia.</p></article>
+          <article class="step-card reveal"><span class="step-number">02</span><h3>Isi detail</h3><p>Lengkapi informasi penting dan lihat pratinjau dokumen.</p></article>
+          <article class="step-card reveal"><span class="step-number">03</span><h3>Cetak atau bagikan</h3><p>Gunakan aksi dokumen di editor sesuai kebutuhan Anda.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="landing-section landing-cta">
+      <div class="section-inner cta-inner">
+        <div><p class="section-kicker" style="color:#b8f36b">SIAP MULAI?</p><h2 class="section-heading">Dokumen rapi, bisnis terasa siap.</h2><p class="section-intro">Masuk atau buat akun FakturKu untuk melanjutkan.</p></div>
+        <a class="hero-btn hero-btn-primary" href="#landing-auth-panel" data-open-auth="up">Mulai sekarang <span aria-hidden="true">↗</span></a>
+      </div>
+      <div class="section-inner landing-footer"><span>FakturKu · Workspace dokumen bisnis</span><span>Praktis dibuat. Rapi dibagikan.</span></div>
+    </section>
+  </main>
+
+
+  <script src="js/landing.js" defer></script>
   <script src="js/vendor-html2canvas.js"></script>
   <script type="module" src="js/app.js"></script>
 </body>

@@ -63,26 +63,42 @@ export function onAuthChange(cb) {
 
 // ---------- billing ----------
 
-export async function creditsLeft() {
-  if (!sb) return local.creditsLeft();
+export async function billingState() {
+  if (!sb) {
+    return { credits: local.creditsLeft(), trialCredits: local.creditsLeft(), balance: 0 };
+  }
   const user = await getUser();
-  if (!user) return 0;
+  if (!user) return { credits: 0, trialCredits: 0, balance: 0 };
   const { data, error } = await sb
     .from("ledger_accounts")
-    .select("credits")
+    .select("credits, trial_credits, balance")
     .eq("user_id", user.id)
-    .single();
+    .maybeSingle();
   if (error) throw error;
-  return data?.credits ?? 0;
+  return {
+    credits: Number(data?.credits) || 0,
+    trialCredits: Number(data?.trial_credits) || 0,
+    balance: Number(data?.balance) || 0,
+  };
 }
 
-export async function tryDebit(ref, category) {
+export async function creditsLeft() {
+  const state = await billingState();
+  return state.credits;
+}
+
+export async function tryDebit(ref, category, template, documentData) {
   if (!sb) return local.tryDebit(ref, category);
   const user = await getUser();
   if (!user) return false;
+  if (!template || !documentData || typeof documentData !== "object") {
+    throw new Error("Data template dokumen tidak lengkap.");
+  }
   const { data, error } = await sb.rpc("issue_document", {
     p_ref: ref,
     p_category: category || null,
+    p_template: template,
+    p_data: documentData,
   });
   if (error) throw error;
   return data === true;
@@ -94,26 +110,38 @@ export async function history() {
   if (!user) return [];
   const { data, error } = await sb
     .from("credit_transactions")
-    .select("created_at, delta, ref, credits_after")
+    .select("created_at, delta, ref, credits_after, reason, category, trial_delta, trial_after, balance_delta, balance_after")
     .order("created_at", { ascending: false })
     .limit(30);
   if (error) throw error;
   return (data ?? []).map((r) => ({
     at: r.created_at,
-    amount: r.delta,
+    amount: ["topup", "issue"].includes(r.reason) ? Number(r.balance_delta) || 0
+      : Number(r.trial_delta) || Number(r.delta) || 0,
+    reason: r.reason || "",
     ref: r.ref || "",
-    sisa: r.credits_after,
+    category: r.category || "",
+    sisa: ["topup", "issue"].includes(r.reason) ? r.balance_after : (r.trial_after ?? r.credits_after),
+    balanceAfter: r.balance_after,
+    trialAfter: r.trial_after,
   }));
 }
 
 export async function createTopup(pkg) {
   if (!sb) return local.requestTopUp(pkg);
+  if (!pkg?.id) throw new Error("Paket top-up tidak valid.");
   const { data, error } = await sb.rpc("request_topup", {
-    p_credits: pkg.credits,
-    p_price: pkg.price,
+    p_package_id: pkg.id,
   });
   if (error) throw error;
-  return { id: data, price: pkg.price, credits: pkg.credits, status: "pending" };
+  return {
+    id: data,
+    packageId: pkg.id,
+    price: Number(pkg.price) || 0,
+    balance_amount: Number(pkg.balance_amount ?? pkg.price) || 0,
+    credits: Number(pkg.credits) || 0,
+    status: "pending",
+  };
 }
 
 export async function pendingTopup() {
@@ -122,7 +150,7 @@ export async function pendingTopup() {
   if (!user) return null;
   const { data, error } = await sb
     .from("topup_requests")
-    .select("code, credits, price, status, created_at")
+    .select("code, credits, price, balance_amount, status, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(1)
@@ -133,6 +161,7 @@ export async function pendingTopup() {
     id: data.code,
     price: data.price,
     credits: data.credits,
+    balance_amount: data.balance_amount ?? data.price,
     status: data.status,
     at: data.created_at,
   };
