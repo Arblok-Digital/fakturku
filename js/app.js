@@ -120,7 +120,7 @@ function scheduleRender() {
 
 let syncTimer = null;
 function scheduleCloudSync() {
-  if (!backend.isRemote() || !remote.session || state.issued) return;
+  if (!backend.isRemote() || !remote.session || state.issued || state._serverNumberRequired) return;
   clearTimeout(syncTimer);
   syncTimer = setTimeout(() => {
     backend.saveInvoice(state).catch((err) => {
