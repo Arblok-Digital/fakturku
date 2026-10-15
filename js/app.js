@@ -419,9 +419,12 @@ async function markIssued() {
   if (backend.isRemote()) {
     if (!remote.session) { openAuth(); return false; }
     if (state._serverNumberRequired) {
-      const reserved = numberReservationFor === state
+      let reserved = numberReservationFor === state
         ? await numberReservationPromise
-        : await reserveServerNumberForCurrentState();
+        : false;
+      if (!reserved || state._serverNumberRequired) {
+        reserved = await reserveServerNumberForCurrentState();
+      }
       if (!reserved || state._serverNumberRequired) return false;
     }
     let ok = false;
