@@ -47,7 +47,7 @@ function val(s,key,h) {
   var v = s.details && s.details[key];
   if (v === undefined || v === null || v === "") return "";
   if (moneyFields.indexOf(key) >= 0) return h.rupiah(v);
-  if (["effectiveDate","endDate","deliveryDate","contractDate","validity"].indexOf(key) >= 0 && /^\\d{4}-\\d{2}-\\d{2}$/.test(String(v))) return h.formatDate(v);
+  if (["effectiveDate","endDate","deliveryDate","contractDate","validity"].indexOf(key) >= 0 && /^\d{4}-\d{2}-\d{2}$/.test(String(v))) return h.formatDate(v);
   if (key === "progress") return h.esc(String(v)) + "%";
   return h.esc(String(v));
 }
