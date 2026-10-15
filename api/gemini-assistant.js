@@ -3,7 +3,7 @@ const MAX_BODY_CHARS = 18_000;
 const MAX_REQUESTS_PER_MINUTE = 20;
 const requestCounts = new Map();
 const SUPABASE_URL = "https://pcydwlfyughwasyqglwq.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjeWR3bGZ5dWdod2FzeXFnbHdxZ2x3cSIsImlhdCI6MTc5MTcyMDc1MiwiZXhwIjoyMTA3Mjk2NzUyfQ.OdCmJBVCtC0t824Py-uKqA5GHcJF4pdvbNvGCv4n2oE"; // Public anon key; authorization is still verified by Supabase JWT.
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBjeWR3bGZ5dWdod2FzeXFnbHdxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3MjA3NTIsImV4cCI6MjEwNzI5Njc1Mn0.OdCmJBVCtC0t824Py-uKqA5GHcJF4pdvbNvGCv4n2oE"; // Public anon key; authorization is still verified by Supabase JWT. // Public anon key; authorization is still verified by Supabase JWT.
 
 function send(res, status, body) {
   res.setHeader("Content-Type", "application/json; charset=utf-8");
@@ -86,6 +86,11 @@ export default async function handler(req, res) {
     return send(res, 401, { code: "LOGIN_REQUIRED", error: "Sesi akun tidak terbaca. Muat ulang FakturKu dan masuk kembali ya." });
   }
 
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return send(res, 503, { code: "AI_NOT_CONFIGURED", error: "Asisten AI sedang disiapkan. Silakan coba lagi nanti." });
+  }
+
   let quota;
   try {
     quota = await consumeDailyQuota(accessToken);
@@ -113,11 +118,6 @@ export default async function handler(req, res) {
     role: item?.role === "model" ? "model" : "user",
     text: cleanText(item?.text, 1000),
   })).filter((item) => item.text) : [];
-
-  const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    return send(res, 503, { code: "AI_NOT_CONFIGURED", error: "Asisten AI sedang disiapkan. Silakan coba lagi nanti." });
-  }
 
   const template = cleanText(body.template, 100) || "dokumen bisnis";
   const category = cleanText(body.category, 80) || "umum";
