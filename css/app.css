@@ -1430,3 +1430,61 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .example-banner { margin: 8px 10px 0; padding: 10px 11px; }
   .bottomnav button { min-width: 0; }
 }
+
+
+/* Transaction inputs: vertical cards keep descriptions and amounts readable on every screen. */
+.items-list { display: grid; gap: 12px; }
+.item-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--paper);
+}
+.item-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.item-card-title {
+  color: var(--ink-500);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+.item-card .field { min-width: 0; margin-bottom: 12px; }
+.item-card .field label { display: block; margin-bottom: 6px; }
+.item-card input { width: 100%; min-width: 0; max-width: 100%; }
+.item-card .item-desc-field input { min-height: 44px; }
+.item-card-grid { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: 12px; }
+.item-card-grid .field { margin-bottom: 0; }
+.item-line-total {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  color: var(--ink-500);
+  font-size: 12px;
+}
+.item-line-total strong {
+  color: var(--navy-700);
+  font: 700 16px var(--font-mono);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+.items-foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 12px; }
+.items-foot .hint-line { font-weight: 700; text-align: right; }
+@media screen and (max-width: 600px) {
+  .item-card { padding: 12px; }
+  .item-card-grid { grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: 10px; }
+  .item-line-total strong { font-size: 15px; }
+  .items-foot { align-items: stretch; flex-direction: column; }
+  .items-foot > .btn { width: 100%; justify-content: center; }
+  .items-foot .hint-line { text-align: left; }
+}
