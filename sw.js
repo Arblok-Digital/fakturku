@@ -1,4 +1,4 @@
-const CACHE = "fakturku-v20";
+const CACHE = "fakturku-v21";
 const SHELL = [
   "./",
   "./index.html",
@@ -31,7 +31,13 @@ const SHELL = [
 ];
 
 self.addEventListener("install", (e) => {
-  e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));
+  e.waitUntil(
+    caches.open(CACHE)
+      .then((cache) => Promise.allSettled(SHELL.map((path) =>
+        cache.add(new Request(path, { cache: "reload" }))
+      )))
+      .then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener("activate", (e) => {
@@ -51,7 +57,7 @@ self.addEventListener("fetch", (e) => {
   // Revalidate navigations so a stale cached shell cannot flash the editor before auth initializes.
   if (e.request.mode === "navigate") {
     e.respondWith(
-      fetch(e.request).then((res) => {
+      fetch(new Request(e.request, { cache: "no-store" })).then((res) => {
         if (res.ok) {
           const copy = res.clone();
           caches.open(CACHE).then((c) => c.put(e.request, copy)).catch(() => {});
