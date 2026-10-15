@@ -1599,7 +1599,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .ai-assistant-tuck:focus-visible { outline:3px solid #a3d95e; outline-offset:3px; }
 @media screen and (max-width: 900px) {
   .ai-assistant { right: 8px; bottom: calc(88px + env(safe-area-inset-bottom)); transition: transform .2s ease; }
-  .ai-assistant.is-tucked { transform: translateX(calc(100% - 20px)); }
+  .ai-assistant.is-tucked {
+    /* Keep the edge tab in the middle of the screen, away from bottom document actions (+ / Share). */
+    right: 0;
+    bottom: calc(42vh + env(safe-area-inset-bottom));
+    transform: translateX(calc(100% - 20px));
+  }
   .ai-assistant.is-tucked .ai-assistant-toggle {
     width: 42px; min-width:42px; min-height:58px; padding:0;
     flex-direction:column; gap:0; border-radius:14px 0 0 14px;
@@ -1615,5 +1620,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 @media (max-width: 420px) {
   .ai-assistant:not(.is-tucked) .ai-assistant-toggle { min-height:46px; padding:0 13px; }
-  .ai-assistant.is-tucked { transform: translateX(calc(100% - 17px)); }
+  .ai-assistant.is-tucked {
+    right: 0;
+    bottom: calc(42vh + env(safe-area-inset-bottom));
+    transform: translateX(calc(100% - 17px));
+  }
 }
