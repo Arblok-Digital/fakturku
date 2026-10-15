@@ -1488,3 +1488,22 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .items-foot > .btn { width: 100%; justify-content: center; }
   .items-foot .hint-line { text-align: left; }
 }
+
+
+/* Make the document category selector visually distinct from the template selector. */
+.tpl-filter-select {
+  border-color: #4d86b5 !important;
+  background-color: #eaf3fc !important;
+  color: #17466b !important;
+  font-weight: 700 !important;
+  box-shadow: inset 4px 0 0 #4d86b5;
+}
+.tpl-filter-select:hover {
+  border-color: #2f6f9f !important;
+  background-color: #e1effb !important;
+}
+.tpl-filter-select:focus {
+  outline: none;
+  border-color: #2f6f9f !important;
+  box-shadow: inset 4px 0 0 #2f6f9f, 0 0 0 3px rgba(77, 134, 181, .18);
+}
