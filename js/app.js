@@ -287,10 +287,6 @@ function switchTemplate(newId) {
   } else {
     state.number = nextNumberByCategory(state.category);
     state.numbers[newId] = state.number;
-    if (backend.isRemote()) {
-      state._serverNumberRequired = true;
-      if (remote.session) queueMicrotask(() => reserveServerNumberForCurrentState());
-    }
   }
 
   // Saat memakai data contoh, bangun ulang sampel sesuai format yang dipilih.
@@ -300,10 +296,16 @@ function switchTemplate(newId) {
     state.category = getCategory(newId);
   }
 
+  if (backend.isRemote() && !state.issued) {
+    state._serverNumberRequired = true;
+  }
   renderTemplatePicker();
   renderItems();
   render();
   saveCurrent(state);
+  if (backend.isRemote() && remote.session && state._serverNumberRequired) {
+    reserveServerNumberForCurrentState();
+  }
 }
 
 /* ---------- drafts ---------- */
