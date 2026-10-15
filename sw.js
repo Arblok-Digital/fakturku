@@ -1,4 +1,4 @@
-const CACHE = "fakturku-v16";
+const CACHE = "fakturku-v17";
 const SHELL = [
   "./",
   "./index.html",
@@ -9,6 +9,7 @@ const SHELL = [
   "./css/landing.css",
   "./js/app.js",
   "./js/landing.js",
+  "./js/ai-assistant.js",
   "./js/config.js",
   "./js/vendor-html2canvas.js",
   "./js/modules/backend.js",
