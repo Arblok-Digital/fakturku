@@ -9,7 +9,10 @@ import { printDoc, downloadImage, openWhatsApp } from "./modules/output.js";
 import * as ledger from "./modules/credit-ledger.js";
 import * as backend from "./modules/backend.js";
 
-let state = loadCurrent() || blankState("faktur-a4");
+const storedState = loadCurrent();
+const hasStoredState = Boolean(storedState);
+let state = storedState || blankState("faktur-a4");
+let sampleDraftMode = false;
 let renderTimer = null;
 
 /* remote billing cache (Supabase) */
@@ -39,6 +42,8 @@ function toast(msg) {
 /* ---------- render ---------- */
 function render() {
   const tpl = renderDoc(state);
+  const sampleBanner = $("#sample-editor-banner");
+  if (sampleBanner) sampleBanner.hidden = !sampleDraftMode;
   applySections(tpl);
   syncBoundInputs();
   const cat = state.category || getCategory(state.template);
@@ -318,6 +323,7 @@ $("#draft-list").addEventListener("click", (e) => {
 function newDoc() {
   if (!confirm("Buat dokumen baru? Dokumen sekarang tetap tersimpan sebagai draft terakhir.")) return;
   saveCurrent(state);
+  sampleDraftMode = false;
   state = blankState(state.template);
   renderTemplatePicker();
   renderItems(); render();
@@ -325,6 +331,25 @@ function newDoc() {
   toast("Dokumen baru dibuat");
 }
 $("#btn-new").addEventListener("click", newDoc);
+$("#btn-fill-sample").addEventListener("click", () => {
+  state = buildExampleState(false);
+  sampleDraftMode = true;
+  renderTemplatePicker();
+  renderItems();
+  render();
+  saveCurrent(state);
+  toast("Data contoh untuk " + getTemplate(state.template).label + " sudah dimuat");
+});
+$("#btn-clear-sample").addEventListener("click", () => {
+  if (!confirm("Kosongkan semua data contoh dan mulai dokumen dari nol?")) return;
+  sampleDraftMode = false;
+  state = blankState(state.template);
+  renderTemplatePicker();
+  renderItems();
+  render();
+  saveCurrent(state);
+  toast("Dokumen kosong siap diisi");
+});
 $("#btn-new-fab").addEventListener("click", newDoc);
 
 /* ---------- output & billing ---------- */
@@ -718,7 +743,7 @@ $("#tab-preview").addEventListener("click", () => switchTab("preview"));
 $("#tab-example").addEventListener("click", () => switchTab("example"));
 $("#tab-example-desktop").addEventListener("click", () => switchTab($("#workspace").dataset.tab === "preview" && $("#example-banner").hidden === false ? "preview" : "example"));
 
-function buildExampleState() {
+function buildExampleState(issued = true) {
   const today = new Date();
   const dateValue = (d) => {
     const local = new Date(d.getTime() - d.getTimezoneOffset() * 60000);
@@ -735,7 +760,7 @@ function buildExampleState() {
   sample.category = state.category || getCategory(state.template);
   sample.date = dateValue(today);
   sample.dueDate = plusDays(14);
-  sample.issued = true;
+  sample.issued = issued;
   sample.notes = "Contoh data fiktif — sesuaikan seluruh isi sebelum digunakan.";
   sample.issuer = {
     name: "PT Nusantara Karya (Contoh)",
@@ -844,7 +869,7 @@ function buildExampleState() {
 }
 
 function renderExample() {
-  const sample = buildExampleState();
+  const sample = buildExampleState(true);
   const tpl = renderDoc(sample);
   $("#out-hint").textContent = "CONTOH DATA FIKTIF · " + tpl.label + " · " + (tpl.category || "finance");
   $("#example-banner").hidden = false;
@@ -886,6 +911,11 @@ async function boot() {
 
   /* pastikan state.category terisi */
   if (!state.category) state.category = getCategory(state.template);
+  // First-time workspace opens with realistic, editable sample data instead of a blank document.
+  if (!hasStoredState) {
+    state = buildExampleState(false);
+    sampleDraftMode = true;
+  }
 
   // Public landing/auth is the entry point; never expose the editor before session resolution.
   $("#workspace").hidden = backend.isRemote();
