@@ -1,4 +1,7 @@
-const root = document.querySelector("#ai-assistant");
+const assistantRoots = [...document.querySelectorAll("#ai-assistant")];
+const root = assistantRoots.shift() || null;
+// Defensive cleanup: only one assistant widget may exist, even after stale markup is combined.
+assistantRoots.forEach((duplicate) => duplicate.remove());
 const workspace = document.querySelector("#workspace");
 
 if (root && workspace) {
@@ -12,6 +15,9 @@ if (root && workspace) {
   const messagesEl = root.querySelector("#ai-assistant-messages");
   const status = root.querySelector("#ai-assistant-status");
   const history = [];
+
+  // On phones, start tucked at the edge so the Share / document actions stay unobstructed.
+  if (window.matchMedia("(max-width: 900px)").matches) root.classList.add("is-tucked");
 
   function syncVisibility() {
     root.hidden = workspace.hidden;
