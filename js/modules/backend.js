@@ -348,6 +348,18 @@ export async function adminTransactions() {
   });
 }
 
+export async function adminCashflow() {
+  const { data, error } = await sb
+    .from("topup_requests")
+    .select("code, price, status, created_at, decided_at")
+    .eq("status", "approved")
+    .not("decided_at", "is", null)
+    .order("decided_at", { ascending: false })
+    .limit(5000);
+  if (error) throw error;
+  return data ?? [];
+}
+
 export async function adminStats() {
   const [users, txs, pending] = await Promise.all([
     sb.from("profiles").select("id", { count: "exact", head: true }),
