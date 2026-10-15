@@ -1,58 +1,66 @@
 # FakturKu
 
-PWA generator faktur / kwitansi / struk angsuran untuk PIC lapangan & finance. Editable, print A4 & thermal 58mm, share JPEG ke WhatsApp/Telegram. Bahasa Indonesia.
+FakturKu adalah PWA untuk membuat dokumen bisnis di browser: faktur, kwitansi, invoice digital, dan template administrasi lainnya. Aplikasi menggunakan Vanilla JavaScript ES modules, CSS, dan HTML tanpa build step.
 
-## Fitur
+> **Penting untuk agent:** baca `AGENTS.md` sebelum mengedit atau melakukan deploy. Jangan menganggap branch preview sebagai production.
 
-- 4 template: Faktur A4, Kwitansi A4, Struk Angsuran (thermal 58mm), Invoice Digital
-- Editor form + live preview, draft tersimpan di device
-- Auto terbilang, penomoran per template, watermark DRAFT → TERBIT
-- Export: print (A4/thermal), JPEG (html2canvas), ringkasan teks, tombol WhatsApp
-- Installable PWA (offline shell via service worker)
-- Billing: trial 10 dokumen, bayar per dokumen terbit (re-print/re-share gratis)
-- Top-up paket: 5 / 12 / 30 dokumen — approve admin
-- Backend Supabase (opsional): login akun, kuota server-side, sinkron dokumen, dashboard admin realtime
-- Mode lokal tanpa backend: semua fitur jalan offline via localStorage
+## Sumber kebenaran
 
-## Struktur
+- **Repository:** `Arblok-Digital/fakturku`
+- **Production branch:** `master` — hanya berubah setelah review dan persetujuan eksplisit.
+- **Branch kerja/preview saat ini:** `fix/production-mobile-billing-output`
+- **Deploy preview:** otomatis melalui Vercel ketika branch terkait di-push.
+- **Deploy production:** hanya setelah perubahan diuji, disetujui, dan dipromosikan/di-merge sesuai alur rilis.
+- **File lokal:** bukan sumber kebenaran tersendiri. Pastikan branch dan commit cocok dengan GitHub sebelum melanjutkan kerja.
 
-```
-index.html        aplikasi utama (editor + preview)
-admin.html        panel admin (dashboard server / tool kode lokal) — akses via /admin
-js/config.js      slot kunci Supabase (kosong = mode lokal)
-js/app.js         wiring UI
-js/modules/       engine: template, invoice, numbering, output, billing, backend
-js/templates/     4 template dokumen
-supabase/schema.sql  tabel + RPC + RLS (jalankan sekali di SQL Editor)
-opendesign/       viewer desain + design system
-```
+## Fitur utama
 
-## Setup Supabase (opsional)
+- Katalog template dokumen lintas kategori bisnis.
+- Editor data dokumen dan preview hasil render.
+- Tab mobile **Edit**, **Preview**, dan **Contoh**.
+- Tab Contoh merender data ilustrasi melalui engine template; data contoh tidak boleh menimpa draft pengguna. Aksi print/simpan/share dinonaktifkan selama mode contoh.
+- Draft lokal di perangkat, penomoran, nominal terbilang, dan output dokumen.
+- PWA dengan service worker/cache.
+- Integrasi Supabase opsional untuk fitur akun, kuota, sinkronisasi, dan admin. Periksa konfigurasi aktual sebelum mengubah backend.
 
-1. Buat project baru di [supabase.com](https://supabase.com) (atau `supabase projects create`)
-2. SQL Editor → paste `supabase/schema.sql` → Run
-3. Authentication → Providers → Email: aktifkan (confirm email boleh OFF untuk mulai)
-4. Project Settings → API → salin **Project URL** + **anon key** ke `js/config.js`
-5. Refresh aplikasi → daftar akun. **User pertama otomatis jadi admin** + trial 10 kuota
+## Peta file
 
-Catatan keamanan:
-- Kuota & top-up diproses RPC `SECURITY DEFINER` di server — user tidak bisa edit saldo sendiri (RLS ketat)
-- `admin.html` sengaja tidak di-link dari aplikasi; buka manual `/admin`
-- Ganti `CONTACT` di `js/modules/credit-ledger.js` (nomor WA admin) sebelum rilis
+| Path | Tanggung jawab |
+| --- | --- |
+| `index.html` | Struktur aplikasi, area editor/preview, navigasi bawah |
+| `css/app.css` | Gaya aplikasi, editor, preview, dan navigasi mobile |
+| `css/landing.css` | Gaya landing page |
+| `js/app.js` | Wiring UI, perpindahan tab, state aplikasi, mode Contoh |
+| `js/templates/` | Data/definisi template dan konfigurasi field |
+| `js/modules/template-engine.js` | Pemilihan dan render template |
+| `js/modules/` | Modul domain seperti output, penomoran, billing, backend, dan utilitas |
+| `js/landing.js` | Interaksi landing page |
+| `sw.js` | Service worker dan versi cache PWA |
+| `supabase/schema.sql` | Skema/RPC/RLS Supabase; jangan ubah tanpa memahami dampak backend |
+| `PLAN-billing-kategori/` | Catatan riset dan rencana template; bukan kode runtime |
 
-## Alur top-up (mode server)
+Nama/path di atas adalah peta orientasi, bukan izin untuk mengubah semua area. Cek isi repo terkini sebelum mengandalkan daftar ini.
 
-1. User pilih paket → dapat ID `FKT-XXXXXX` + nominal transfer
-2. User transfer, kirim bukti ke admin
-3. Admin approve di `admin.html` → kuota masuk otomatis (tanpa kode)
-4. User muat ulang / buka lagi panel kuota
+## Alur kerja yang disarankan
 
-Mode lokal (config kosong): admin bikin kode 6 digit offline, user redeem manual — enforcement lokal saja, bukan server-side.
+1. Baca `AGENTS.md`, status branch, dan commit terbaru sebelum edit.
+2. Kerjakan fitur pada branch kerja/feature, bukan langsung di `master`.
+3. Perubahan kecil dan fokus; jangan refactor backend atau migrasi data kecuali diminta eksplisit.
+4. Jalankan pemeriksaan yang tersedia (mis. syntax check, pencarian ID duplikat, cek file/path, dan smoke test browser).
+5. Push ke branch preview dan tunggu deployment Vercel berstatus **Ready**.
+6. Uji di perangkat yang relevan, terutama mobile: pilih kategori/template, Edit, Preview, Contoh, kembali ke Edit, serta output yang terdampak.
+7. Catat perubahan, tes yang benar-benar dijalankan, hasil deployment, dan hal yang belum dites.
+8. **Jangan merge ke `master`, promote ke production, menghapus branch, atau melakukan rollback tanpa persetujuan eksplisit.**
 
-## Deploy
+## Template dan kepatuhan
 
-Statik saja — upload folder ini ke Netlify / Vercel / Cloudflare Pages / hosting apa pun. Tidak perlu build step. Service worker butuh HTTPS.
+Template adalah alat bantu administrasi umum, bukan jaminan kepatuhan hukum/pajak atau pengganti formulir resmi. Lembar pajak internal bukan e-Faktur resmi. Draft hukum bersifat umum dan perlu ditinjau sesuai konteks. Jangan mengiklankan template sebagai dokumen resmi/tersertifikasi tanpa dasar yang terverifikasi.
 
-## Tech
+## Setup lokal
 
-Vanilla JS ES modules, tanpa framework & build tool. IBM Plex Sans/Mono. Supabase JS v2 via CDN (hanya dimuat saat config terisi).
+1. Clone repo atau buka working tree yang sudah ada.
+2. Periksa `git status` dan `git branch --show-current` sebelum mengedit.
+3. Untuk menjalankan aplikasi, gunakan local static server bila browser membatasi ES modules/service worker pada `file://`.
+4. Jangan menyalin file dari folder lokal lama ke branch terbaru secara membabi buta. Bandingkan perubahan terlebih dahulu.
+
+Tidak ada build step standar karena aplikasi memakai HTML/CSS/JavaScript statis. Fitur Supabase memerlukan konfigurasi yang sesuai; jangan pernah commit secret/service-role key ke repo.
