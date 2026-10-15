@@ -252,7 +252,16 @@ function switchTemplate(newId) {
     state.number = nextNumberByCategory(state.category);
     state.numbers[newId] = state.number;
   }
+
+  // Saat memakai data contoh, bangun ulang sampel sesuai format yang dipilih.
+  // Field khusus kuitansi, struk, dan dokumen bisnis ikut disesuaikan.
+  if (sampleDraftMode) {
+    state = buildExampleState(false);
+    state.category = getCategory(newId);
+  }
+
   renderTemplatePicker();
+  renderItems();
   render();
   saveCurrent(state);
 }
