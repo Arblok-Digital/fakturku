@@ -131,13 +131,30 @@ $("#f-logo").addEventListener("change", (e) => {
 function renderItems() {
   const body = $("#items-body");
   body.innerHTML = state.items.map((it, i) => `
-    <tr>
-      <td><input type="text" data-idx="${i}" data-f="desc" value="${(it.desc || "").replace(/"/g, "&quot;")}" placeholder="Uraian"></td>
-      <td><input class="num" type="number" min="0" data-idx="${i}" data-f="qty" value="${Number(it.qty) || 0}"></td>
-      <td><input class="num" type="number" min="0" data-idx="${i}" data-f="price" value="${Number(it.price) || 0}"></td>
-      <td><input class="num" type="text" readonly tabindex="-1" value="${rupiah((Number(it.qty) || 0) * (Number(it.price) || 0))}"></td>
-      <td><button class="del" type="button" data-del="${i}" title="Hapus">&times;</button></td>
-    </tr>`).join("");
+    <article class="item-card" data-item-card="${i}">
+      <div class="item-card-head">
+        <span class="item-card-title">Transaksi ${i + 1}</span>
+        <button class="del" type="button" data-del="${i}" aria-label="Hapus transaksi ${i + 1}" title="Hapus transaksi">&times;</button>
+      </div>
+      <div class="field item-desc-field">
+        <label for="item-desc-${i}">Uraian transaksi</label>
+        <input id="item-desc-${i}" type="text" data-idx="${i}" data-f="desc" value="${(it.desc || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")}" placeholder="Contoh: Jasa desain, pembelian barang">
+      </div>
+      <div class="item-card-grid">
+        <div class="field">
+          <label for="item-qty-${i}">Qty</label>
+          <input id="item-qty-${i}" class="num" type="number" min="0" data-idx="${i}" data-f="qty" value="${Number(it.qty) || 0}">
+        </div>
+        <div class="field">
+          <label for="item-price-${i}">Harga satuan (Rp)</label>
+          <input id="item-price-${i}" class="num" type="number" min="0" data-idx="${i}" data-f="price" value="${Number(it.price) || 0}">
+        </div>
+      </div>
+      <div class="item-line-total">
+        <span>Jumlah transaksi</span>
+        <strong>${rupiah((Number(it.qty) || 0) * (Number(it.price) || 0))}</strong>
+      </div>
+    </article>`).join("");
   const t = totals(state);
   $("#items-sum").textContent = "Subtotal: " + rupiah(t.subtotal);
 }
@@ -148,7 +165,7 @@ $("#items-body").addEventListener("input", (e) => {
   const i = Number(el.dataset.idx);
   state.items[i][el.dataset.f] = el.type === "number" ? (el.value === "" ? 0 : Number(el.value)) : el.value;
   const row = el.closest("tr");
-  row.children[3].value = rupiah((Number(state.items[i].qty) || 0) * (Number(state.items[i].price) || 0));
+  row.querySelector(".item-line-total strong").textContent = rupiah((Number(state.items[i].qty) || 0) * (Number(state.items[i].price) || 0));
   $("#items-sum").textContent = "Subtotal: " + rupiah(totals(state).subtotal);
   scheduleRender();
 });
