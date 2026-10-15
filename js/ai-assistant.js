@@ -1,3 +1,5 @@
+import { init as initBackend, getSession } from "./modules/backend.js";
+
 const assistantRoots = [...document.querySelectorAll("#ai-assistant")];
 const root = assistantRoots.shift() || null;
 // Defensive cleanup: only one assistant widget may exist, even after stale markup is combined.
@@ -97,9 +99,17 @@ if (root && workspace) {
     status.textContent = "Sedang menyusun jawaban…";
 
     try {
+      await initBackend();
+      const session = await getSession();
+      if (!session?.access_token) {
+        throw new Error("Sesi akun tidak terbaca. Muat ulang FakturKu dan masuk kembali ya.");
+      }
       const response = await fetch("/api/gemini-assistant", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + session.access_token,
+        },
         body: JSON.stringify({ ...context, message, history: history.slice(-8) }),
       });
       const result = await response.json().catch(() => ({}));
@@ -113,11 +123,17 @@ if (root && workspace) {
       })).filter((item) => item.path && context.fields[item.path] && item.value) : [];
       history.push({ role: "model", text: reply });
       addMessage("assistant", reply, suggestions);
-      status.textContent = suggestions.length ? "Tinjau saran sebelum menerapkannya." : "Jawaban AI · periksa informasi sebelum digunakan.";
+      const remaining = Number.isFinite(Number(result.remaining)) ? Number(result.remaining) : null;
+      status.textContent = (suggestions.length ? "Tinjau saran sebelum menerapkannya." : "Jawaban AI · periksa informasi sebelum digunakan.")
+        + (remaining === null ? "" : " · Sisa hari ini: " + remaining + "/10");
     } catch (error) {
-      const errorText = error instanceof Error ? error.message : "Terjadi gangguan saat menghubungi asisten.";
+      const errorText = error instanceof Error && error.message
+        ? error.message
+        : "Maaf, asisten sedang tidak tersedia. Coba lagi beberapa saat ya.";
       addMessage("assistant", errorText);
-      status.textContent = "Belum berhasil.";
+      status.textContent = errorText.includes("Jatah asisten AI hari ini sudah habis")
+        ? "Batas harian tercapai · 0/10 tersisa"
+        : "Asisten sedang tidak tersedia. Pesanmu belum mendapat jawaban.";
     } finally {
       input.disabled = false;
       sendButton.disabled = false;
