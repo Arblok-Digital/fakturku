@@ -226,21 +226,25 @@ const LOCAL_CATEGORIES = [
 // ---------- invoices (cloud sync) ----------
 
 export async function saveInvoice(state) {
-  if (!sb || !state?.number) return;
+  // Issued documents are immutable from the draft autosync path.
+  // issue_document() already persists the final document atomically with billing.
+  // Skipping issued states prevents a delayed autosync from overwriting issued data.
+  if (!sb || !state?.number || state.issued) return;
   const user = await getUser();
-  if (!user) return;
-  await sb.from("invoices").upsert(
+  if (!user) throw new Error("Sesi login tidak tersedia untuk sinkronisasi draft.");
+  const { error } = await sb.from("invoices").upsert(
     {
       user_id: user.id,
       template: state.template || "",
       number: state.number,
-      status: state.issued ? "issued" : "draft",
+      status: "draft",
       verify_code: state.verify || "",
       data: state,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id,number" }
   );
+  if (error) throw error;
 }
 
 // ---------- admin ----------
