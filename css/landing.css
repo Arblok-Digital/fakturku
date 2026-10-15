@@ -405,3 +405,82 @@ body:has(#auth-modal:not([hidden])) .bottomnav { display: none; }
   .landing-v2 .hero-visual,
   .landing-v2 .category-card { animation: none !important; }
 }
+
+
+/* Palette pass: confident cobalt + ink, with restrained warm highlight. */
+.landing-v2 {
+  --fk-ink: #111827;
+  --fk-muted: #4b5563;
+  --fk-navy: #111827;
+  --fk-navy-2: #1f2937;
+  --fk-lime: #2457e6;
+  --fk-teal: #2457e6;
+  color: #111827;
+  background: #ffffff;
+}
+.landing-v2 .landing-nav { color: #111827; }
+.landing-v2 .landing-brand { color: #111827; }
+.landing-v2 .landing-brand .logo { background: #2457e6; color: #fff; border-radius: 8px; }
+.landing-v2 .landing-brand .mark { color:#2457e6; background:#eef2ff; border-color:#c7d2fe; }
+.landing-v2 .nav-links a { color:#4b5563; }
+.landing-v2 .nav-links a:hover { color:#2457e6; }
+.landing-v2 .nav-btn-quiet { color:#111827; border-color:#d1d5db; background:#fff; }
+.landing-v2 .nav-btn-bright,
+.landing-v2 .hero-btn-primary { background:#2457e6; color:#fff; box-shadow:none; border-radius:7px; }
+.landing-v2 .hero { background:#fff; color:#111827; }
+.landing-v2 .hero:before,
+.landing-v2 .hero:after { display:none; }
+.landing-v2 .eyebrow { color:#2457e6; }
+.landing-v2 .eyebrow-dot { background:#2457e6; }
+.landing-v2 .hero h1 { color:#111827; }
+.landing-v2 .hero h1 span { color:#2457e6; }
+.landing-v2 .hero-lead { color:#4b5563; }
+.landing-v2 .hero-btn-primary { background:#2457e6; color:#fff; }
+.landing-v2 .hero-btn-primary:hover { background:#1d46bf; }
+.landing-v2 .hero-btn-secondary { color:#111827; background:#fff; border-color:#d1d5db; }
+.landing-v2 .hero-proof { color:#4b5563; }
+.landing-v2 .hero-proof b { color:#2457e6; }
+.landing-v2 .invoice-card { border-color:#d1d5db; box-shadow:0 12px 32px #11182712; }
+.landing-v2 .invoice-mark { background:#2457e6; }
+.landing-v2 .invoice-paid { background:#e8f8ee; color:#167647; }
+.landing-v2 .invoice-table-head { background:#f3f4f6; color:#374151; }
+.landing-v2 .hero-auth-inline {
+  border-top-color:#d1d5db;
+  background:transparent;
+}
+.landing-v2 .hero-auth-copy h2 { color:#111827; }
+.landing-v2 .hero-auth-copy p { color:#4b5563; }
+.landing-v2 .auth-mini-points span { color:#374151; border-color:#d1d5db; }
+.landing-v2 .auth-card { border-color:#d1d5db; box-shadow:0 8px 24px #1118270b; }
+.landing-v2 .auth-card #auth-go { background:#2457e6; border-radius:7px; }
+.landing-v2 .auth-card #auth-go:hover { background:#1d46bf; }
+.landing-v2 .auth-card input:focus { outline:3px solid #2457e622; border-color:#2457e6; }
+.landing-v2 .landing-section { background:#fff; }
+.landing-v2 .category-section { background:#f8fafc; }
+.landing-v2 .section-kicker { color:#2457e6; }
+.landing-v2 .section-heading { color:#111827; }
+.landing-v2 .section-intro { color:#4b5563; }
+.landing-v2 .category-card { border-color:#d1d5db; box-shadow:none; border-radius:8px; }
+.landing-v2 .category-card:hover { border-color:#2457e6; box-shadow:0 8px 22px #1118270b; }
+.landing-v2 .category-icon { background:#eef2ff !important; color:#2457e6 !important; border-radius:7px; }
+.landing-v2 .category-card h3 { color:#111827; }
+.landing-v2 .category-card p, .landing-v2 .category-tag { color:#4b5563; }
+.landing-v2 .steps-section { background:#f3f4f6; }
+.landing-v2 .step-card { border-color:#d1d5db; border-radius:8px; }
+.landing-v2 .step-number { color:#2457e6; }
+.landing-v2 .step-card h3 { color:#111827; }
+.landing-v2 .step-card p { color:#4b5563; }
+.landing-v2 .landing-cta { background:#111827; color:#fff; }
+.landing-v2 .landing-cta .section-kicker { color:#93c5fd !important; }
+.landing-v2 .landing-cta .section-heading { color:#fff; }
+.landing-v2 .landing-cta .section-intro { color:#d1d5db; }
+.landing-v2 .landing-footer { color:#9ca3af; }
+.landing-v2 .auth-card { border-radius:8px; }
+.landing-v2 .auth-tabs { background:#f3f4f6; border-radius:7px; }
+.landing-v2 .auth-tabs button.on { color:#111827; }
+.landing-v2 .auth-card input { border-radius:7px; background:#fff; }
+.landing-v2 .hero-btn, .landing-v2 .nav-btn { border-radius:7px; }
+@media (max-width:760px) {
+  .landing-v2 .hero { background:#fff; }
+  .landing-v2 .landing-auth-section { background:#f3f4f6; }
+}
