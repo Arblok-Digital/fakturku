@@ -80,6 +80,9 @@
     .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
     .who { font-size: 12px; color: var(--ink-500); }
     .who b { color: var(--ink-700); font-weight: 600; }
+    .sync-status { font-size: 11px; color: var(--ink-500); margin: 0 0 12px; }
+    .table-scroll { overflow-x: auto; width: 100%; }
+    .table-scroll .log-table { min-width: 720px; }
   </style>
 </head>
 <body>
@@ -114,6 +117,7 @@
           <button class="act" type="button" id="ad-logout">Keluar</button>
         </span>
       </div>
+      <p class="sync-status" id="ad-sync-status" role="status">Menyiapkan sinkronisasi…</p>
 
       <section class="panel">
         <h2>Statistik</h2>
@@ -149,12 +153,14 @@
 
       <section class="panel">
         <h2>Log Transaksi Kuota</h2>
-        <table class="log-table">
-          <thead>
-            <tr><th>Waktu</th><th>User</th><th>Delta</th><th>Ref</th><th>Sisa</th></tr>
-          </thead>
-          <tbody id="tx-body"></tbody>
-        </table>
+        <div class="table-scroll">
+          <table class="log-table">
+            <thead>
+              <tr><th>Waktu</th><th>User</th><th>Jenis</th><th>Perubahan</th><th>Ref</th><th>Sisa trial/kuota</th><th>Saldo</th></tr>
+            </thead>
+            <tbody id="tx-body"></tbody>
+          </table>
+        </div>
         <div class="empty-line" id="tx-empty">Belum ada transaksi.</div>
       </section>
     </div>
@@ -266,10 +272,21 @@
         $("#adm-dash").hidden = false;
         $("#ad-who").textContent = me.data?.email || session.user.email;
         await loadDash();
+        if (dashboardRefreshTimer) clearInterval(dashboardRefreshTimer);
+        dashboardRefreshTimer = setInterval(() => {
+          if (!document.hidden && !$("#adm-dash").hidden) loadDash({ silent: true });
+        }, 30000);
       });
     }
 
-    async function loadDash() {
+    let dashboardLoading = false;
+    let dashboardRefreshTimer = null;
+
+    async function loadDash(options = {}) {
+      if (dashboardLoading) return;
+      dashboardLoading = true;
+      const status = $("#ad-sync-status");
+      if (status && !options.silent) status.textContent = "Menyinkronkan data…";
       try {
         const [stats, reqs, users, txs] = await Promise.all([
           backend.adminStats(),
@@ -316,18 +333,25 @@
           </tr>`).join("");
         $("#us-empty").hidden = users.length > 0;
 
-        $("#tx-body").innerHTML = txs.map((t) => `
-          <tr>
-            <td>${fmtTime(t.created_at)}</td>
-            <td>${esc(t.profiles?.full_name || t.user_id.slice(0, 8))}</td>
-            <td class="mono" style="color:${t.delta > 0 ? "var(--teal-600)" : "var(--danger-600)"}">${t.delta > 0 ? "+" : ""}${t.delta}</td>
-            <td class="mono">${esc(t.ref || "")}</td>
-            <td class="mono">${t.credits_after ?? "—"}</td>
-          </tr>`).join("");
+        $("#tx-body").innerHTML = txs.map((t) => {
+          const isTrial = t.reason === "trial_issue" || Number(t.trial_delta) !== 0;
+          const delta = isTrial ? (Number(t.trial_delta) || 0) : (Number(t.delta) || 0);
+          const amount = `${delta > 0 ? "+" : ""}${delta} ${isTrial ? "trial" : "dok"}`;
+          const labels = { trial_issue: "Pakai trial", issue: "Terbitkan dokumen", topup: "Top-up", manual_admin: "Penyesuaian admin", adjust: "Penyesuaian kuota" };
+          const label = labels[t.reason] || String(t.reason || "Transaksi").replaceAll("_", " ");
+          const color = delta < 0 ? "var(--danger-600)" : "var(--teal-600)";
+          const balanceDelta = Number(t.balance_delta) || 0;
+          const balance = t.balance_after == null ? "—" : `Rp ${Number(t.balance_after).toLocaleString("id-ID")}`;
+          return `<tr><td>${fmtTime(t.created_at)}</td><td>${esc(t.profiles?.full_name || t.user_id.slice(0, 8))}</td><td>${esc(label)}</td><td class="mono" style="color:${color}">${amount}<div style="font-size:10px;color:var(--ink-500)">Saldo ${balanceDelta > 0 ? "+" : ""}${balanceDelta.toLocaleString("id-ID")} Rp</div></td><td class="mono">${esc(t.ref || t.category || "")}</td><td class="mono">${t.trial_after ?? t.credits_after ?? "—"}</td><td class="mono">${balance}</td></tr>`;
+        }).join("");
         $("#tx-empty").hidden = txs.length > 0;
+        if (status) status.textContent = "Sinkron terakhir: " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit", second: "2-digit" }) + " · otomatis tiap 30 detik saat tab aktif.";
       } catch (e) {
         console.error("dash load", e);
-        alert("Gagal memuat data: " + (e?.message || ""));
+        if (status) status.textContent = "Sinkronisasi gagal: " + (e?.message || "kesalahan tidak diketahui") + " · coba Muat Ulang.";
+        if (!options.silent) alert("Gagal memuat data: " + (e?.message || ""));
+      } finally {
+        dashboardLoading = false;
       }
     }
 
@@ -350,7 +374,10 @@
 
     $("#ad-signout").addEventListener("click", () => backend.signOut());
     $("#ad-logout").addEventListener("click", () => backend.signOut());
-    $("#ad-refresh").addEventListener("click", loadDash);
+    $("#ad-refresh").addEventListener("click", () => loadDash());
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden && !$("#adm-dash").hidden) loadDash({ silent: true });
+    });
 
     $("#tu-body").addEventListener("click", async (e) => {
       const a = e.target.dataset && e.target.dataset.appr;
