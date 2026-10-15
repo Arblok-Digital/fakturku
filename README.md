@@ -61,11 +61,12 @@ Template adalah alat bantu administrasi umum, bukan jaminan kepatuhan hukum/paja
 Floating assistant menggunakan endpoint serverless `/api/gemini-assistant` dan memanggil Gemini dari server. API key tidak boleh diletakkan di frontend atau di-commit ke repository.
 
 Untuk mengaktifkan AI pada deployment Preview:
-1. Tambahkan environment variable `GEMINI_API_KEY` pada project Vercel dengan scope **Preview** saja.
-2. Redeploy Preview setelah variabel tersedia.
-3. Uji chat, respons error saat provider gagal, dan tombol **Terapkan saran**.
+1. Tambahkan `GEMINI_API_KEY` pada environment **Preview** Vercel saja.
+2. Terapkan migration `supabase/migrations/20261015000000_gemini_daily_usage.sql` pada database Supabase yang memang ditujukan untuk environment uji. Migration ini membuat RPC kuota harian; jangan jalankan ke database production tanpa persetujuan rilis.
+3. Redeploy Preview setelah API key dan migration tersedia.
+4. Uji sesi login, kuota 10 pesan/hari, pesan saat kuota habis, dan gangguan provider.
 
-Jika variabel belum tersedia, endpoint mengembalikan pesan konfigurasi yang aman dan UI tetap dapat digunakan. Request dibatasi panjangnya, output saran hanya dapat menargetkan path field yang dikirim oleh editor, dan perubahan tidak diterapkan otomatis. Pembatasan request dalam memori berfungsi sebagai guardrail dasar, bukan sistem rate-limit terdistribusi. Nilai kolom editor yang dikirim sebagai konteks AI dapat berisi data pengguna; UI memberi peringatan agar data rahasia yang tidak diperlukan tidak dimasukkan.
+Model yang digunakan adalah `gemini-3.5-flash-lite`, kandidat berorientasi throughput dan biaya rendah. Batas RPM/RPD aktual tetap mengikuti kuota project yang tampil di Google AI Studio. Kuota aplikasi FakturKu disimpan atomik per akun dan per tanggal Asia/Jakarta melalui RPC Supabase, terpisah dari kuota provider Gemini. Setiap permintaan yang lolos kuota aplikasi akan memakai satu jatah. Jika konfigurasi kuota belum tersedia, sesi tidak valid, atau provider sedang bermasalah, endpoint menampilkan pesan aman dan tidak mengirim detail teknis mentah ke pengguna. Output saran hanya dapat menargetkan path field dari editor, dan tidak diterapkan otomatis. Nilai kolom editor yang dikirim sebagai konteks AI dapat berisi data pengguna; jangan kirim data rahasia yang tidak diperlukan.
 
 ## Setup lokal
 
