@@ -699,6 +699,7 @@ $("#btn-auth").addEventListener("click", async () => {
 $("#tab-edit").addEventListener("click", () => switchTab("edit"));
 $("#tab-preview").addEventListener("click", () => switchTab("preview"));
 $("#tab-example").addEventListener("click", () => switchTab("example"));
+$("#tab-example-desktop").addEventListener("click", () => switchTab($("#workspace").dataset.tab === "preview" && $("#example-banner").hidden === false ? "preview" : "example"));
 
 function buildExampleState() {
   const today = new Date();
@@ -840,6 +841,10 @@ function switchTab(tab) {
   $("#tab-edit").classList.toggle("on", tab === "edit");
   $("#tab-preview").classList.toggle("on", tab === "preview");
   $("#tab-example").classList.toggle("on", exampleMode);
+  const desktopExampleButton = $("#tab-example-desktop");
+  desktopExampleButton.classList.toggle("primary", exampleMode);
+  desktopExampleButton.setAttribute("aria-pressed", String(exampleMode));
+  desktopExampleButton.textContent = exampleMode ? "Tutup Contoh" : "Lihat Contoh";
 
   if (exampleMode) {
     renderExample();
