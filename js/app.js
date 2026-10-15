@@ -559,7 +559,7 @@ async function openTopUp() {
     $("#q-n").textContent = n;
     $("#q-status").classList.toggle("empty", n <= 0);
   }
-  $("#topup-contact").innerHTML = `<span class="topup-wallet-icon" role="img" aria-label="Ikon e-wallet"><svg viewBox="0 0 72 28" width="72" height="28" aria-hidden="true" focusable="false"><rect x="1" y="1" width="70" height="26" rx="13" fill="#118EEA"/><text x="36" y="18.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing=".3" fill="#fff">DANA</text></svg></span><span class="topup-wallet-number mono">${ledger.CONTACT}</span>`;
+  $("#topup-contact").innerHTML = `<span class="topup-transfer-instruction"><strong>Transfer untuk top-up</strong><span>Pilih paket di atas, lalu transfer sesuai nominalnya ke e-wallet berikut. Saldo diproses setelah admin memverifikasi pembayaran.</span></span><span class="topup-wallet-row"><span class="topup-wallet-icon" role="img" aria-label="Ikon e-wallet"><svg viewBox="0 0 72 28" width="72" height="28" aria-hidden="true" focusable="false"><rect x="1" y="1" width="70" height="26" rx="13" fill="#118EEA"/><text x="36" y="18.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing=".3" fill="#fff">DANA</text></svg></span><span class="topup-wallet-number mono">${ledger.CONTACT}</span></span><span class="topup-transfer-note">Setelah transfer, simpan bukti pembayaran. ID permintaan dan langkah konfirmasi akan muncul setelah paket dipilih.</span>`;
   renderBillingHistory(backend.isRemote() ? remote.history : ledger.requestHistory());
   const pending = backend.isRemote()
     ? (remote.pending && remote.pending.status === "pending" ? remote.pending : null)
