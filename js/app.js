@@ -483,7 +483,7 @@ function showPending(rec) {
   $("#req-id").textContent = rec.id;
   $("#req-price").textContent = rupiah(rec.price);
   $("#req-credits").textContent = rupiah(rec.balance_amount ?? rec.price ?? 0);
-  $("#req-contact").textContent = ledger.CONTACT;
+  $("#req-contact").innerHTML = `<span style="display:inline-flex;align-items:center;gap:9px;flex-wrap:wrap"><svg role="img" aria-label="DANA" viewBox="0 0 64 36" width="52" height="30" xmlns="http://www.w3.org/2000/svg" style="display:block;flex:none"><rect width="64" height="36" rx="8" fill="#118EEA"/><text x="32" y="23" font-family="Arial,sans-serif" font-size="15" font-weight="700" text-anchor="middle" fill="#fff">DANA</text></svg><strong style="font-size:14px;letter-spacing:.02em">${esc(ledger.CONTACT)}</strong></span>`;
   const rm = backend.isRemote();
   $("#topup-local").hidden = rm;
   const status = rm ? (rec.status || "pending") : "pending";
