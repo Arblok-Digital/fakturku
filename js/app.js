@@ -13,6 +13,7 @@ const storedState = loadCurrent();
 const hasStoredState = Boolean(storedState);
 let state = storedState || blankState("faktur-a4");
 let sampleDraftMode = false;
+let sampleDraftPristine = false;
 let renderTimer = null;
 
 /* remote billing cache (Supabase) */
@@ -112,6 +113,7 @@ function syncBoundInputs() {
 
 /* ---------- bindings ---------- */
 editor.addEventListener("input", (e) => {
+  if (sampleDraftMode) sampleDraftPristine = false;
   const el = e.target;
   if (el.dataset.bind) {
     let v;
@@ -165,6 +167,7 @@ function renderItems() {
 }
 
 $("#items-body").addEventListener("input", (e) => {
+  if (sampleDraftMode) sampleDraftPristine = false;
   const el = e.target;
   if (!el.dataset.f) return;
   const i = Number(el.dataset.idx);
@@ -255,7 +258,7 @@ function switchTemplate(newId) {
 
   // Saat memakai data contoh, bangun ulang sampel sesuai format yang dipilih.
   // Field khusus kuitansi, struk, dan dokumen bisnis ikut disesuaikan.
-  if (sampleDraftMode) {
+  if (sampleDraftMode && sampleDraftPristine) {
     state = buildExampleState(false);
     state.category = getCategory(newId);
   }
@@ -333,6 +336,7 @@ function newDoc() {
   if (!confirm("Buat dokumen baru? Dokumen sekarang tetap tersimpan sebagai draft terakhir.")) return;
   saveCurrent(state);
   sampleDraftMode = false;
+  sampleDraftPristine = false;
   state = blankState(state.template);
   renderTemplatePicker();
   renderItems(); render();
@@ -343,6 +347,7 @@ $("#btn-new").addEventListener("click", newDoc);
 $("#btn-fill-sample").addEventListener("click", () => {
   state = buildExampleState(false);
   sampleDraftMode = true;
+  sampleDraftPristine = true;
   renderTemplatePicker();
   renderItems();
   render();
@@ -352,6 +357,7 @@ $("#btn-fill-sample").addEventListener("click", () => {
 $("#btn-clear-sample").addEventListener("click", () => {
   if (!confirm("Kosongkan semua data contoh dan mulai dokumen dari nol?")) return;
   sampleDraftMode = false;
+  sampleDraftPristine = false;
   state = blankState(state.template);
   renderTemplatePicker();
   renderItems();
@@ -973,6 +979,7 @@ async function boot() {
   if (!hasStoredState) {
     state = buildExampleState(false);
     sampleDraftMode = true;
+    sampleDraftPristine = true;
   }
 
   // Public landing/auth is the entry point; never expose the editor before session resolution.
