@@ -15,6 +15,9 @@ let state = storedState || blankState("faktur-a4");
 let sampleDraftMode = false;
 let sampleDraftPristine = false;
 let renderTimer = null;
+let numberReservationPromise = Promise.resolve(true);
+let numberReservationFor = null;
+const serverReservedStates = new WeakSet();
 
 /* remote billing cache (Supabase) */
 const remote = { session: null, credits: null, trialCredits: null, balance: null, history: [], pending: null, packages: [] };
@@ -83,6 +86,31 @@ function updateKuota() {
   el.textContent = n > 0 ? `Kuota: ${n}` : "Kuota habis";
   el.title = `Sisa kuota lokal: ${n}`;
   el.classList.toggle("empty", n <= 0);
+}
+
+function reserveServerNumberForCurrentState() {
+  if (!backend.isRemote() || !remote.session) return Promise.resolve(true);
+  const targetState = state;
+  const targetTemplate = state.template;
+  const targetCategory = state.category || getCategory(state.template);
+  numberReservationFor = targetState;
+  const task = backend.nextDocumentNumber(targetCategory).then((number) => {
+    if (state === targetState && state.template === targetTemplate && !state.issued) {
+      state.number = number;
+      state.numbers = state.numbers || {};
+      state.numbers[targetTemplate] = number;
+      serverReservedStates.add(targetState);
+      render();
+      saveCurrent(state);
+    }
+    return true;
+  }).catch((err) => {
+    console.warn("reservasi nomor dokumen gagal", err);
+    toast("Nomor dokumen belum berhasil dibuat di server. Coba lagi.");
+    return false;
+  });
+  numberReservationPromise = task;
+  return task;
 }
 
 function scheduleRender() {
@@ -259,6 +287,9 @@ function switchTemplate(newId) {
   } else {
     state.number = nextNumberByCategory(state.category);
     state.numbers[newId] = state.number;
+    if (backend.isRemote() && remote.session) {
+      queueMicrotask(() => reserveServerNumberForCurrentState());
+    }
   }
 
   // Saat memakai data contoh, bangun ulang sampel sesuai format yang dipilih.
@@ -346,6 +377,7 @@ function newDoc() {
   renderTemplatePicker();
   renderItems(); render();
   saveCurrent(state);
+  if (backend.isRemote() && remote.session) reserveServerNumberForCurrentState();
   toast("Dokumen baru dibuat");
 }
 $("#btn-new").addEventListener("click", newDoc);
@@ -368,6 +400,7 @@ $("#btn-clear-sample").addEventListener("click", () => {
   renderItems();
   render();
   saveCurrent(state);
+  if (backend.isRemote() && remote.session) reserveServerNumberForCurrentState();
   toast("Dokumen kosong siap diisi");
 });
 $("#btn-new-fab").addEventListener("click", newDoc);
@@ -378,6 +411,10 @@ async function markIssued() {
   const category = state.category || getCategory(state.template);
   if (backend.isRemote()) {
     if (!remote.session) { openAuth(); return false; }
+    if (numberReservationFor === state) {
+      const reserved = await numberReservationPromise;
+      if (!reserved || !serverReservedStates.has(state)) return false;
+    }
     let ok = false;
     try { ok = await backend.tryDebit(state.number, category, state.template, state); }
     catch { toast("Server tidak terhubung — coba lagi."); return false; }
