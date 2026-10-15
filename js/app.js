@@ -486,13 +486,15 @@ function showPending(rec) {
   $("#req-contact").textContent = ledger.CONTACT;
   const rm = backend.isRemote();
   $("#topup-local").hidden = rm;
-  $("#btn-cancel-topup").hidden = !rm;
+  const status = rm ? (rec.status || "pending") : "pending";
+  $("#btn-cancel-topup").hidden = !rm || status === "approved";
+  $("#btn-cancel-topup").textContent = status === "rejected" ? "Pilih paket lain" : "Batalkan Permintaan";
   $("#req-wait").hidden = !rm;
   if (rm) {
     $("#req-wait").textContent =
-      rec.status === "approved" ? "Disetujui — saldo sudah masuk. Panel saldo akan disinkronkan otomatis."
-      : rec.status === "rejected" ? "Permintaan ditolak admin. Pilih paket lain."
-      : "Menunggu persetujuan admin — saldo masuk otomatis setelah disetujui. Transfer sesuai nominal dulu ya.";
+      status === "approved" ? "Pembayaran disetujui admin. Cek saldo di bagian atas; jika belum berubah, buka ulang panel sebentar lagi."
+      : status === "rejected" ? "Permintaan top-up ditolak admin. Kamu bisa memilih paket lain untuk membuat permintaan baru."
+      : "Menunggu persetujuan admin — saldo diproses setelah disetujui. Transfer sesuai nominal dulu ya.";
   }
   $("#topup-packages").hidden = true;
   $("#topup-pending").hidden = false;
@@ -561,9 +563,8 @@ async function openTopUp() {
   }
   $("#topup-contact").innerHTML = `<span class="topup-transfer-instruction"><strong>Transfer untuk top-up</strong><span>Pilih paket di atas, lalu transfer sesuai nominalnya ke e-wallet berikut. Saldo diproses setelah admin memverifikasi pembayaran.</span></span><span class="topup-wallet-row"><span class="topup-wallet-icon" role="img" aria-label="Ikon e-wallet"><svg viewBox="0 0 72 28" width="72" height="28" aria-hidden="true" focusable="false"><rect x="1" y="1" width="70" height="26" rx="13" fill="#118EEA"/><text x="36" y="18.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing=".3" fill="#fff">DANA</text></svg></span><span class="topup-wallet-number mono">${ledger.CONTACT}</span></span><span class="topup-transfer-note">Setelah transfer, simpan bukti pembayaran. ID permintaan dan langkah konfirmasi akan muncul setelah paket dipilih.</span>`;
   renderBillingHistory(backend.isRemote() ? remote.history : ledger.requestHistory());
-  const pending = backend.isRemote()
-    ? (remote.pending && remote.pending.status === "pending" ? remote.pending : null)
-    : ledger.pendingRequest();
+  // Tampilkan status terbaru apa pun (pending/approved/rejected) agar keputusan admin terlihat oleh user.
+  const pending = backend.isRemote() ? remote.pending : ledger.pendingRequest();
   if (pending) showPending(pending);
   else showPackages();
   $("#btn-other-pkg").hidden = backend.isRemote();
@@ -598,6 +599,10 @@ $("#btn-other-pkg").addEventListener("click", () => {
 });
 
 $("#btn-cancel-topup").addEventListener("click", async () => {
+  if (remote.pending?.status === "rejected") {
+    showPackages();
+    return;
+  }
   if (remote.pending?.id) {
     try { await backend.cancelTopup(remote.pending.id); } catch { /* noop */ }
   }
