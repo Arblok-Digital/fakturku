@@ -1008,6 +1008,9 @@ body:has(#auth-modal:not([hidden])) .bottomnav { display: none; }
 
 /* AI assistant landing showcase */
 .landing-v2 .ai-showcase-section { background:#eaf4f5; }
+.landing-v2 .ai-showcase-section .section-kicker { color:#287b76; }
+.landing-v2 .ai-showcase-section .section-heading { color:#15334b; }
+.landing-v2 .ai-showcase-section .section-intro { color:#52697b; }
 .landing-v2 .ai-showcase-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(320px,.86fr); align-items:center; gap:clamp(32px,6vw,86px); }
 .landing-v2 .ai-showcase-copy .section-heading { max-width:650px; }
 .landing-v2 .ai-benefit-list { display:grid; gap:18px; margin:28px 0 0; padding:0; list-style:none; }
