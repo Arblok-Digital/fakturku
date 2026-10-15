@@ -1003,7 +1003,9 @@ async function boot() {
 boot();
 
 if ("serviceWorker" in navigator && location.protocol.startsWith("http")) {
-  navigator.serviceWorker.register("sw.js").catch(() => {});
+  navigator.serviceWorker.register("./sw.js", { updateViaCache: "none" })
+    .then((registration) => registration.update())
+    .catch(() => {});
 }
 
 /* Keep the balance chip fresh after admin approves a top-up. */
