@@ -5,6 +5,7 @@ if (root && workspace) {
   const toggle = root.querySelector("#ai-assistant-toggle");
   const panel = root.querySelector("#ai-assistant-panel");
   const close = root.querySelector("#ai-assistant-close");
+  const tuck = root.querySelector("#ai-assistant-tuck");
   const form = root.querySelector("#ai-assistant-form");
   const input = root.querySelector("#ai-assistant-input");
   const sendButton = root.querySelector("#ai-assistant-send");
@@ -119,9 +120,16 @@ if (root && workspace) {
   }
 
   toggle.addEventListener("click", () => {
+    if (root.classList.contains("is-tucked")) root.classList.remove("is-tucked");
     panel.hidden = !panel.hidden;
     toggle.setAttribute("aria-expanded", String(!panel.hidden));
     if (!panel.hidden) input.focus();
+  });
+  tuck.addEventListener("click", () => {
+    panel.hidden = true;
+    toggle.setAttribute("aria-expanded", "false");
+    root.classList.add("is-tucked");
+    status.textContent = "Asisten disembunyikan di tepi layar. Ketuk tab untuk membuka kembali.";
   });
   close.addEventListener("click", () => {
     panel.hidden = true;
