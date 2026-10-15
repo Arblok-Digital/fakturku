@@ -427,6 +427,27 @@
     </div>
   </div>
 
+  <!-- ============ GEMINI DOCUMENT ASSISTANT ============ -->
+  <aside id="ai-assistant" class="ai-assistant" hidden aria-label="Asisten AI FakturKu">
+    <button id="ai-assistant-toggle" class="ai-assistant-toggle" type="button" aria-controls="ai-assistant-panel" aria-expanded="false" aria-label="Buka Asisten FakturKu">
+      <span aria-hidden="true">✦</span><span class="ai-assistant-toggle-label">Bantu isi</span>
+    </button>
+    <section id="ai-assistant-panel" class="ai-assistant-panel" hidden aria-label="Percakapan dengan Asisten FakturKu">
+      <header class="ai-assistant-header">
+        <div><strong>Asisten FakturKu</strong><p>Bantu susun saran isian</p></div>
+        <button id="ai-assistant-close" type="button" class="ai-assistant-close" aria-label="Tutup asisten">×</button>
+      </header>
+      <div id="ai-assistant-messages" class="ai-assistant-messages" aria-live="polite"></div>
+      <p id="ai-assistant-status" class="ai-assistant-status">Siap membantu</p>
+      <form id="ai-assistant-form" class="ai-assistant-form">
+        <label class="ai-assistant-sr-only" for="ai-assistant-input">Pertanyaan untuk asisten</label>
+        <textarea id="ai-assistant-input" rows="2" maxlength="1200" placeholder="Contoh: bantu susun catatan pembayaran…" required></textarea>
+        <button id="ai-assistant-send" type="submit" aria-label="Kirim pertanyaan">Kirim</button>
+      </form>
+      <p class="ai-assistant-disclaimer">AI bisa keliru. Periksa semua saran. Data kolom editor dikirim ke Gemini saat kamu bertanya.</p>
+    </section>
+  </aside>
+
   <!-- ============ PUBLIC LANDING + AUTH ============ -->
   <main class="landing-shell landing-v2" id="auth-modal">
     <header class="landing-nav" aria-label="Navigasi FakturKu">
@@ -632,6 +653,6 @@
 
   <script src="js/landing.js" defer></script>
   <script src="js/vendor-html2canvas.js"></script>
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/app.js"></script>\n  <script type="module" src="js/ai-assistant.js"></script>
 </body>
 </html>
