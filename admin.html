@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="css/app.css">
   <style>
     body { min-height: 100vh; }
-    .admin-wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 60px; }
+    .admin-wrap { max-width: 1040px; margin: 0 auto; padding: 24px 16px 60px; }
     .admin-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
     .admin-head h1 { font-size: 18px; margin: 0; }
     .admin-head .mark {
@@ -83,6 +83,22 @@
     .sync-status { font-size: 11px; color: var(--ink-500); margin: 0 0 12px; }
     .table-scroll { overflow-x: auto; width: 100%; }
     .table-scroll .log-table { min-width: 720px; }
+    .cashflow-controls { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin-bottom:16px; }
+    .cashflow-controls .act[aria-pressed="true"] { background:var(--navy-700); color:#fff; border-color:var(--navy-700); }
+    .cashflow-period { margin-left:auto; font-size:11px; color:var(--ink-500); }
+    .cashflow-total { font-family:var(--font-mono); font-size:clamp(24px,4vw,34px); font-weight:700; color:var(--teal-600); line-height:1.25; overflow-wrap:anywhere; }
+    .cashflow-caption { color:var(--ink-500); font-size:12px; margin-top:5px; }
+    .cashflow-kpis { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin:16px 0; }
+    .cashflow-kpi { padding:12px; border:1px solid var(--line); border-radius:var(--r-sm); min-width:0; }
+    .cashflow-kpi .value { font:600 18px var(--font-mono); overflow-wrap:anywhere; }
+    .cashflow-kpi .label { font-size:10px; text-transform:uppercase; letter-spacing:.05em; color:var(--ink-500); margin-top:4px; }
+    .cashflow-chart { display:flex; gap:8px; align-items:stretch; min-height:170px; padding:12px 0 4px; border-bottom:1px solid var(--line); overflow-x:auto; }
+    .cashflow-bar-item { flex:1 0 34px; min-width:34px; display:flex; flex-direction:column; justify-content:flex-end; align-items:center; gap:7px; }
+    .cashflow-bar-value { font-size:9px; color:var(--ink-500); white-space:nowrap; writing-mode:vertical-rl; transform:rotate(180deg); max-height:70px; overflow:hidden; }
+    .cashflow-bar { width:min(28px,75%); min-height:2px; background:var(--teal-600); border-radius:4px 4px 0 0; }
+    .cashflow-bar-label { font-size:10px; color:var(--ink-500); white-space:nowrap; }
+    .cashflow-note { font-size:11px; color:var(--ink-500); line-height:1.5; margin-top:12px; }
+    @media (max-width:560px) { .cashflow-kpis { grid-template-columns:1fr; } .cashflow-period { margin-left:0; width:100%; } .cashflow-chart { min-height:145px; } }
   </style>
 </head>
 <body>
@@ -126,6 +142,31 @@
           <div class="stat"><div class="n" id="st-invoices">—</div><div class="l">Dokumen tersimpan</div></div>
           <div class="stat hot"><div class="n" id="st-pending">—</div><div class="l">Top-up menunggu</div></div>
         </div>
+      </section>
+
+      <section class="panel" id="cashflow-panel">
+        <h2>Cashflow · Uang Masuk</h2>
+        <div class="cashflow-controls" role="group" aria-label="Periode cashflow">
+          <button class="act" type="button" data-cash-period="day" aria-pressed="true">Harian</button>
+          <button class="act" type="button" data-cash-period="week" aria-pressed="false">Mingguan</button>
+          <button class="act" type="button" data-cash-period="month" aria-pressed="false">Bulanan</button>
+          <button class="act" type="button" data-cash-period="year" aria-pressed="false">Tahunan</button>
+          <span class="cashflow-period" id="cashflow-range">30 hari terakhir</span>
+        </div>
+        <div class="cashflow-total" id="cashflow-total">Rp 0</div>
+        <div class="cashflow-caption" id="cashflow-subtitle">Pemasukan top-up yang sudah disetujui</div>
+        <div class="cashflow-kpis">
+          <div class="cashflow-kpi"><div class="value" id="cashflow-count">0</div><div class="label">Top-up berhasil</div></div>
+          <div class="cashflow-kpi"><div class="value" id="cashflow-average">Rp 0</div><div class="label">Rata-rata per top-up</div></div>
+          <div class="cashflow-kpi"><div class="value" id="cashflow-best">Rp 0</div><div class="label">Periode pemasukan tertinggi</div></div>
+        </div>
+        <div class="cashflow-chart" id="cashflow-chart" aria-label="Grafik pemasukan"></div>
+        <div class="table-scroll" style="margin-top:14px"><table class="log-table">
+          <thead><tr><th>Periode</th><th>Top-up</th><th>Uang masuk</th></tr></thead>
+          <tbody id="cashflow-body"></tbody>
+        </table></div>
+        <p class="cashflow-note">Hanya top-up berstatus approved yang dihitung, menggunakan waktu persetujuan dan nominal paket. Permintaan pending/ditolak tidak dihitung. Ini pemasukan kotor, belum dikurangi biaya operasional atau refund.</p>
+        <p class="empty-line" id="cashflow-empty" hidden>Belum ada pemasukan terkonfirmasi pada rentang ini.</p>
       </section>
 
       <section class="panel">
@@ -288,12 +329,14 @@
       const status = $("#ad-sync-status");
       if (status && !options.silent) status.textContent = "Menyinkronkan data…";
       try {
-        const [stats, reqs, users, txs] = await Promise.all([
+        const [stats, reqs, users, txs, cashflow] = await Promise.all([
           backend.adminStats(),
           backend.adminPending(),
           backend.adminUsers(),
           backend.adminTransactions(),
+          backend.adminCashflow(),
         ]);
+        renderCashflow(cashflow);
         $("#st-users").textContent = stats.users;
         $("#st-invoices").textContent = stats.invoices;
         $("#st-pending").textContent = stats.pending;
@@ -354,6 +397,69 @@
         dashboardLoading = false;
       }
     }
+
+    let cashflowPeriod = "day";
+    let cashflowRows = [];
+    function rupiah(value) { return "Rp " + Math.round(Number(value) || 0).toLocaleString("id-ID"); }
+    function localDateKey(date) { return [date.getFullYear(), String(date.getMonth()+1).padStart(2,"0"), String(date.getDate()).padStart(2,"0")].join("-"); }
+    function periodStart(date, period) {
+      const d = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+      if (period === "week") d.setDate(d.getDate() - ((d.getDay()+6)%7));
+      else if (period === "month") d.setDate(1);
+      else if (period === "year") d.setMonth(0,1);
+      return d;
+    }
+    function shiftPeriod(date, period, amount) {
+      const d = new Date(date);
+      if (period === "day") d.setDate(d.getDate()+amount);
+      else if (period === "week") d.setDate(d.getDate()+amount*7);
+      else if (period === "month") d.setMonth(d.getMonth()+amount,1);
+      else d.setFullYear(d.getFullYear()+amount,0,1);
+      return d;
+    }
+    function periodLabel(date, period) {
+      if (period === "year") return String(date.getFullYear());
+      return date.toLocaleDateString("id-ID", period === "month" ? {month:"short",year:"2-digit"} : {day:"2-digit",month:"short"});
+    }
+    function renderCashflow(rows) {
+      cashflowRows = Array.isArray(rows) ? rows : [];
+      const period = cashflowPeriod;
+      const count = period === "day" ? 30 : period === "week" ? 12 : period === "month" ? 12 : 5;
+      const now = new Date();
+      const currentStart = periodStart(now,period);
+      const firstStart = shiftPeriod(currentStart,period,-(count-1));
+      const buckets = [];
+      for (let i=0;i<count;i++) { const start=shiftPeriod(firstStart,period,i); buckets.push({start,key:localDateKey(start),amount:0,count:0}); }
+      cashflowRows.forEach(function(row) {
+        if (!row.decided_at || row.status !== "approved") return;
+        const date = new Date(row.decided_at); if (Number.isNaN(date.getTime())) return;
+        const key = localDateKey(periodStart(date,period));
+        const bucket = buckets.find(function(item){return item.key===key;});
+        if (bucket) { bucket.amount += Number(row.price)||0; bucket.count += 1; }
+      });
+      const total=buckets.reduce((sum,b)=>sum+b.amount,0);
+      const totalCount=buckets.reduce((sum,b)=>sum+b.count,0);
+      const best=buckets.reduce((max,b)=>Math.max(max,b.amount),0);
+      const rangeLabels={day:"30 hari terakhir",week:"12 minggu terakhir",month:"12 bulan terakhir",year:"5 tahun terakhir"};
+      $("#cashflow-range").textContent=rangeLabels[period];
+      $("#cashflow-total").textContent=rupiah(total);
+      $("#cashflow-subtitle").textContent="Pemasukan terkonfirmasi · "+buckets[0].start.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"})+" – "+now.toLocaleDateString("id-ID",{day:"2-digit",month:"short",year:"numeric"});
+      $("#cashflow-count").textContent=totalCount.toLocaleString("id-ID");
+      $("#cashflow-average").textContent=rupiah(totalCount?total/totalCount:0);
+      $("#cashflow-best").textContent=rupiah(best);
+      $("#cashflow-chart").innerHTML=buckets.map(function(b){
+        const height=best?Math.max(b.amount>0?4:1,(b.amount/best)*92):1;
+        const value=rupiah(b.amount);
+        return '<div class="cashflow-bar-item" title="'+esc(b.start.toLocaleDateString("id-ID")+": "+value)+'"><span class="cashflow-bar-value">'+esc(value)+'</span><div class="cashflow-bar" style="height:'+height+'px;opacity:'+(b.amount?1:0.18)+'"></div><span class="cashflow-bar-label">'+esc(periodLabel(b.start,period))+'</span></div>';
+      }).join("");
+      $("#cashflow-body").innerHTML=buckets.slice().reverse().map(function(b){
+        const label=period==="week"?"Minggu "+periodLabel(b.start,period):periodLabel(b.start,period);
+        return "<tr><td>"+esc(label)+"</td><td>"+b.count+"</td><td class=\"mono\">"+rupiah(b.amount)+"</td></tr>";
+      }).join("");
+      $("#cashflow-empty").hidden=totalCount>0;
+      document.querySelectorAll("[data-cash-period]").forEach(function(button){button.setAttribute("aria-pressed",String(button.dataset.cashPeriod===period));});
+    }
+    document.querySelectorAll("[data-cash-period]").forEach(function(button){button.addEventListener("click",function(){cashflowPeriod=button.dataset.cashPeriod;renderCashflow(cashflowRows);});});
 
     function esc(s) {
       return String(s ?? "").replace(/[&<>"']/g, (c) =>
