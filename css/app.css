@@ -630,9 +630,13 @@ button, input, select, textarea { font: inherit; color: inherit; }
 @keyframes sheet-up { from { transform: translateY(48px); opacity: 0.6; } }
 .modal h3 { margin: 0 0 6px; font-size: 17px; font-weight: 700; letter-spacing: -0.02em; }
 .modal-sub { font-size: 13px; color: var(--ink-500); margin: 0 0 14px; line-height: 1.55; }
-.modal-contact { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--ink-700); margin: 12px 0 0; }
+.modal-contact { display: flex; flex-direction: column; align-items: stretch; gap: 9px; font-size: 12px; color: var(--ink-700); margin: 14px 0 0; padding: 13px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper-soft, #f7f9fc); }
+.topup-transfer-instruction { display: flex; flex-direction: column; gap: 4px; line-height: 1.5; }
+.topup-transfer-instruction strong { color: var(--ink-900); font-size: 13px; }
+.topup-wallet-row { display: flex; align-items: center; gap: 10px; }
 .topup-wallet-icon { display: inline-flex; align-items: center; flex: 0 0 auto; }
-.topup-wallet-number { font-weight: 700; letter-spacing: .02em; }
+.topup-wallet-number { font-size: 15px; font-weight: 700; letter-spacing: .02em; }
+.topup-transfer-note { color: var(--ink-500); line-height: 1.5; }
 
 /* --- package cards --- */
 .pkg-list { display: flex; flex-direction: column; gap: 8px; }
