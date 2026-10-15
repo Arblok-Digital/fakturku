@@ -87,6 +87,20 @@ export async function creditsLeft() {
   return state.credits;
 }
 
+export async function nextDocumentNumber(category) {
+  if (!sb) return null;
+  const user = await getUser();
+  if (!user) throw new Error("Login diperlukan untuk membuat nomor dokumen cloud.");
+  const { data, error } = await sb.rpc("next_document_number", {
+    p_category: category,
+  });
+  if (error) throw error;
+  if (typeof data !== "string" || !data) {
+    throw new Error("Server tidak mengembalikan nomor dokumen.");
+  }
+  return data;
+}
+
 export async function tryDebit(ref, category, template, documentData) {
   if (!sb) return local.tryDebit(ref, category);
   const user = await getUser();
