@@ -164,7 +164,7 @@ $("#items-body").addEventListener("input", (e) => {
   if (!el.dataset.f) return;
   const i = Number(el.dataset.idx);
   state.items[i][el.dataset.f] = el.type === "number" ? (el.value === "" ? 0 : Number(el.value)) : el.value;
-  const row = el.closest("tr");
+  const row = el.closest(".item-card");
   row.querySelector(".item-line-total strong").textContent = rupiah((Number(state.items[i].qty) || 0) * (Number(state.items[i].price) || 0));
   $("#items-sum").textContent = "Subtotal: " + rupiah(totals(state).subtotal);
   scheduleRender();
