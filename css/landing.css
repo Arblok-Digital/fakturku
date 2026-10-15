@@ -995,3 +995,12 @@ body:has(#auth-modal:not([hidden])) .bottomnav { display: none; }
   .landing-v2 .hero-document-variant.is-active { animation:none; }
   .landing-v2 .preview-switch,.landing-v2 .category-tab { transition:none; }
 }
+
+/* Keep the hero utility pills visible in the interactive-preview version. */
+.landing-v2 .floating-note { display:flex; }
+@media (max-width:760px) {
+  .landing-v2 .floating-note { padding:9px 10px; gap:7px; }
+  .landing-v2 .floating-note .note-icon { width:27px; height:27px; }
+  .landing-v2 .floating-note strong { font-size:9px; }
+  .landing-v2 .floating-note small { font-size:8px; }
+}
