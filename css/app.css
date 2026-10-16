@@ -1645,13 +1645,14 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /*
  * Tab Preview punya baris aksi dokumen (Cetak / Simpan / Share via WA) yang menempel di bawah.
- * Naikkan asisten AI supaya tombolnya tidak lagi menutupi tombol Share (desktop selalu, HP saat panel dibuka).
+ * Naikkan tombol melayang (asisten AI + FAB "Dokumen baru") supaya tidak menutupi tombol Share.
  */
 @media screen and (min-width: 901px) {
   body:has(#workspace[data-tab="preview"]) .ai-assistant { bottom: calc(76px + env(safe-area-inset-bottom)); }
 }
 @media screen and (max-width: 900px) {
   body:has(#workspace[data-tab="preview"]) .ai-assistant:not(.is-tucked) { bottom: calc(132px + env(safe-area-inset-bottom)); }
+  body:has(#workspace[data-tab="preview"]) #btn-new-fab { bottom: calc(132px + env(safe-area-inset-bottom)); }
 }
 
 /* ---------- PANEL ADMIN (hanya role admin) ---------- */
