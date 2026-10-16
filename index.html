@@ -29,6 +29,10 @@
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
       <span class="badge" id="drafts-count" hidden></span>
     </button>
+    <button class="icon-btn" id="btn-admin" type="button" title="Panel Admin" aria-label="Panel Admin" hidden>
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/><path d="M9 12l2 2 4-4"/></svg>
+      <span class="badge" id="admin-count" hidden></span>
+    </button>
     <button class="icon-btn" id="btn-auth" type="button" title="Akun" aria-label="Akun" hidden>
       <span class="avatar" id="auth-avatar">?</span>
     </button>
@@ -424,6 +428,31 @@
       </div>
 
       <button class="btn link" type="button" id="topup-close">Tutup</button>
+    </div>
+  </div>
+
+  <!-- ============ PANEL ADMIN (hanya role admin) ============ -->
+  <div class="modal-back noprint" id="admin-modal" hidden>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="admin-title">
+      <div class="sheet-handle" aria-hidden="true"></div>
+      <h3 id="admin-title">Panel Admin &mdash; Persetujuan Top-up</h3>
+      <p class="modal-sub">Approve hanya setelah bukti transfer benar-benar diterima. Kuota user bertambah otomatis saat di-approve.</p>
+
+      <div class="admin-stats">
+        <div class="admin-stat"><b id="adm-st-users">&mdash;</b><span>User</span></div>
+        <div class="admin-stat"><b id="adm-st-invoices">&mdash;</b><span>Dokumen</span></div>
+        <div class="admin-stat hot"><b id="adm-st-pending">&mdash;</b><span>Menunggu</span></div>
+      </div>
+
+      <div class="admin-toolbar">
+        <span class="admin-meta" id="adm-meta">&mdash;</span>
+        <button class="btn" type="button" id="adm-refresh">Muat ulang</button>
+      </div>
+
+      <div class="admin-list" id="adm-list"></div>
+      <p class="admin-empty" id="adm-empty" hidden>Belum ada permintaan top-up.</p>
+
+      <button class="btn link" type="button" id="adm-close">Tutup</button>
     </div>
   </div>
 

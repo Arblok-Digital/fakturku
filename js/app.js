@@ -735,6 +735,7 @@ async function handleSession(session) {
     closeAuth();
     await refreshRemoteBilling();
     toast("Terhubung sebagai " + email);
+    refreshAdminAccess();
   } else {
     $("#auth-avatar").textContent = "?";
     btn.title = "Masuk";
@@ -744,6 +745,7 @@ async function handleSession(session) {
     remote.history = [];
     remote.pending = null;
     updateKuota();
+    refreshAdminAccess();
     openAuth();
   }
 }
@@ -754,6 +756,115 @@ $("#btn-auth").addEventListener("click", async () => {
     await backend.signOut();
   } else {
     openAuth();
+  }
+});
+
+/* ---------- panel admin (hanya role admin) ----------
+   Panel ini murni UI. Wewenang sebenarnya dijaga server: semua RPC
+   approve/reject memakai is_admin() di database. Di sini kita hanya
+   memunculkan/menyembunyikan panel berdasarkan role sesi aktif. */
+const adminModal = $("#admin-modal");
+let adminAllowed = false;
+
+function admEsc(v) {
+  return String(v ?? "").replace(/[&<>"']/g, (c) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;",
+  }[c]));
+}
+
+function admWhen(iso) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "2-digit" })
+    + " " + d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+}
+
+function renderAdminRequests(rows) {
+  $("#adm-list").innerHTML = rows.map((r) => {
+    const who = r.profiles?.full_name || r.profiles?.role || String(r.user_id || "").slice(0, 8);
+    const status = String(r.status || "");
+    const canAct = status === "pending";
+    return `<div class="admin-req">
+      <div class="admin-req-top">
+        <span class="admin-req-code">${admEsc(r.code)}</span>
+        <span class="admin-chip ${admEsc(status)}">${admEsc(status || "—")}</span>
+      </div>
+      <div class="admin-req-line"><span>${admEsc(who)}</span><span>${Number(r.credits) || 0} dok &middot; Rp ${Number(r.price || 0).toLocaleString("id-ID")}</span></div>
+      <div class="admin-req-line muted"><span>${admEsc(admWhen(r.created_at))}</span></div>
+      ${canAct ? `<div class="admin-req-actions">
+        <button class="btn primary" type="button" data-approve="${admEsc(r.code)}">Approve</button>
+        <button class="btn" type="button" data-reject="${admEsc(r.code)}">Tolak</button>
+      </div>` : ""}
+    </div>`;
+  }).join("");
+  $("#adm-empty").hidden = rows.length > 0;
+}
+
+async function loadAdminPanel() {
+  if (!adminAllowed) return;
+  try {
+    const [stats, reqs] = await Promise.all([backend.adminStats(), backend.adminPending()]);
+    $("#adm-st-users").textContent = stats.users;
+    $("#adm-st-invoices").textContent = stats.invoices;
+    $("#adm-st-pending").textContent = stats.pending;
+    renderAdminRequests(reqs);
+    $("#adm-meta").textContent = "Diperbarui " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    const count = reqs.filter((r) => r.status === "pending").length;
+    const badge = $("#admin-count");
+    badge.textContent = count;
+    badge.hidden = count === 0;
+  } catch (e) {
+    console.warn("panel admin gagal dimuat", e);
+    toast("Panel admin gagal dimuat.");
+  }
+}
+
+async function refreshAdminAccess() {
+  const btn = $("#btn-admin");
+  let ok = false;
+  if (backend.isRemote() && remote.session) {
+    try { ok = await backend.isAdminUser(); } catch { ok = false; }
+  }
+  adminAllowed = ok;
+  btn.hidden = !ok;
+  if (!ok) {
+    adminModal.hidden = true;
+    $("#adm-list").innerHTML = "";
+    $("#admin-count").hidden = true;
+  } else {
+    await loadAdminPanel();
+  }
+}
+
+$("#btn-admin").addEventListener("click", () => {
+  if (!adminAllowed) return;
+  adminModal.hidden = false;
+  loadAdminPanel();
+});
+$("#adm-close").addEventListener("click", () => { adminModal.hidden = true; });
+$("#adm-refresh").addEventListener("click", loadAdminPanel);
+adminModal.addEventListener("click", (e) => { if (e.target === adminModal) adminModal.hidden = true; });
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape" && !adminModal.hidden) adminModal.hidden = true;
+});
+
+$("#adm-list").addEventListener("click", async (e) => {
+  const approve = e.target.dataset?.approve;
+  const reject = e.target.dataset?.reject;
+  if ((!approve && !reject) || !adminAllowed) return;
+  try {
+    if (approve) {
+      if (!confirm("Approve " + approve + "? Kuota user bertambah otomatis.")) return;
+      await backend.approveTopup(approve);
+      toast("Top-up " + approve + " di-approve.");
+    } else {
+      if (!confirm("Tolak permintaan " + reject + "?")) return;
+      await backend.rejectTopup(reject);
+      toast("Permintaan " + reject + " ditolak.");
+    }
+    await loadAdminPanel();
+  } catch (err) {
+    toast("Gagal: " + (err?.message || "coba lagi."));
   }
 });
 

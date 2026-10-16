@@ -61,6 +61,23 @@ export function onAuthChange(cb) {
   return () => data.subscription.unsubscribe();
 }
 
+/* Wewenang admin untuk UI (mis. memunculkan panel approval).
+   Memakai RPC publik `is_admin()` yang sudah ada di database — SECURITY DEFINER,
+   membaca profiles.role milik sesi aktif. Jadi tidak ada keputusan wewenang di
+   sisi klien; ini hanya untuk menentukan apa yang ditampilkan.
+   Gagal = anggap bukan admin (fail closed). */
+export async function isAdminUser() {
+  if (!sb) return false;
+  const user = await getUser();
+  if (!user) return false;
+  const { data, error } = await sb.rpc("is_admin");
+  if (error) {
+    console.warn("cek wewenang admin gagal", error.message);
+    return false;
+  }
+  return data === true;
+}
+
 // ---------- billing ----------
 
 export async function billingState() {
