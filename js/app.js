@@ -15,6 +15,9 @@ let state = storedState || blankState("faktur-a4");
 let sampleDraftMode = false;
 let sampleDraftPristine = false;
 let renderTimer = null;
+let numberReservationPromise = Promise.resolve(true);
+let numberReservationFor = null;
+
 
 /* remote billing cache (Supabase) */
 const remote = { session: null, credits: null, trialCredits: null, balance: null, history: [], pending: null, packages: [] };
@@ -90,6 +93,31 @@ function updateKuota() {
   el.classList.toggle("empty", n <= 0);
 }
 
+function reserveServerNumberForCurrentState() {
+  if (!backend.isRemote() || !remote.session) return Promise.resolve(true);
+  const targetState = state;
+  const targetTemplate = state.template;
+  const targetCategory = state.category || getCategory(state.template);
+  numberReservationFor = targetState;
+  const task = backend.nextDocumentNumber(targetCategory).then((number) => {
+    if (state === targetState && state.template === targetTemplate && !state.issued) {
+      state.number = number;
+      state.numbers = state.numbers || {};
+      state.numbers[targetTemplate] = number;
+      state._serverNumberRequired = false;
+      render();
+      saveCurrent(state);
+    }
+    return true;
+  }).catch((err) => {
+    console.warn("reservasi nomor dokumen gagal", err);
+    toast("Nomor dokumen belum berhasil dibuat di server. Coba lagi.");
+    return false;
+  });
+  numberReservationPromise = task;
+  return task;
+}
+
 function scheduleRender() {
   clearTimeout(renderTimer);
   renderTimer = setTimeout(() => { render(); saveCurrent(state); scheduleCloudSync(); }, 120);
@@ -97,9 +125,14 @@ function scheduleRender() {
 
 let syncTimer = null;
 function scheduleCloudSync() {
-  if (!backend.isRemote() || !remote.session) return;
+  if (!backend.isRemote() || !remote.session || state.issued || state._serverNumberRequired) return;
   clearTimeout(syncTimer);
-  syncTimer = setTimeout(() => { backend.saveInvoice(state).catch(() => {}); }, 1200);
+  syncTimer = setTimeout(() => {
+    backend.saveInvoice(state).catch((err) => {
+      console.warn("sinkronisasi draft ke cloud gagal", err);
+      toast("Draft belum tersinkron ke cloud. Periksa koneksi.");
+    });
+  }, 1200);
 }
 
 function applySections(tpl) {
@@ -268,10 +301,16 @@ function switchTemplate(newId) {
     state.category = getCategory(newId);
   }
 
+  if (backend.isRemote() && !state.issued) {
+    state._serverNumberRequired = true;
+  }
   renderTemplatePicker();
   renderItems();
   render();
   saveCurrent(state);
+  if (backend.isRemote() && remote.session && state._serverNumberRequired) {
+    reserveServerNumberForCurrentState();
+  }
 }
 
 /* ---------- drafts ---------- */
@@ -346,6 +385,10 @@ function newDoc() {
   renderTemplatePicker();
   renderItems(); render();
   saveCurrent(state);
+  if (backend.isRemote()) {
+    state._serverNumberRequired = true;
+    if (remote.session) reserveServerNumberForCurrentState();
+  }
   toast("Dokumen baru dibuat");
 }
 $("#btn-new").addEventListener("click", newDoc);
@@ -368,6 +411,10 @@ $("#btn-clear-sample").addEventListener("click", () => {
   renderItems();
   render();
   saveCurrent(state);
+  if (backend.isRemote()) {
+    state._serverNumberRequired = true;
+    if (remote.session) reserveServerNumberForCurrentState();
+  }
   toast("Dokumen kosong siap diisi");
 });
 $("#btn-new-fab").addEventListener("click", newDoc);
@@ -378,6 +425,15 @@ async function markIssued() {
   const category = state.category || getCategory(state.template);
   if (backend.isRemote()) {
     if (!remote.session) { openAuth(); return false; }
+    if (state._serverNumberRequired) {
+      let reserved = numberReservationFor === state
+        ? await numberReservationPromise
+        : false;
+      if (!reserved || state._serverNumberRequired) {
+        reserved = await reserveServerNumberForCurrentState();
+      }
+      if (!reserved || state._serverNumberRequired) return false;
+    }
     let ok = false;
     try { ok = await backend.tryDebit(state.number, category, state.template, state); }
     catch { toast("Server tidak terhubung — coba lagi."); return false; }

@@ -104,6 +104,20 @@ export async function creditsLeft() {
   return state.credits;
 }
 
+export async function nextDocumentNumber(category) {
+  if (!sb) return null;
+  const user = await getUser();
+  if (!user) throw new Error("Login diperlukan untuk membuat nomor dokumen cloud.");
+  const { data, error } = await sb.rpc("next_document_number", {
+    p_category: category,
+  });
+  if (error) throw error;
+  if (typeof data !== "string" || !data) {
+    throw new Error("Server tidak mengembalikan nomor dokumen.");
+  }
+  return data;
+}
+
 export async function tryDebit(ref, category, template, documentData) {
   if (!sb) return local.tryDebit(ref, category);
   const user = await getUser();
@@ -243,21 +257,25 @@ const LOCAL_CATEGORIES = [
 // ---------- invoices (cloud sync) ----------
 
 export async function saveInvoice(state) {
-  if (!sb || !state?.number) return;
+  // Issued documents are immutable from the draft autosync path.
+  // issue_document() already persists the final document atomically with billing.
+  // Skipping issued states prevents a delayed autosync from overwriting issued data.
+  if (!sb || !state?.number || state.issued || state._serverNumberRequired) return;
   const user = await getUser();
-  if (!user) return;
-  await sb.from("invoices").upsert(
+  if (!user) throw new Error("Sesi login tidak tersedia untuk sinkronisasi draft.");
+  const { error } = await sb.from("invoices").upsert(
     {
       user_id: user.id,
       template: state.template || "",
       number: state.number,
-      status: state.issued ? "issued" : "draft",
+      status: "draft",
       verify_code: state.verify || "",
       data: state,
       updated_at: new Date().toISOString(),
     },
     { onConflict: "user_id,number" }
   );
+  if (error) throw error;
 }
 
 // ---------- admin ----------
