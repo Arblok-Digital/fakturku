@@ -45,6 +45,11 @@ function render() {
   const tpl = renderDoc(state);
   const sampleBanner = $("#sample-editor-banner");
   if (sampleBanner) sampleBanner.hidden = !sampleDraftMode;
+  /* Penanda draft dipindah ke luar dokumen: banner di atas preview.
+     Dokumen tetap bersih supaya tidak ada tulisan menimpa isi (dan aman
+     kalau nanti ada fitur tangkap layar / share gambar). */
+  const draftBanner = $("#draft-banner");
+  if (draftBanner) draftBanner.hidden = state.issued || sampleDraftMode;
   applySections(tpl);
   syncBoundInputs();
   const cat = state.category || getCategory(state.template);

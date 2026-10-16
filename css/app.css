@@ -520,24 +520,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   color: var(--ink-500);
 }
 
-/* draft watermark */
-.doc.draft-watermark { position: relative; }
-.doc.draft-watermark::after {
-  content: "DRAFT — BELUM DIBAYAR";
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: var(--font-ui);
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: 0.2em;
-  color: rgba(164, 41, 31, 0.10);
-  transform: rotate(-24deg);
-  pointer-events: none;
-  white-space: nowrap;
-}
 
 /* thermal specifics */
 .doc-thermal .th-title {
@@ -590,7 +572,6 @@ button, input, select, textarea { font: inherit; color: inherit; }
   .workspace { display: block; height: auto; }
   .preview, .stage { display: block; overflow: visible; padding: 0; background: #fff; }
   .doc { box-shadow: none !important; margin: 0 auto !important; transform: none !important; }
-  .doc.draft-watermark::after { display: none; }
 }
 
 /* ---------- modal / bottom sheet ---------- */
@@ -1432,9 +1413,38 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 .example-banner strong { display: block; margin-bottom: 2px; font-size: 12px; }
 .example-banner p { margin: 0; color: #456477; }
+/* Penanda draft: di LUAR dokumen, supaya isi dokumen tetap bersih & akurat.
+   (Dulu ini watermark merah "DRAFT — BELUM DIBAYAR" yang menimpa dokumen.) */
+.draft-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin: 10px 16px 0;
+  padding: 12px 14px;
+  border: 1px solid #e9c98a;
+  border-radius: 12px;
+  background: #fdf6e6;
+  color: #5a4318;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.draft-banner[hidden] { display: none !important; }
+.draft-badge {
+  flex: 0 0 auto;
+  padding: 4px 7px;
+  border-radius: 6px;
+  background: #f6e0b0;
+  color: #7a5410;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+}
+.draft-banner strong { display: block; margin-bottom: 2px; font-size: 12px; }
+.draft-banner p { margin: 0; color: #7a6134; }
 .bottomnav button:disabled { opacity: .45; }
 @media (max-width: 760px) {
   .example-banner { margin: 8px 10px 0; padding: 10px 11px; }
+  .draft-banner { margin: 8px 10px 0; padding: 10px 11px; }
   .bottomnav button { min-width: 0; }
 }
 

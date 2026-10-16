@@ -22,7 +22,7 @@ export function getTemplate(id) {
 export function renderDoc(state) {
   const tpl = getTemplate(state.template);
   const doc = document.getElementById("doc");
-  doc.className = `doc doc-${tpl.output}` + (state.issued ? "" : " draft-watermark");
+  doc.className = `doc doc-${tpl.output}`;
   doc.innerHTML = tpl.render(state, HELPERS);
   return tpl;
 }
