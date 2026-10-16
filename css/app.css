@@ -1657,9 +1657,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
   color:var(--ink-500); margin:0 0 12px;
 }
-#admin-modal .admin-stats { display:flex; gap:10px; flex-wrap:wrap; }
+#admin-modal .admin-stats { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; }
 #admin-modal .admin-stat {
-  flex:1; min-width:104px; display:flex; flex-direction:column; gap:3px;
+  min-width:0; display:flex; flex-direction:column; gap:3px;
   border:1px solid var(--line); border-radius:var(--r-sm); padding:12px 14px;
 }
 #admin-modal .admin-stat b { font-family:var(--font-mono); font-size:26px; line-height:1; color:var(--navy-700); }
@@ -1704,6 +1704,42 @@ button, input, select, textarea { font: inherit; color: inherit; }
 #admin-modal .admin-note { font-size:11.5px; color:var(--ink-500); margin:10px 0 0; line-height:1.5; }
 #admin-modal .admin-stat span,
 #admin-modal .admin-panel h4 { overflow-wrap:anywhere; }
+#admin-modal .admin-stat.good { background:var(--teal-100); border-color:var(--teal-100); }
+#admin-modal .admin-stat.good b { color:var(--teal-600); font-size:19px; }
+
+/* keuangan / cashflow */
+#admin-modal .cash-range { display:flex; gap:6px; flex-wrap:wrap; align-items:center; margin:0 0 12px; }
+#admin-modal .cash-btn {
+  border:1px solid var(--line); background:var(--paper); font:inherit; font-size:12px;
+  padding:6px 11px; border-radius:999px; cursor:pointer; color:var(--ink-700); min-height:32px;
+}
+#admin-modal .cash-btn:hover { background:var(--navy-100); }
+#admin-modal .cash-btn.on { background:var(--navy-700); border-color:var(--navy-700); color:#fff; font-weight:600; }
+#admin-modal .cash-month {
+  font:inherit; font-size:12px; padding:5px 8px; min-height:32px;
+  border:1px solid var(--line); border-radius:var(--r-sm); background:var(--paper); color:var(--ink-900);
+}
+#admin-modal .cash-metrics { display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:10px; margin:0 0 16px; }
+#admin-modal .cash-metric { min-width:0; border:1px solid var(--line); border-radius:var(--r-sm); padding:10px 12px; }
+#admin-modal .cash-metric b { display:block; font-family:var(--font-mono); font-size:17px; line-height:1.25; color:var(--navy-700); overflow-wrap:anywhere; }
+#admin-modal .cash-metric span { font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-500); }
+#admin-modal .cash-metric.good b { color:var(--teal-600); }
+#admin-modal .cash-metric.hot { background:var(--amber-100); border-color:var(--amber-100); }
+#admin-modal .cash-metric.hot b { color:var(--amber-600); }
+#admin-modal .cash-yearbar { display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin:0 0 10px; }
+#admin-modal .cash-yeargroup { display:flex; align-items:center; gap:8px; }
+#admin-modal .cash-yeargroup b { font-family:var(--font-mono); font-size:14px; min-width:46px; text-align:center; }
+#admin-modal .cash-months { display:flex; flex-direction:column; }
+#admin-modal .cash-mrow {
+  display:grid; grid-template-columns:46px 1fr auto; gap:4px 8px; align-items:center;
+  padding:6px 0; border-bottom:1px solid var(--line);
+}
+#admin-modal .cash-mrow:last-child { border-bottom:none; }
+#admin-modal .cash-mlabel { font-size:12px; color:var(--ink-500); }
+#admin-modal .cash-mval { justify-self:end; font-family:var(--font-mono); font-size:12.5px; color:var(--ink-900); }
+#admin-modal .cash-mcount { font-family:var(--font-mono); font-size:11px; color:var(--ink-300); min-width:30px; text-align:right; }
+#admin-modal .cash-mbar { grid-column:1 / -1; height:5px; border-radius:999px; background:var(--surface-2); overflow:hidden; }
+#admin-modal .cash-mbar i { display:block; height:100%; background:var(--teal-600); border-radius:999px; }
 
 /* Layar sempit: beri tinggi penuh, dan tabel jadi kartu agar terbaca di HP */
 @media screen and (max-width: 900px) {
@@ -1740,6 +1776,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
   #admin-modal .admin-cred input { flex:1; min-height:38px; font-size:16px; }
   #admin-modal .admin-cred .admin-act { min-height:38px; }
   #admin-modal select.mini { min-height:38px; font-size:16px; }
-  #admin-modal .admin-stat { min-width:0; padding:10px 12px; }
+  #admin-modal .admin-stat { padding:10px 12px; }
   #admin-modal .admin-stat b { font-size:22px; }
+  #admin-modal .cash-metric b { font-size:16px; }
+  #admin-modal .cash-btn { min-height:38px; }
+  #admin-modal .cash-month { min-height:38px; font-size:16px; }
 }

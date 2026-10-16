@@ -834,9 +834,188 @@ function renderAdminTx(rows) {
   $("#adm-tx-empty").hidden = rows.length > 0;
 }
 
+/* ---------- keuangan / cashflow ----------
+   Pemasukan berasal dari topup_requests.price pada baris berstatus "approved".
+   Semua agregasi dihitung di klien dari cache cashData, jadi ganti periode /
+   tahun tidak menambah query. Pengeluaran belum dilacak (butuh tabel baru). */
+const CASH_TTL_MS = 120000;
+const CASH_LIMIT = 2000;
+let cashData = null;
+let cashFetchedAt = 0;
+let cashRange = "month";
+let cashMonth = "";
+let cashYear = new Date().getFullYear();
+
+const cashRp = (n) => "Rp " + (Number(n) || 0).toLocaleString("id-ID");
+
+function cashWindow() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth();
+  const startOf = (yy, mm) => new Date(yy, mm, 1, 0, 0, 0, 0);
+  const endOf = (yy, mm) => new Date(yy, mm + 1, 0, 23, 59, 59, 999);
+  switch (cashRange) {
+    case "today": return { start: new Date(y, m, now.getDate()), end: now };
+    case "7d": return { start: new Date(y, m, now.getDate() - 6), end: now };
+    case "lastmonth": return { start: startOf(y, m - 1), end: endOf(y, m - 1) };
+    case "year": return { start: startOf(y, 0), end: now };
+    case "all": return { start: null, end: now };
+    case "custom": {
+      const p = /^(\d{4})-(\d{2})$/.exec(cashMonth);
+      if (!p) return { start: startOf(y, m), end: now };
+      const yy = Number(p[1]);
+      const mm = Number(p[2]) - 1;
+      return { start: startOf(yy, mm), end: endOf(yy, mm) };
+    }
+    case "month":
+    default: return { start: startOf(y, m), end: now };
+  }
+}
+
+function cashSumBetween(start, end) {
+  const lo = start ? start.getTime() : -Infinity;
+  const hi = end ? end.getTime() : Infinity;
+  return (cashData || []).reduce((s, r) => {
+    if (r.status !== "approved") return s;
+    const t = new Date(r.created_at).getTime();
+    return (!Number.isNaN(t) && t >= lo && t <= hi) ? s + (Number(r.price) || 0) : s;
+  }, 0);
+}
+
+function cashAggregate() {
+  const w = cashWindow();
+  const lo = w.start ? w.start.getTime() : -Infinity;
+  const hi = w.end ? w.end.getTime() : Infinity;
+  const approved = (cashData || []).filter((r) => {
+    if (r.status !== "approved") return false;
+    const t = new Date(r.created_at).getTime();
+    return !Number.isNaN(t) && t >= lo && t <= hi;
+  });
+  const pending = (cashData || []).filter((r) => r.status === "pending");
+  const revenue = approved.reduce((s, r) => s + (Number(r.price) || 0), 0);
+  return {
+    count: approved.length,
+    revenue,
+    credits: approved.reduce((s, r) => s + (Number(r.credits) || 0), 0),
+    avg: approved.length ? Math.round(revenue / approved.length) : 0,
+    pendingCount: pending.length,
+    pendingSum: pending.reduce((s, r) => s + (Number(r.price) || 0), 0),
+  };
+}
+
+function cashMonthsOf(year) {
+  const out = [];
+  for (let i = 0; i < 12; i++) {
+    const lo = new Date(year, i, 1).getTime();
+    const hi = new Date(year, i + 1, 1).getTime();
+    const rows = (cashData || []).filter((r) => {
+      if (r.status !== "approved") return false;
+      const t = new Date(r.created_at).getTime();
+      return !Number.isNaN(t) && t >= lo && t < hi;
+    });
+    out.push({
+      label: new Date(year, i, 1).toLocaleDateString("id-ID", { month: "short" }),
+      count: rows.length,
+      revenue: rows.reduce((s, r) => s + (Number(r.price) || 0), 0),
+    });
+  }
+  return out;
+}
+
+function renderCashflow() {
+  const agg = cashAggregate();
+  $("#adm-cash-revenue").textContent = cashRp(agg.revenue);
+  $("#adm-cash-count").textContent = agg.count;
+  $("#adm-cash-avg").textContent = agg.avg ? cashRp(agg.avg) : "—";
+  $("#adm-cash-credits").textContent = agg.credits;
+  $("#adm-cash-pending").textContent = cashRp(agg.pendingSum);
+  $("#adm-cash-pending").parentElement.title = agg.pendingCount + " permintaan menunggu";
+
+  const now = new Date();
+  $("#adm-st-revenue").textContent = cashRp(cashSumBetween(new Date(now.getFullYear(), now.getMonth(), 1), now));
+
+  const months = cashMonthsOf(cashYear);
+  const max = Math.max(1, ...months.map((x) => x.revenue));
+  const yearTotal = months.reduce((s, x) => s + x.revenue, 0);
+  const yearCount = months.reduce((s, x) => s + x.count, 0);
+  $("#adm-cash-year").textContent = cashYear;
+  $("#adm-cash-yearsum").textContent = cashRp(yearTotal) + " · " + yearCount + " trx";
+  $("#adm-cash-months").innerHTML = months.map((x) => `
+    <div class="cash-mrow">
+      <span class="cash-mlabel">${admEsc(x.label)}</span>
+      <span class="cash-mval">${x.revenue ? admEsc(cashRp(x.revenue)) : "—"}</span>
+      <span class="cash-mcount">${x.count ? x.count + "&times;" : ""}</span>
+      <span class="cash-mbar"><i style="width:${Math.round((x.revenue / max) * 100)}%"></i></span>
+    </div>`).join("");
+
+  $("#adm-cash-note").innerHTML = (cashData || []).length >= CASH_LIMIT
+    ? "Dibatasi " + CASH_LIMIT + " baris terbaru &mdash; periode lama mungkin belum lengkap."
+    : "Pemasukan dihitung dari top-up berstatus <b>approved</b>. Pengeluaran belum dilacak.";
+}
+
+async function loadCashflow(force = false) {
+  if (!adminAllowed) return;
+  if (!force && cashData && Date.now() - cashFetchedAt < CASH_TTL_MS) {
+    renderCashflow();
+    return;
+  }
+  try {
+    cashData = await backend.topupLedger(CASH_LIMIT);
+    cashFetchedAt = Date.now();
+    renderCashflow();
+  } catch (e) {
+    console.warn("cashflow gagal dimuat", e);
+  }
+}
+
+/* ---------- auto-refresh panel admin ---------- */
+const ADMIN_POLL_MS = 30000;
+let adminPoll = null;
+
+/* Jangan sentuh tabel saat user sedang mengetik/memilih, supaya nilai yang
+   sedang diisi (mis. jumlah adjust) tidak tertimpa. */
+function adminTyping() {
+  const el = document.activeElement;
+  return !!el && adminModal.contains(el) && (el.tagName === "INPUT" || el.tagName === "SELECT");
+}
+
+function snapshotAdjust() {
+  const out = {};
+  document.querySelectorAll("#adm-us-body input[data-adj]").forEach((i) => { out[i.dataset.adj] = i.value; });
+  return out;
+}
+
+function restoreAdjust(snap) {
+  document.querySelectorAll("#adm-us-body input[data-adj]").forEach((i) => {
+    if (snap[i.dataset.adj] != null) i.value = snap[i.dataset.adj];
+  });
+}
+
+function startAdminPoll() {
+  if (adminPoll) return;
+  adminPoll = setInterval(async () => {
+    if (!adminAllowed || !backend.isRemote() || !remote.session || document.hidden) return;
+    if (!adminModal.hidden) {
+      if (!adminTyping()) await loadAdminPanel();
+      return;
+    }
+    try {
+      const n = await backend.adminPendingCount();
+      const badge = $("#admin-count");
+      badge.textContent = n;
+      badge.hidden = n === 0;
+    } catch { /* diamkan, coba lagi di tick berikutnya */ }
+  }, ADMIN_POLL_MS);
+}
+
+function stopAdminPoll() {
+  if (adminPoll) { clearInterval(adminPoll); adminPoll = null; }
+}
+
 async function loadAdminPanel() {
   if (!adminAllowed || adminBusy) return;
   adminBusy = true;
+  const keepAdjust = snapshotAdjust();
   try {
     const [stats, reqs, users, txs] = await Promise.all([
       backend.adminStats(), backend.adminPending(), backend.adminUsers(), backend.adminTransactions(),
@@ -846,13 +1025,16 @@ async function loadAdminPanel() {
     $("#adm-st-pending").textContent = stats.pending;
     renderAdminTopups(reqs);
     renderAdminUsers(users);
+    restoreAdjust(keepAdjust);
     renderAdminTx(txs);
     $("#adm-updated").textContent = " · Diperbarui "
-      + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+      + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" })
+      + " · otomatis " + Math.round(ADMIN_POLL_MS / 1000) + "d";
     const count = reqs.filter((r) => r.status === "pending").length;
     const badge = $("#admin-count");
     badge.textContent = count;
     badge.hidden = count === 0;
+    await loadCashflow();
   } catch (e) {
     console.warn("panel admin gagal dimuat", e);
     toast("Panel admin gagal dimuat: " + (e?.message || "coba lagi."));
@@ -870,13 +1052,17 @@ async function refreshAdminAccess() {
   adminAllowed = ok;
   btn.hidden = !ok;
   if (!ok) {
+    stopAdminPoll();
     adminModal.hidden = true;
     $("#admin-count").hidden = true;
+    cashData = null;
+    cashFetchedAt = 0;
     $("#adm-tu-body").innerHTML = "";
     $("#adm-us-body").innerHTML = "";
     $("#adm-tx-body").innerHTML = "";
   } else {
     $("#adm-who").textContent = remote.session?.user?.email || "admin";
+    startAdminPoll();
     await loadAdminPanel();
   }
 }
@@ -897,6 +1083,27 @@ adminModal.addEventListener("click", (e) => { if (e.target === adminModal) admin
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !adminModal.hidden) adminModal.hidden = true;
 });
+
+/* keuangan: pilih rentang, bulan tertentu, dan tahun yang discreening */
+adminModal.addEventListener("click", (e) => {
+  const range = e.target.dataset?.range;
+  if (!range) return;
+  cashRange = range;
+  document.querySelectorAll("#admin-modal .cash-btn").forEach((b) => {
+    b.classList.toggle("on", b.dataset.range === range);
+  });
+  renderCashflow();
+});
+$("#adm-cash-month").addEventListener("change", (e) => {
+  cashMonth = e.target.value || "";
+  if (!cashMonth) return;
+  cashRange = "custom";
+  document.querySelectorAll("#admin-modal .cash-btn").forEach((b) => b.classList.remove("on"));
+  cashYear = Number(cashMonth.slice(0, 4)) || cashYear;
+  renderCashflow();
+});
+$("#adm-cash-prev").addEventListener("click", () => { cashYear -= 1; renderCashflow(); });
+$("#adm-cash-next").addEventListener("click", () => { cashYear += 1; renderCashflow(); });
 
 /* approve / tolak */
 $("#adm-tu-body").addEventListener("click", async (e) => {

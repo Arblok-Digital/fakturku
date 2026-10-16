@@ -455,6 +455,7 @@
           <div class="admin-stat"><b id="adm-st-users">&mdash;</b><span>User terdaftar</span></div>
           <div class="admin-stat"><b id="adm-st-invoices">&mdash;</b><span>Dokumen tersimpan</span></div>
           <div class="admin-stat hot"><b id="adm-st-pending">&mdash;</b><span>Top-up menunggu</span></div>
+          <div class="admin-stat good"><b id="adm-st-revenue">&mdash;</b><span>Pemasukan bulan ini</span></div>
         </div>
       </section>
 
@@ -470,6 +471,40 @@
         </div>
         <p class="admin-empty" id="adm-tu-empty" hidden>Belum ada permintaan.</p>
         <p class="admin-note">Approve hanya setelah bukti transfer masuk &mdash; kuota user bertambah otomatis.</p>
+      </section>
+
+      <section class="admin-panel">
+        <h4>Keuangan &amp; Cashflow</h4>
+
+        <div class="cash-range" role="group" aria-label="Rentang waktu">
+          <button class="cash-btn" type="button" data-range="today">Hari ini</button>
+          <button class="cash-btn" type="button" data-range="7d">7 hari</button>
+          <button class="cash-btn on" type="button" data-range="month">Bulan ini</button>
+          <button class="cash-btn" type="button" data-range="lastmonth">Bulan lalu</button>
+          <button class="cash-btn" type="button" data-range="year">Tahun ini</button>
+          <button class="cash-btn" type="button" data-range="all">Semua</button>
+          <input class="cash-month" id="adm-cash-month" type="month" aria-label="Pilih bulan">
+        </div>
+
+        <div class="cash-metrics">
+          <div class="cash-metric good"><b id="adm-cash-revenue">&mdash;</b><span>Pemasukan</span></div>
+          <div class="cash-metric"><b id="adm-cash-count">&mdash;</b><span>Transaksi</span></div>
+          <div class="cash-metric"><b id="adm-cash-avg">&mdash;</b><span>Rata-rata</span></div>
+          <div class="cash-metric"><b id="adm-cash-credits">&mdash;</b><span>Kuota terjual</span></div>
+          <div class="cash-metric hot"><b id="adm-cash-pending">&mdash;</b><span>Menunggu</span></div>
+        </div>
+
+        <div class="cash-yearbar">
+          <span class="cash-yeargroup">
+            <button class="admin-act" type="button" id="adm-cash-prev" aria-label="Tahun sebelumnya">&lsaquo;</button>
+            <b id="adm-cash-year">&mdash;</b>
+            <button class="admin-act" type="button" id="adm-cash-next" aria-label="Tahun berikutnya">&rsaquo;</button>
+          </span>
+          <span class="admin-meta" id="adm-cash-yearsum">&mdash;</span>
+        </div>
+        <div class="cash-months" id="adm-cash-months"></div>
+
+        <p class="admin-note" id="adm-cash-note">Pemasukan dihitung dari top-up berstatus <b>approved</b>. Pengeluaran belum dilacak.</p>
       </section>
 
       <section class="admin-panel">

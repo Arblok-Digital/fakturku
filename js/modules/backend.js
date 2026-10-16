@@ -359,3 +359,26 @@ export async function adminStats() {
     pending: pending.count ?? 0,
   };
 }
+
+/* Jumlah top-up menunggu — dipakai badge auto-refresh. Hanya membaca. */
+export async function adminPendingCount() {
+  const { count, error } = await sb
+    .from("topup_requests")
+    .select("code", { count: "exact", head: true })
+    .eq("status", "pending");
+  if (error) throw error;
+  return count ?? 0;
+}
+
+/* Buku besar top-up untuk screening keuangan (semua status, terbaru dulu).
+   Hanya membaca kolom yang perlu; agregasi per periode dihitung di klien.
+   Sumber pemasukan = price pada baris berstatus "approved". */
+export async function topupLedger(limit = 2000) {
+  const { data, error } = await sb
+    .from("topup_requests")
+    .select("code, credits, price, status, created_at, user_id")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) throw error;
+  return data ?? [];
+}
