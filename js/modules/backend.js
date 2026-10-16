@@ -26,8 +26,13 @@ export function client() {
 
 export async function getSession() {
   if (!sb) return null;
-  const { data } = await sb.auth.getSession();
-  return data.session ?? null;
+  const { data, error } = await sb.auth.getSession();
+  if (error) {
+    console.warn("sesi Supabase kedaluwarsa / invalid; keluarkan user:", error.message);
+    try { await sb.auth.signOut(); } catch { /* ignore */ }
+    return null;
+  }
+  return data?.session ?? null;
 }
 
 export async function getUser() {
