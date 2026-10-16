@@ -760,11 +760,13 @@ $("#btn-auth").addEventListener("click", async () => {
 });
 
 /* ---------- panel admin (hanya role admin) ----------
-   Panel ini murni UI. Wewenang sebenarnya dijaga server: semua RPC
-   approve/reject memakai is_admin() di database. Di sini kita hanya
-   memunculkan/menyembunyikan panel berdasarkan role sesi aktif. */
+   Isi panel ini setara admin.html, tapi menyatu di dalam app supaya satu
+   link login. Panel murni UI: wewenang sebenarnya dijaga server — approve,
+   reject, set_role, dan adjust_credits semuanya memakai is_admin() di database.
+   Di sini kita hanya menyembunyikan/menampilkan panel dan memanggil RPC. */
 const adminModal = $("#admin-modal");
 let adminAllowed = false;
+let adminBusy = false;
 
 function admEsc(v) {
   return String(v ?? "").replace(/[&<>"']/g, (c) => ({
@@ -775,47 +777,87 @@ function admEsc(v) {
 function admWhen(iso) {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return "—";
-  return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "2-digit" })
+  return d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" })
     + " " + d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
 }
 
-function renderAdminRequests(rows) {
-  $("#adm-list").innerHTML = rows.map((r) => {
-    const who = r.profiles?.full_name || r.profiles?.role || String(r.user_id || "").slice(0, 8);
-    const status = String(r.status || "");
-    const canAct = status === "pending";
-    return `<div class="admin-req">
-      <div class="admin-req-top">
-        <span class="admin-req-code">${admEsc(r.code)}</span>
-        <span class="admin-chip ${admEsc(status)}">${admEsc(status || "—")}</span>
-      </div>
-      <div class="admin-req-line"><span>${admEsc(who)}</span><span>${Number(r.credits) || 0} dok &middot; Rp ${Number(r.price || 0).toLocaleString("id-ID")}</span></div>
-      <div class="admin-req-line muted"><span>${admEsc(admWhen(r.created_at))}</span></div>
-      ${canAct ? `<div class="admin-req-actions">
-        <button class="btn primary" type="button" data-approve="${admEsc(r.code)}">Approve</button>
-        <button class="btn" type="button" data-reject="${admEsc(r.code)}">Tolak</button>
-      </div>` : ""}
-    </div>`;
+function admWho(profiles, id) {
+  return profiles?.full_name || profiles?.role || String(id || "").slice(0, 8) || "—";
+}
+
+function renderAdminTopups(rows) {
+  $("#adm-tu-body").innerHTML = rows.map((r) => {
+    const canAct = r.status === "pending";
+    return `<tr>
+      <td data-label="Waktu">${admEsc(admWhen(r.created_at))}</td>
+      <td data-label="User">${admEsc(admWho(r.profiles, r.user_id))}</td>
+      <td data-label="Paket">${Number(r.credits) || 0} dok</td>
+      <td class="mono" data-label="Harga">Rp ${Number(r.price || 0).toLocaleString("id-ID")}</td>
+      <td class="mono" data-label="ID">${admEsc(r.code)}</td>
+      <td data-label="Status"><span class="admin-chip ${admEsc(String(r.status || ""))}">${admEsc(r.status || "—")}</span></td>
+      <td data-label="">${canAct ? `<span class="admin-rowactions">
+        <button class="admin-act ok" type="button" data-appr="${admEsc(r.code)}">Approve</button>
+        <button class="admin-act no" type="button" data-rej="${admEsc(r.code)}">Tolak</button>
+      </span>` : ""}</td>
+    </tr>`;
   }).join("");
-  $("#adm-empty").hidden = rows.length > 0;
+  $("#adm-tu-empty").hidden = rows.length > 0;
+}
+
+function renderAdminUsers(rows) {
+  $("#adm-us-body").innerHTML = rows.map((u) => `<tr>
+      <td data-label="Nama">${admEsc(u.name)}</td>
+      <td class="mono" data-label="Email">${admEsc(u.email)}</td>
+      <td data-label="Role"><select class="mini" data-role="${admEsc(u.id)}" aria-label="Role ${admEsc(u.email)}">
+        ${["pic", "admin", "viewer"].map((r) => `<option value="${r}"${u.role === r ? " selected" : ""}>${r}</option>`).join("")}
+      </select></td>
+      <td class="mono" data-label="Kuota">${Number(u.credits) || 0}</td>
+      <td data-label="Adjust"><span class="admin-cred">
+        <input type="number" data-adj="${admEsc(u.id)}" value="10" step="1" aria-label="Jumlah adjust untuk ${admEsc(u.email)}">
+        <button class="admin-act" type="button" data-adjgo="${admEsc(u.id)}">Kirim</button>
+      </span></td>
+    </tr>`).join("");
+  $("#adm-us-empty").hidden = rows.length > 0;
+}
+
+function renderAdminTx(rows) {
+  $("#adm-tx-body").innerHTML = rows.map((t) => {
+    const d = Number(t.delta) || 0;
+    return `<tr>
+      <td data-label="Waktu">${admEsc(admWhen(t.created_at))}</td>
+      <td data-label="User">${admEsc(admWho(t.profiles, t.user_id))}</td>
+      <td class="mono ${d >= 0 ? "plus" : "minus"}" data-label="Delta">${d > 0 ? "+" : ""}${d}</td>
+      <td class="mono" data-label="Ref">${admEsc(t.ref || "")}</td>
+      <td class="mono" data-label="Sisa">${t.credits_after ?? "—"}</td>
+    </tr>`;
+  }).join("");
+  $("#adm-tx-empty").hidden = rows.length > 0;
 }
 
 async function loadAdminPanel() {
-  if (!adminAllowed) return;
+  if (!adminAllowed || adminBusy) return;
+  adminBusy = true;
   try {
-    const [stats, reqs] = await Promise.all([backend.adminStats(), backend.adminPending()]);
+    const [stats, reqs, users, txs] = await Promise.all([
+      backend.adminStats(), backend.adminPending(), backend.adminUsers(), backend.adminTransactions(),
+    ]);
     $("#adm-st-users").textContent = stats.users;
     $("#adm-st-invoices").textContent = stats.invoices;
     $("#adm-st-pending").textContent = stats.pending;
-    renderAdminRequests(reqs);
-    $("#adm-meta").textContent = "Diperbarui " + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+    renderAdminTopups(reqs);
+    renderAdminUsers(users);
+    renderAdminTx(txs);
+    $("#adm-updated").textContent = " · Diperbarui "
+      + new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
     const count = reqs.filter((r) => r.status === "pending").length;
     const badge = $("#admin-count");
     badge.textContent = count;
     badge.hidden = count === 0;
   } catch (e) {
     console.warn("panel admin gagal dimuat", e);
-    toast("Panel admin gagal dimuat.");
+    toast("Panel admin gagal dimuat: " + (e?.message || "coba lagi."));
+  } finally {
+    adminBusy = false;
   }
 }
 
@@ -829,9 +871,12 @@ async function refreshAdminAccess() {
   btn.hidden = !ok;
   if (!ok) {
     adminModal.hidden = true;
-    $("#adm-list").innerHTML = "";
     $("#admin-count").hidden = true;
+    $("#adm-tu-body").innerHTML = "";
+    $("#adm-us-body").innerHTML = "";
+    $("#adm-tx-body").innerHTML = "";
   } else {
+    $("#adm-who").textContent = remote.session?.user?.email || "admin";
     await loadAdminPanel();
   }
 }
@@ -842,15 +887,21 @@ $("#btn-admin").addEventListener("click", () => {
   loadAdminPanel();
 });
 $("#adm-close").addEventListener("click", () => { adminModal.hidden = true; });
-$("#adm-refresh").addEventListener("click", loadAdminPanel);
+$("#adm-refresh").addEventListener("click", () => { loadAdminPanel(); });
+$("#adm-logout").addEventListener("click", async () => {
+  if (!confirm("Keluar dari akun " + (remote.session?.user?.email || "") + "?")) return;
+  adminModal.hidden = true;
+  await backend.signOut();
+});
 adminModal.addEventListener("click", (e) => { if (e.target === adminModal) adminModal.hidden = true; });
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && !adminModal.hidden) adminModal.hidden = true;
 });
 
-$("#adm-list").addEventListener("click", async (e) => {
-  const approve = e.target.dataset?.approve;
-  const reject = e.target.dataset?.reject;
+/* approve / tolak */
+$("#adm-tu-body").addEventListener("click", async (e) => {
+  const approve = e.target.dataset?.appr;
+  const reject = e.target.dataset?.rej;
   if ((!approve && !reject) || !adminAllowed) return;
   try {
     if (approve) {
@@ -865,6 +916,37 @@ $("#adm-list").addEventListener("click", async (e) => {
     await loadAdminPanel();
   } catch (err) {
     toast("Gagal: " + (err?.message || "coba lagi."));
+  }
+});
+
+/* ubah role */
+$("#adm-us-body").addEventListener("change", async (e) => {
+  const id = e.target.dataset?.role;
+  if (!id || !adminAllowed) return;
+  const role = e.target.value;
+  try {
+    await backend.setRole(id, role);
+    toast("Role diubah ke " + role + ".");
+  } catch (err) {
+    toast("Gagal set role: " + (err?.message || "coba lagi."));
+  }
+  await loadAdminPanel();
+});
+
+/* adjust kuota manual */
+$("#adm-us-body").addEventListener("click", async (e) => {
+  const id = e.target.dataset?.adjgo;
+  if (!id || !adminAllowed) return;
+  const inp = $(`#adm-us-body input[data-adj="${id}"]`);
+  const delta = Number(inp?.value) || 0;
+  if (!delta) { toast("Isi jumlah adjust dulu."); return; }
+  if (!confirm("Adjust kuota " + (delta > 0 ? "+" : "") + delta + " untuk user ini?")) return;
+  try {
+    await backend.adjustCredits(id, delta, "manual admin");
+    toast("Kuota disesuaikan " + (delta > 0 ? "+" : "") + delta + ".");
+    await loadAdminPanel();
+  } catch (err) {
+    toast("Gagal adjust: " + (err?.message || "coba lagi."));
   }
 });
 

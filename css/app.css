@@ -1634,30 +1634,112 @@ button, input, select, textarea { font: inherit; color: inherit; }
 }
 
 /* ---------- PANEL ADMIN (hanya role admin) ---------- */
-#admin-modal .admin-stats { display:flex; gap:8px; margin:0 0 14px; }
-#admin-modal .admin-stat {
-  flex:1; display:flex; flex-direction:column; gap:2px; align-items:center;
-  border:1px solid var(--line); border-radius:var(--r-md); padding:10px 8px; background:var(--surface);
+#admin-modal .modal { max-width:940px; max-height:92vh; padding:22px; }
+#admin-modal .admin-head { display:flex; align-items:baseline; gap:10px; flex-wrap:wrap; }
+#admin-modal .admin-head h3 { margin:0; }
+#admin-modal .admin-mark {
+  font-family:var(--font-mono); font-size:11px; background:var(--navy-100);
+  color:var(--navy-700); padding:2px 6px; border-radius:var(--r-sm);
 }
-#admin-modal .admin-stat b { font-family:var(--font-mono); font-size:20px; line-height:1; color:var(--navy-700); }
+#admin-modal .admin-toolbar {
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  flex-wrap:wrap; margin:10px 0 16px;
+}
+#admin-modal .admin-meta { font-size:12px; color:var(--ink-500); }
+#admin-modal .admin-meta b { color:var(--ink-700); font-weight:600; }
+#admin-modal .admin-toolbar-actions { display:flex; gap:8px; }
+
+#admin-modal .admin-panel {
+  border:1px solid var(--line); border-radius:var(--r-md);
+  padding:16px; margin:0 0 14px; background:var(--paper);
+}
+#admin-modal .admin-panel h4 {
+  font-size:11px; font-weight:600; letter-spacing:.09em; text-transform:uppercase;
+  color:var(--ink-500); margin:0 0 12px;
+}
+#admin-modal .admin-stats { display:flex; gap:10px; flex-wrap:wrap; }
+#admin-modal .admin-stat {
+  flex:1; min-width:104px; display:flex; flex-direction:column; gap:3px;
+  border:1px solid var(--line); border-radius:var(--r-sm); padding:12px 14px;
+}
+#admin-modal .admin-stat b { font-family:var(--font-mono); font-size:26px; line-height:1; color:var(--navy-700); }
 #admin-modal .admin-stat span { font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-500); }
 #admin-modal .admin-stat.hot { background:var(--amber-100); border-color:var(--amber-100); }
 #admin-modal .admin-stat.hot b { color:var(--amber-600); }
-#admin-modal .admin-toolbar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 10px; }
-#admin-modal .admin-meta { font-size:11.5px; color:var(--ink-500); }
-#admin-modal .admin-list { display:flex; flex-direction:column; gap:10px; max-height:44vh; overflow-y:auto; }
-#admin-modal .admin-req { border:1px solid var(--line); border-radius:var(--r-md); padding:11px 12px; background:var(--paper); }
-#admin-modal .admin-req-top { display:flex; align-items:center; justify-content:space-between; gap:8px; margin-bottom:6px; }
-#admin-modal .admin-req-code { font-family:var(--font-mono); font-size:12.5px; font-weight:600; color:var(--navy-700); }
-#admin-modal .admin-req-line { display:flex; justify-content:space-between; gap:10px; font-size:12.5px; color:var(--ink-700); }
-#admin-modal .admin-req-line.muted { color:var(--ink-500); font-size:11.5px; }
-#admin-modal .admin-req-actions { display:flex; gap:8px; margin-top:10px; }
-#admin-modal .admin-req-actions .btn { flex:1; }
-#admin-modal .admin-chip { font-family:var(--font-mono); font-size:10.5px; letter-spacing:.04em; text-transform:uppercase; padding:2px 7px; border-radius:var(--r-sm); background:var(--navy-100); color:var(--navy-700); }
+
+#admin-modal .admin-tablewrap { width:100%; overflow-x:auto; }
+#admin-modal .admin-table { width:100%; border-collapse:collapse; font-size:13px; }
+#admin-modal .admin-table th {
+  text-align:left; font-size:10.5px; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--ink-500); padding:6px 8px; border-bottom:1px solid var(--line); white-space:nowrap;
+}
+#admin-modal .admin-table td { padding:7px 8px; border-bottom:1px solid var(--line); vertical-align:middle; }
+#admin-modal .admin-table tr:last-child td { border-bottom:none; }
+#admin-modal .admin-table .mono { font-family:var(--font-mono); font-size:12px; }
+#admin-modal .admin-table .mono.plus { color:var(--teal-600); }
+#admin-modal .admin-table .mono.minus { color:var(--danger-600); }
+#admin-modal .admin-act {
+  border:1px solid var(--line); background:var(--paper); cursor:pointer;
+  font-family:inherit; font-size:12px; padding:5px 10px; border-radius:var(--r-sm);
+  min-height:32px; color:var(--ink-900);
+}
+#admin-modal .admin-act.ok { border-color:var(--teal-600); color:var(--teal-600); }
+#admin-modal .admin-act.no { border-color:var(--danger-600); color:var(--danger-600); }
+#admin-modal .admin-act:hover { background:var(--navy-100); }
+#admin-modal .admin-rowactions { display:flex; gap:6px; }
+#admin-modal select.mini { font-size:12px; padding:4px 6px; min-height:32px; }
+#admin-modal .admin-cred { display:flex; gap:6px; align-items:center; }
+#admin-modal .admin-cred input { width:64px; font-family:var(--font-mono); font-size:12px; min-height:32px; }
+#admin-modal .admin-chip {
+  display:inline-block; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.04em;
+  text-transform:uppercase; padding:2px 7px; border-radius:var(--r-sm);
+  background:var(--navy-100); color:var(--navy-700);
+}
 #admin-modal .admin-chip.pending { background:var(--amber-100); color:var(--amber-600); }
 #admin-modal .admin-chip.approved { background:var(--teal-100); color:var(--teal-600); }
-#admin-modal .admin-chip.rejected { background:#fde2e2; color:var(--danger-600); }
-#admin-modal .admin-empty { font-size:12.5px; color:var(--ink-500); text-align:center; padding:16px 0; }
-@media (min-width: 720px) {
-  #admin-modal .admin-list { max-height:52vh; }
+#admin-modal .admin-chip.rejected,
+#admin-modal .admin-chip.cancelled { background:var(--line); color:var(--ink-500); }
+#admin-modal .admin-empty { font-size:12.5px; color:var(--ink-300); padding:8px 0; margin:0; }
+#admin-modal .admin-empty[hidden] { display:none; }
+#admin-modal .admin-note { font-size:11.5px; color:var(--ink-500); margin:10px 0 0; line-height:1.5; }
+#admin-modal .admin-stat span,
+#admin-modal .admin-panel h4 { overflow-wrap:anywhere; }
+
+/* Layar sempit: beri tinggi penuh, dan tabel jadi kartu agar terbaca di HP */
+@media screen and (max-width: 900px) {
+  #admin-modal .modal { max-height:96dvh; }
+}
+@media screen and (max-width: 720px) {
+  #admin-modal .admin-tablewrap { overflow-x:visible; }
+  #admin-modal .admin-table thead { display:none; }
+  #admin-modal .admin-table,
+  #admin-modal .admin-table tbody,
+  #admin-modal .admin-table tr,
+  #admin-modal .admin-table td { display:block; width:100%; }
+  #admin-modal .admin-table tr {
+    border:1px solid var(--line); border-radius:var(--r-md);
+    padding:10px 12px; margin-bottom:10px;
+  }
+  #admin-modal .admin-table tr:last-child { margin-bottom:0; }
+  #admin-modal .admin-table td {
+    border-bottom:none; padding:2px 0; display:flex; gap:12px;
+    align-items:center; justify-content:space-between;
+  }
+  #admin-modal .admin-table td::before {
+    content:attr(data-label); flex:0 0 auto; font-size:10.5px; letter-spacing:.06em;
+    text-transform:uppercase; color:var(--ink-500);
+  }
+  #admin-modal .admin-table td[data-label=""]::before { content:none; }
+  #admin-modal .admin-table td[data-label=""] { justify-content:flex-start; padding-top:8px; }
+  #admin-modal .admin-table td[data-label="User"],
+  #admin-modal .admin-table td[data-label="Nama"],
+  #admin-modal .admin-table td[data-label="Email"] { overflow-wrap:anywhere; }
+  #admin-modal .admin-rowactions { width:100%; }
+  #admin-modal .admin-rowactions .admin-act { flex:1; min-height:38px; }
+  #admin-modal .admin-cred { width:100%; }
+  #admin-modal .admin-cred input { flex:1; min-height:38px; font-size:16px; }
+  #admin-modal .admin-cred .admin-act { min-height:38px; }
+  #admin-modal select.mini { min-height:38px; font-size:16px; }
+  #admin-modal .admin-stat { min-width:0; padding:10px 12px; }
+  #admin-modal .admin-stat b { font-size:22px; }
 }

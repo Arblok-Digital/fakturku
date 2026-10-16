@@ -435,22 +435,68 @@
   <div class="modal-back noprint" id="admin-modal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="admin-title">
       <div class="sheet-handle" aria-hidden="true"></div>
-      <h3 id="admin-title">Panel Admin &mdash; Persetujuan Top-up</h3>
-      <p class="modal-sub">Approve hanya setelah bukti transfer benar-benar diterima. Kuota user bertambah otomatis saat di-approve.</p>
 
-      <div class="admin-stats">
-        <div class="admin-stat"><b id="adm-st-users">&mdash;</b><span>User</span></div>
-        <div class="admin-stat"><b id="adm-st-invoices">&mdash;</b><span>Dokumen</span></div>
-        <div class="admin-stat hot"><b id="adm-st-pending">&mdash;</b><span>Menunggu</span></div>
+      <div class="admin-head">
+        <h3 id="admin-title">Panel Admin FakturKu</h3>
+        <span class="admin-mark" id="adm-mode">SERVER</span>
       </div>
 
       <div class="admin-toolbar">
-        <span class="admin-meta" id="adm-meta">&mdash;</span>
-        <button class="btn" type="button" id="adm-refresh">Muat ulang</button>
+        <span class="admin-meta">Masuk sebagai <b id="adm-who">&mdash;</b><span id="adm-updated"></span></span>
+        <span class="admin-toolbar-actions">
+          <button class="btn" type="button" id="adm-refresh">Muat Ulang</button>
+          <button class="btn" type="button" id="adm-logout">Keluar</button>
+        </span>
       </div>
 
-      <div class="admin-list" id="adm-list"></div>
-      <p class="admin-empty" id="adm-empty" hidden>Belum ada permintaan top-up.</p>
+      <section class="admin-panel">
+        <h4>Statistik</h4>
+        <div class="admin-stats">
+          <div class="admin-stat"><b id="adm-st-users">&mdash;</b><span>User terdaftar</span></div>
+          <div class="admin-stat"><b id="adm-st-invoices">&mdash;</b><span>Dokumen tersimpan</span></div>
+          <div class="admin-stat hot"><b id="adm-st-pending">&mdash;</b><span>Top-up menunggu</span></div>
+        </div>
+      </section>
+
+      <section class="admin-panel">
+        <h4>Permintaan Top-Up</h4>
+        <div class="admin-tablewrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Waktu</th><th>User</th><th>Paket</th><th>Harga</th><th>ID</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody id="adm-tu-body"></tbody>
+          </table>
+        </div>
+        <p class="admin-empty" id="adm-tu-empty" hidden>Belum ada permintaan.</p>
+        <p class="admin-note">Approve hanya setelah bukti transfer masuk &mdash; kuota user bertambah otomatis.</p>
+      </section>
+
+      <section class="admin-panel">
+        <h4>User &amp; Kuota</h4>
+        <div class="admin-tablewrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Nama</th><th>Email</th><th>Role</th><th>Kuota</th><th>Adjust</th></tr>
+            </thead>
+            <tbody id="adm-us-body"></tbody>
+          </table>
+        </div>
+        <p class="admin-empty" id="adm-us-empty" hidden>Belum ada user.</p>
+      </section>
+
+      <section class="admin-panel">
+        <h4>Log Transaksi Kuota</h4>
+        <div class="admin-tablewrap">
+          <table class="admin-table">
+            <thead>
+              <tr><th>Waktu</th><th>User</th><th>Delta</th><th>Ref</th><th>Sisa</th></tr>
+            </thead>
+            <tbody id="adm-tx-body"></tbody>
+          </table>
+        </div>
+        <p class="admin-empty" id="adm-tx-empty" hidden>Belum ada transaksi.</p>
+      </section>
 
       <button class="btn link" type="button" id="adm-close">Tutup</button>
     </div>
