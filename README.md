@@ -8,9 +8,9 @@ FakturKu adalah PWA untuk membuat dokumen bisnis di browser: faktur, kwitansi, i
 
 - **Repository:** `Arblok-Digital/fakturku`
 - **Production branch:** `master` — hanya berubah setelah review dan persetujuan eksplisit.
-- **Branch kerja/preview saat ini:** `fix/production-mobile-billing-output`
-- **Deploy preview:** otomatis melalui Vercel ketika branch terkait di-push.
-- **Deploy production:** hanya setelah perubahan diuji, disetujui, dan dipromosikan/di-merge sesuai alur rilis.
+- **Branch kerja:** buat branch fitur per pekerjaan (mis. `feat/...`); setelah disetujui, merge/push ke `master` supaya live.
+- **Deploy preview:** otomatis melalui Vercel untuk setiap branch selain `master` yang di-push.
+- **Deploy production:** otomatis melalui Vercel pada setiap push ke `master` (Production Branch = `master`). Artinya push ke `master` SAMA dengan promote ke production, jadi tetap wajib persetujuan eksplisit lebih dulu.
 - **File lokal:** bukan sumber kebenaran tersendiri. Pastikan branch dan commit cocok dengan GitHub sebelum melanjutkan kerja.
 
 ## Fitur utama

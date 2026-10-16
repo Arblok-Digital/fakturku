@@ -5,8 +5,8 @@ Read this file before editing, testing, committing, or deploying.
 ## 1. Repository and branch discipline
 
 - Canonical repository: `Arblok-Digital/fakturku`.
-- Current working/preview branch for the active template/mobile work: `fix/production-mobile-billing-output`.
-- `master` is the production line. Do not commit directly to it for feature work.
+- Feature work happens on feature branches (e.g. `feat/...`); any pushed branch gets a Vercel Preview deployment automatically.
+- `master` is the production line, and pushing to `master` deploys Production immediately (Vercel Production Branch = `master`). Do not commit directly to it for feature work.
 - Always inspect the current branch, latest commit, and working-tree changes before touching files.
 - Do not overwrite changes made by another agent. Fetch/re-read the current file immediately before updating it.
 - Keep changes scoped. Explain what changed, why, files touched, checks performed, and known limitations in the handoff.
@@ -16,7 +16,7 @@ Read this file before editing, testing, committing, or deploying.
 
 - A Vercel Preview deployment is for review; it is not production approval.
 - Wait for Preview deployment status **Ready**, then provide its URL and a short test checklist.
-- Do not merge to `master`, promote to Production, change Vercel project settings/domains/environment variables, roll back commits, or delete branches unless the user explicitly authorizes that exact action.
+- Do not merge/push to `master` (which deploys Production), change Vercel project settings/domains/environment variables, roll back commits, or delete branches unless the user explicitly authorizes that exact action.
 - A user's approval that a preview looks good means the preview passed their visual review; it does not by itself authorize production deployment unless they explicitly say to deploy/promote to production.
 - Before any production release, summarize the exact commit/branch and scope, plus the expected production impact.
 
