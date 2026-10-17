@@ -10,6 +10,8 @@ export default {
     const logo = s.logo
       ? `<img class="doc-logo" src="${h.esc(s.logo)}" alt="Logo">`
       : `<div class="doc-logo-ph">LOGO</div>`;
+    // F5: kolom Satuan hanya muncul bila minimal satu baris memakai satuan.
+    const withUnit = s.items.some((it) => it.unit);
     const rows = s.items
       .filter((it) => it.desc || it.qty || it.price)
       .map((it, i) => {
@@ -17,6 +19,7 @@ export default {
         return `<tr>
           <td class="mono">${i + 1}</td>
           <td>${h.esc(it.desc)}</td>
+          ${withUnit ? `<td>${h.esc(it.unit || "")}</td>` : ""}
           <td class="r mono">${Number(it.qty) || 0}</td>
           <td class="r mono">${h.rupiah(it.price)}</td>
           <td class="r mono">${h.rupiah(amt)}</td>
@@ -71,9 +74,9 @@ export default {
 
       <table class="doc-table">
         <thead>
-          <tr><th style="width:8%">No</th><th>Uraian</th><th class="r" style="width:12%">Qty</th><th class="r" style="width:20%">Harga</th><th class="r" style="width:22%">Jumlah</th></tr>
+          <tr><th style="width:8%">No</th><th>Uraian</th>${withUnit ? '<th style="width:10%">Satuan</th>' : ""}<th class="r" style="width:12%">Qty</th><th class="r" style="width:20%">Harga</th><th class="r" style="width:22%">Jumlah</th></tr>
         </thead>
-        <tbody>${rows || `<tr><td colspan="5" style="text-align:center;color:var(--ink-300)">Belum ada rincian</td></tr>`}</tbody>
+        <tbody>${rows || `<tr><td colspan="${withUnit ? 6 : 5}" style="text-align:center;color:var(--ink-300)">Belum ada rincian</td></tr>`}</tbody>
       </table>
 
       <div class="doc-totals">

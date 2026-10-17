@@ -39,7 +39,7 @@ export function blankState(templateId, opts = {}) {
     logo: "",
     issuer: { name: "", address: "", npwp: "", phone: "", email: "" },
     client: { name: "", address: "", npwp: "", phone: "" },
-    items: [{ desc: "", qty: 1, price: 0 }],
+    items: [{ desc: "", qty: 1, price: 0, unit: "" }],
     discount: 0,
     taxRate: 0,
     amount: 0,
@@ -104,6 +104,8 @@ export function hydrate(raw) {
     receiver: { ...d.signatures.receiver, ...((raw.signatures || {}).receiver || {}) },
   };
   if (!Array.isArray(raw.items) || !raw.items.length) out.items = d.items;
+  // F5: satuan per item opsional. Draft lama (tanpa `unit`) tetap valid — normalisasi di sini.
+  out.items = (out.items || []).map((it) => ({ desc: "", qty: 1, price: 0, unit: "", ...it }));
   if (!out.template) out.template = d.template;
   return out;
 }

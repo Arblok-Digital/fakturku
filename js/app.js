@@ -191,6 +191,10 @@ function renderItems() {
           <input id="item-qty-${i}" class="num" type="number" min="0" data-idx="${i}" data-f="qty" value="${Number(it.qty) || 0}">
         </div>
         <div class="field">
+          <label for="item-unit-${i}">Satuan</label>
+          <input id="item-unit-${i}" type="text" data-idx="${i}" data-f="unit" value="${esc(it.unit || "")}" placeholder="pcs, kg, hari">
+        </div>
+        <div class="field">
           <label for="item-price-${i}">Harga satuan (Rp)</label>
           <input id="item-price-${i}" class="num" type="number" min="0" data-idx="${i}" data-f="price" value="${Number(it.price) || 0}">
         </div>
@@ -220,13 +224,13 @@ $("#items-body").addEventListener("click", (e) => {
   const del = e.target.dataset && e.target.dataset.del;
   if (del == null) return;
   state.items.splice(Number(del), 1);
-  if (!state.items.length) state.items.push({ desc: "", qty: 1, price: 0 });
+  if (!state.items.length) state.items.push({ desc: "", qty: 1, price: 0, unit: "" });
   renderItems();
   scheduleRender();
 });
 
 $("#btn-add-item").addEventListener("click", () => {
-  state.items.push({ desc: "", qty: 1, price: 0 });
+  state.items.push({ desc: "", qty: 1, price: 0, unit: "" });
   renderItems();
   scheduleRender();
   const rows = $("#items-body").querySelectorAll("input[data-f='desc']");
@@ -304,6 +308,13 @@ function switchTemplate(newId) {
   } else {
     state.number = nextNumberByCategory(state.category);
     state.numbers[newId] = state.number;
+  }
+
+  // F7 (Fase 3): klausul bawaan template legal hanya diisi bila pengguna belum menulis apa pun.
+  // Teks bawaan adalah contoh yang wajib ditinjau pengguna; bukan nasihat hukum.
+  if (!state.terms) {
+    const tplDef = getTemplate(newId);
+    if (tplDef && tplDef.defaultTerms) state.terms = tplDef.defaultTerms;
   }
 
   // Saat memakai data contoh, bangun ulang sampel sesuai format yang dipilih.
@@ -1256,33 +1267,33 @@ function buildExampleState(issued = true) {
   sample.issued = issued;
   sample.notes = "Contoh data fiktif — sesuaikan seluruh isi sebelum digunakan.";
   sample.issuer = {
-    name: "PT Nusantara Karya (Contoh)",
-    address: "Jl. HZ Mustofa No. 88, Tasikmalaya",
+    name: "UD Sumber Jaya (Contoh)",
+    address: "Jl. Raya Cihideung No. 45, Tasikmalaya",
     npwp: "00.000.000.0-000.000",
-    phone: "(0265) 000000",
+    phone: "(0265) 222333",
     email: "admin@example.test"
   };
   sample.client = {
-    name: "CV Mitra Sejahtera (Contoh)",
-    address: "Jl. Contoh Usaha No. 12, Tasikmalaya",
+    name: "Toko Barokah (Contoh)",
+    address: "Jl. Pasar Wetan No. 7, Tasikmalaya",
     npwp: "00.000.000.0-000.000",
-    phone: "(0265) 111111"
+    phone: "(0265) 444555"
   };
   sample.items = [
-    { desc: "Jasa / barang contoh", qty: 2, price: 750000 },
-    { desc: "Biaya pendukung (contoh)", qty: 1, price: 250000 }
+    { desc: "Semen 50 kg (contoh)", qty: 5, price: 62000, unit: "sak" },
+    { desc: "Pasir beton (contoh)", qty: 2, price: 250000, unit: "m³" }
   ];
   sample.discount = 0;
   sample.taxRate = 0;
   sample.payment = {
     bank: "Bank Contoh",
     accountNo: "0000000000",
-    accountName: "PT Nusantara Karya (Contoh)",
+    accountName: "UD Sumber Jaya (Contoh)",
     method: "Transfer bank (contoh)"
   };
   sample.terms = "Contoh syarat: ruang lingkup dan jadwal mengikuti kesepakatan tertulis para pihak. Ganti klausul ini sesuai kebutuhan.";
   sample.signatures = {
-    maker: { name: "Andi Pratama (Contoh)", title: "Administrasi" },
+    maker: { name: "Dedi Kurnia (Contoh)", title: "Pemilik Usaha" },
     receiver: { name: "Budi Santoso (Contoh)", title: "Penerima / Penanggung Jawab" }
   };
   Object.assign(sample.details, {
@@ -1316,9 +1327,9 @@ function buildExampleState(issued = true) {
     retention: 500000,
     milestone: "Termin 2 — contoh",
     inspection: "Sesuai pemeriksaan contoh",
-    employee: "Siti Rahma (Contoh)",
+    employee: "Asep Saepudin (Contoh)",
     employeeId: "KARYAWAN-CONTOH-001",
-    position: "Staf Administrasi",
+    position: "Tukang",
     department: "Operasional",
     baseSalary: 4500000,
     allowances: 500000,
@@ -1329,10 +1340,10 @@ function buildExampleState(issued = true) {
     taxBase: 2500000,
     taxAmount: 275000,
     taxId: "00.000.000.0-000.000",
-    requestedBy: "Andi Pratama (Contoh)",
+    requestedBy: "Dedi Kurnia (Contoh)",
     approvedBy: "Budi Santoso (Contoh)",
     deliveryDate: plusDays(3),
-    supplier: "PT Pemasok Contoh",
+    supplier: "CV Material Jaya",
     budget: 2500000,
     recipientRole: "Penerima Kuasa (Contoh)",
     returnReason: "Barang tidak sesuai pesanan (contoh)",
@@ -1346,38 +1357,38 @@ function buildExampleState(issued = true) {
   // Profil sampel per format: contoh uraian dan detail mengikuti tujuan dokumen,
   // bukan memakai satu isi faktur generik untuk seluruh kategori.
   const sampleProfiles = {
-    "faktur-a4": { items: [{ desc: "Jasa pengembangan sistem (contoh)", qty: 1, price: 2500000 }, { desc: "Pemeliharaan bulan berjalan (contoh)", qty: 1, price: 500000 }] },
-    "invoice-digital": { items: [{ desc: "Paket layanan digital (contoh)", qty: 1, price: 1250000 }, { desc: "Dukungan teknis (contoh)", qty: 2, price: 250000 }] },
-    "kwitansi-a4": { items: [{ desc: "Pembayaran jasa tahap pertama (contoh)", qty: 1, price: 1750000 }], details: { subject: "Bukti penerimaan pembayaran", description: "Pembayaran jasa tahap pertama (contoh)" } },
+    "faktur-a4": { items: [{ desc: "Semen 50 kg (contoh)", qty: 10, price: 62000, unit: "sak" }, { desc: "Pasir beton (contoh)", qty: 2, price: 250000, unit: "m³" }] },
+    "invoice-digital": { items: [{ desc: "Servis & isi freon AC 1 PK (contoh)", qty: 1, price: 350000, unit: "unit" }, { desc: "Ganti kapasitor (contoh)", qty: 1, price: 120000, unit: "unit" }] },
+    "kwitansi-a4": { items: [{ desc: "Pembayaran borongan pasang keramik (contoh)", qty: 1, price: 900000 }], details: { subject: "Bukti penerimaan pembayaran", description: "Pembayaran borongan pasang keramik (contoh)" } },
     "struk-ansuran": { items: [{ desc: "Pembayaran angsuran ke-3 (contoh)", qty: 1, price: 575000 }], details: { subject: "Bukti pembayaran angsuran", description: "Simulasi pembayaran angsuran kendaraan" } },
     "credit-note": { items: [{ desc: "Koreksi jumlah barang pada invoice (contoh)", qty: 1, price: 250000 }], details: { subject: "Koreksi tagihan", reason: "Penyesuaian jumlah barang (contoh)", description: "Pengurangan nilai tagihan sebelumnya (simulasi)" } },
     "debit-note": { items: [{ desc: "Biaya tambahan sesuai kesepakatan (contoh)", qty: 1, price: 300000 }], details: { subject: "Penyesuaian nilai tagihan", reason: "Biaya tambahan terverifikasi (contoh)", description: "Penambahan nilai tagihan sebelumnya (simulasi)" } },
     "surat-tagihan": { items: [{ desc: "Pekerjaan sesuai pesanan (contoh)", qty: 1, price: 3200000 }], details: { subject: "Permohonan penyelesaian pembayaran", period: "Oktober 2026", paymentTerms: "Mohon dibayar dalam 14 hari (contoh)" } },
     "invoice-berulang": { items: [{ desc: "Layanan berlangganan bulanan (contoh)", qty: 1, price: 450000 }], details: { period: "Oktober 2026", paymentTerms: "Pembayaran untuk periode berjalan (contoh)" } },
-    "nota-kontan": { items: [{ desc: "Kopi arabika 250 g (contoh)", qty: 2, price: 65000 }, { desc: "Gula aren 500 g (contoh)", qty: 1, price: 28000 }] },
-    "surat-penawaran": { items: [{ desc: "Paket desain identitas usaha (contoh)", qty: 1, price: 1800000 }, { desc: "Paket materi promosi (contoh)", qty: 1, price: 900000 }], details: { subject: "Penawaran layanan kreatif", validity: plusDays(30), paymentTerms: "DP 50%, pelunasan setelah pekerjaan selesai (contoh)" } },
-    "surat-pesanan": { items: [{ desc: "Kertas A4 80 gsm (contoh)", qty: 10, price: 55000 }, { desc: "Tinta printer (contoh)", qty: 4, price: 85000 }], details: { reference: "PO-CONTOH-001", deliveryDate: plusDays(3), paymentTerms: "Pembayaran sesuai kesepakatan (contoh)" } },
-    "struk-pos": { items: [{ desc: "Kopi susu", qty: 2, price: 18000 }, { desc: "Roti bakar", qty: 1, price: 22000 }], client: { name: "Pelanggan Umum (Contoh)", address: "Pembelian langsung", npwp: "", phone: "" }, payment: { bank: "", accountNo: "", accountName: "", method: "QRIS (contoh)" } },
-    "daftar-harga": { items: [{ desc: "Jasa konsultasi per jam (contoh)", qty: 1, price: 150000 }, { desc: "Paket dukungan bulanan (contoh)", qty: 1, price: 750000 }], details: { subject: "Daftar harga layanan", period: "Oktober 2026", validity: plusDays(30) } },
-    "surat-jalan": { items: [{ desc: "Perangkat komputer (contoh)", qty: 3, price: 0 }, { desc: "Kabel jaringan (contoh)", qty: 10, price: 0 }], details: { reference: "SJ-CONTOH-001", origin: "Gudang Tasikmalaya", destination: "Kantor pelanggan, Tasikmalaya", driver: "Dedi (Contoh)", vehicle: "Mobil boks (contoh)", condition: "Barang dikemas dengan baik (contoh)", unit: "unit", deliveryDate: plusDays(1) } },
-    "bukti-terima-barang": { items: [{ desc: "Perangkat komputer (contoh)", qty: 3, price: 0 }, { desc: "Kabel jaringan (contoh)", qty: 10, price: 0 }], details: { reference: "BTB-CONTOH-001", condition: "Baik, kemasan utuh (contoh)", inspection: "Jumlah dan kondisi diperiksa (contoh)", location: "Gudang penerima, Tasikmalaya", unit: "unit" } },
-    "surat-retur": { items: [{ desc: "Monitor rusak saat diterima (contoh)", qty: 1, price: 0 }], details: { reference: "RETUR-CONTOH-001", returnReason: "Layar tidak menyala saat pemeriksaan (contoh)", condition: "Menunggu penggantian pemasok (contoh)", origin: "Gudang penerima", destination: "Gudang pemasok" } },
-    "packing-list": { items: [{ desc: "Perangkat komputer", qty: 3, price: 0 }, { desc: "Kabel jaringan", qty: 10, price: 0 }], details: { reference: "PL-CONTOH-001", packing: "3 karton + 1 paket kabel", origin: "Gudang Tasikmalaya", destination: "Kantor pelanggan", vehicle: "Ekspedisi (contoh)", unit: "unit" } },
+    "nota-kontan": { items: [{ desc: "Beras 5 kg (contoh)", qty: 1, price: 68000, unit: "karung" }, { desc: "Minyak goreng 2 L (contoh)", qty: 2, price: 36000, unit: "pouch" }] },
+    "surat-penawaran": { items: [{ desc: "Borongan pasang keramik 6 m² (contoh)", qty: 1, price: 900000, unit: "borongan" }, { desc: "Material pendukung (contoh)", qty: 1, price: 450000, unit: "paket" }], details: { subject: "Penawaran jasa pasang & material", validity: plusDays(30), paymentTerms: "DP 50%, pelunasan setelah pekerjaan selesai (contoh)" } },
+    "surat-pesanan": { items: [{ desc: "Besi beton 10 mm (contoh)", qty: 20, price: 62000, unit: "batang" }, { desc: "Semen 50 kg (contoh)", qty: 30, price: 62000, unit: "sak" }], details: { reference: "PO-CONTOH-001", deliveryDate: plusDays(3), paymentTerms: "Pembayaran sesuai kesepakatan (contoh)" } },
+    "struk-pos": { items: [{ desc: "Es teh manis", qty: 2, price: 5000 }, { desc: "Gorengan", qty: 3, price: 1000 }], client: { name: "Pelanggan Umum (Contoh)", address: "Pembelian langsung", npwp: "", phone: "" }, payment: { bank: "", accountNo: "", accountName: "", method: "Tunai (contoh)" } },
+    "daftar-harga": { items: [{ desc: "Servis ringan (contoh)", qty: 1, price: 50000, unit: "unit" }, { desc: "Ganti oli + filter (contoh)", qty: 1, price: 150000, unit: "unit" }, { desc: "Tambal ban (contoh)", qty: 1, price: 25000, unit: "unit" }], details: { subject: "Daftar harga bengkel", period: "Oktober 2026", validity: plusDays(30) } },
+    "surat-jalan": { items: [{ desc: "Semen 50 kg (contoh)", qty: 40, price: 0, unit: "sak" }, { desc: "Besi beton 10 mm (contoh)", qty: 20, price: 0, unit: "batang" }], details: { reference: "SJ-CONTOH-001", origin: "Gudang UD Sumber Jaya", destination: "Proyek rumah Pak Hendra, Tasikmalaya", driver: "Asep (Contoh)", vehicle: "Pick-up (contoh)", condition: "Barang dikemas dengan baik (contoh)", unit: "sak", deliveryDate: plusDays(1) } },
+    "bukti-terima-barang": { items: [{ desc: "Semen 50 kg (contoh)", qty: 40, price: 0, unit: "sak" }, { desc: "Besi beton 10 mm (contoh)", qty: 20, price: 0, unit: "batang" }], details: { reference: "BTB-CONTOH-001", condition: "Baik, kemasan utuh (contoh)", inspection: "Jumlah dan kondisi dihitung ulang (contoh)", location: "Lokasi proyek, Tasikmalaya", unit: "sak" } },
+    "surat-retur": { items: [{ desc: "Semen mengeras saat diterima (contoh)", qty: 5, price: 0, unit: "sak" }], details: { reference: "RETUR-CONTOH-001", returnReason: "Semen sudah mengeras saat pemeriksaan (contoh)", condition: "Menunggu penggantian dari toko (contoh)", origin: "Lokasi proyek", destination: "Toko pengirim material" } },
+    "packing-list": { items: [{ desc: "Semen 50 kg", qty: 40, price: 0, unit: "sak" }, { desc: "Besi beton 10 mm", qty: 20, price: 0, unit: "batang" }], details: { reference: "PL-CONTOH-001", packing: "40 sak + 20 batang (contoh)", origin: "Gudang UD Sumber Jaya", destination: "Lokasi proyek", vehicle: "Pick-up (contoh)", unit: "sak" } },
     "perjanjian-kerja-sama": { items: [], details: { reference: "PKS-CONTOH-001", subject: "Kerja sama penyediaan layanan", contractDate: dateValue(today), scope: "Penyediaan layanan dan dukungan sesuai ruang lingkup tertulis (contoh)", effectiveDate: dateValue(today), endDate: plusDays(365), location: "Tasikmalaya" }, terms: "Contoh kerangka: ruang lingkup, hak, kewajiban, masa berlaku, dan penyelesaian perselisihan perlu ditinjau serta disepakati para pihak sebelum ditandatangani." },
     "surat-kuasa": { items: [], details: { reference: "SK-CONTOH-001", subject: "Kuasa pengambilan dokumen", recipientRole: "Penerima kuasa (contoh)", scope: "Mengambil dokumen administrasi yang disebutkan secara spesifik (contoh)", effectiveDate: dateValue(today), endDate: plusDays(7), witness: "Saksi (contoh)" }, terms: "Contoh kerangka surat kuasa. Isi identitas dan batas kewenangan secara akurat serta periksa persyaratan penerima dokumen." },
-    "spk": { items: [{ desc: "Pekerjaan instalasi dan konfigurasi (contoh)", qty: 1, price: 6500000 }], details: { reference: "SPK-CONTOH-001", contractRef: "KONTRAK-CONTOH-001", scope: "Instalasi, pengujian, dan serah terima pekerjaan (contoh)", location: "Tasikmalaya", effectiveDate: dateValue(today), endDate: plusDays(14), paymentTerms: "Pembayaran berdasarkan progres yang disetujui (contoh)" } },
-    "loi": { items: [], details: { reference: "LOI-CONTOH-001", subject: "Minat kerja sama layanan digital", scope: "Penjajakan ruang lingkup, jadwal, dan estimasi biaya (contoh)", effectiveDate: dateValue(today), endDate: plusDays(30), location: "Tasikmalaya" }, terms: "Contoh pernyataan minat awal; bukan pengganti kontrak final. Tinjau konsekuensi dan ketentuan yang disepakati sebelum digunakan." },
+    "spk": { items: [{ desc: "Borongan pasang rangka & atap (contoh)", qty: 1, price: 6500000, unit: "borongan" }], details: { reference: "SPK-CONTOH-001", contractRef: "KONTRAK-CONTOH-001", scope: "Pekerjaan rangka, atap, dan serah terima (contoh)", location: "Tasikmalaya", effectiveDate: dateValue(today), endDate: plusDays(14), paymentTerms: "Pembayaran berdasarkan progres yang disetujui (contoh)" } },
+    "loi": { items: [], details: { reference: "LOI-CONTOH-001", subject: "Minat kerja sama suplai material", scope: "Penjajakan ruang lingkup, jadwal, dan estimasi biaya material (contoh)", effectiveDate: dateValue(today), endDate: plusDays(30), location: "Tasikmalaya" }, terms: "Contoh pernyataan minat awal; bukan pengganti kontrak final. Tinjau konsekuensi dan ketentuan yang disepakati sebelum digunakan." },
     "surat-pernyataan": { items: [], details: { reference: "SP-CONTOH-001", subject: "Pernyataan penerimaan barang", reason: "Keperluan administrasi (contoh)", location: "Tasikmalaya" }, terms: "Saya menyatakan bahwa informasi yang dicantumkan akan diisi sesuai keadaan sebenarnya. Teks ini hanya contoh dan perlu disesuaikan dengan fakta." },
-    "memo-internal": { items: [], details: { subject: "Jadwal pemeliharaan sistem", authority: "Operasional", description: "Pemeliharaan dijadwalkan di luar jam layanan. Koordinasikan dampak dan jadwal dengan tim terkait (contoh).", requestedBy: "Koordinator Operasional (Contoh)" } },
-    "surat-perjalanan-dinas": { items: [], details: { employee: "Siti Rahma (Contoh)", employeeId: "KARYAWAN-CONTOH-001", position: "Staf Administrasi", department: "Operasional", location: "Bandung", period: "20–21 Oktober 2026 (contoh)", reason: "Koordinasi pekerjaan dan serah terima dokumen (contoh)", budget: 750000 } },
-    "klaim-biaya": { items: [{ desc: "Transportasi lokal (contoh)", qty: 1, price: 125000 }, { desc: "Konsumsi rapat (contoh)", qty: 1, price: 85000 }], details: { employee: "Siti Rahma (Contoh)", employeeId: "KARYAWAN-CONTOH-001", department: "Operasional", period: "Oktober 2026", reason: "Pengeluaran tugas dinas (contoh)", approvedBy: "Manajer Operasional (Contoh)" } },
-    "purchase-order": { items: [{ desc: "Kertas A4 80 gsm (contoh)", qty: 10, price: 55000 }, { desc: "Tinta printer (contoh)", qty: 4, price: 85000 }], details: { reference: "PO-CONTOH-001", supplier: "PT Pemasok Contoh", requestedBy: "Andi Pratama (Contoh)", approvedBy: "Budi Santoso (Contoh)", deliveryDate: plusDays(5), location: "Gudang Tasikmalaya", paymentTerms: "Pembayaran sesuai invoice dan penerimaan (contoh)", budget: 900000 } },
-    "slip-gaji": { items: [], details: { employee: "Siti Rahma (Contoh)", employeeId: "KARYAWAN-CONTOH-001", position: "Staf Administrasi", department: "Operasional", period: "Oktober 2026", baseSalary: 4500000, allowances: 500000, deductions: 100000, netPay: 4900000, bankRef: "TRX-GAJI-CONTOH-001" } },
-    "rab": { items: [{ desc: "Material pekerjaan (contoh)", qty: 1, price: 3500000 }, { desc: "Tenaga kerja (contoh)", qty: 1, price: 2000000 }, { desc: "Transportasi dan alat (contoh)", qty: 1, price: 500000 }], details: { project: "Renovasi ruang kerja (Contoh)", location: "Tasikmalaya", contractRef: "RAB-CONTOH-001", contractValue: 6000000, description: "Estimasi awal untuk perencanaan; bukan penawaran final." } },
-    "bast": { items: [{ desc: "Instalasi jaringan lokal (contoh)", qty: 1, price: 0 }, { desc: "Pengujian koneksi (contoh)", qty: 1, price: 0 }], details: { project: "Instalasi jaringan kantor (Contoh)", contractRef: "BAST-CONTOH-001", location: "Tasikmalaya", inspection: "Pengujian dasar selesai (contoh)", condition: "Diterima dengan catatan pemeriksaan (contoh)", effectiveDate: dateValue(today) } },
-    "surat-perintah-bayar": { items: [{ desc: "Termin pekerjaan tahap 2 (contoh)", qty: 1, price: 2500000 }], details: { project: "Instalasi jaringan kantor (Contoh)", contractRef: "SPB-CONTOH-001", milestone: "Termin 2", progress: 50, contractValue: 10000000, previousPaid: 2500000, retention: 500000, paymentTerms: "Pembayaran setelah verifikasi dokumen pendukung (contoh)" } },
-    "tagihan-termin": { items: [{ desc: "Pekerjaan sesuai progres tahap 2 (contoh)", qty: 1, price: 2500000 }], details: { project: "Instalasi jaringan kantor (Contoh)", contractRef: "TAG-TERM-CONTOH-001", milestone: "Termin 2", progress: 50, contractValue: 10000000, previousPaid: 2500000, retention: 500000, invoicePeriod: "Oktober 2026", paymentTerms: "Verifikasi progres dan kontrak sebelum pembayaran (contoh)" } },
-    "berita-acara-progres": { items: [{ desc: "Pemasangan perangkat (contoh)", qty: 1, price: 0 }, { desc: "Pengujian dan dokumentasi (contoh)", qty: 1, price: 0 }], details: { project: "Instalasi jaringan kantor (Contoh)", contractRef: "BAP-CONTOH-001", milestone: "Termin 2", progress: 50, location: "Tasikmalaya", inspection: "Progres diperiksa bersama (contoh)", description: "Catatan pemeriksaan lapangan; validasi dengan kondisi sebenarnya." } },
+    "memo-internal": { items: [], details: { subject: "Jadwal pengiriman material", authority: "Operasional", description: "Pengiriman material dijadwalkan ulang ke esok pagi. Koordinasikan dengan pengemudi dan penerima (contoh).", requestedBy: "Koordinator Gudang (Contoh)" } },
+    "surat-perjalanan-dinas": { items: [], details: { employee: "Asep Saepudin (Contoh)", employeeId: "KARYAWAN-CONTOH-001", position: "Tukang", department: "Produksi", location: "Bandung", period: "20–21 Oktober 2026 (contoh)", reason: "Pengerjaan proyek di luar kota (contoh)", budget: 750000 } },
+    "klaim-biaya": { items: [{ desc: "Bensin & tol (contoh)", qty: 1, price: 125000 }, { desc: "Makan di jalan (contoh)", qty: 1, price: 85000 }], details: { employee: "Asep Saepudin (Contoh)", employeeId: "KARYAWAN-CONTOH-001", department: "Produksi", period: "Oktober 2026", reason: "Transport dan konsumsi tugas luar (contoh)", approvedBy: "Dedi Kurnia (Contoh)" } },
+    "purchase-order": { items: [{ desc: "Semen 50 kg (contoh)", qty: 30, price: 62000, unit: "sak" }, { desc: "Besi beton 10 mm (contoh)", qty: 20, price: 62000, unit: "batang" }], details: { reference: "PO-CONTOH-001", supplier: "CV Material Jaya", requestedBy: "Dedi Kurnia (Contoh)", approvedBy: "Budi Santoso (Contoh)", deliveryDate: plusDays(5), location: "Gudang UD Sumber Jaya", paymentTerms: "Pembayaran sesuai invoice dan penerimaan (contoh)", budget: 3100000 } },
+    "slip-gaji": { items: [], details: { employee: "Asep Saepudin (Contoh)", employeeId: "KARYAWAN-CONTOH-001", position: "Tukang", department: "Produksi", period: "Oktober 2026", baseSalary: 3000000, allowances: 300000, deductions: 50000, netPay: 3250000, bankRef: "TRX-GAJI-CONTOH-001" } },
+    "rab": { items: [{ desc: "Material bangunan (contoh)", qty: 1, price: 3500000, unit: "paket" }, { desc: "Upah tukang (contoh)", qty: 1, price: 2000000, unit: "borongan" }, { desc: "Transportasi dan alat (contoh)", qty: 1, price: 500000, unit: "paket" }], details: { project: "Renovasi rumah Pak Hendra (Contoh)", location: "Tasikmalaya", contractRef: "RAB-CONTOH-001", contractValue: 6000000, description: "Estimasi awal untuk perencanaan; bukan penawaran final." } },
+    "bast": { items: [{ desc: "Pekerjaan pasang keramik (contoh)", qty: 1, price: 0, unit: "borongan" }, { desc: "Pembersihan area kerja (contoh)", qty: 1, price: 0, unit: "paket" }], details: { project: "Renovasi rumah Pak Hendra (Contoh)", contractRef: "BAST-CONTOH-001", location: "Tasikmalaya", inspection: "Pekerjaan diperiksa bersama klien (contoh)", condition: "Diterima dengan catatan pemeriksaan (contoh)", effectiveDate: dateValue(today) } },
+    "surat-perintah-bayar": { items: [{ desc: "Termin pekerjaan tahap 2 (contoh)", qty: 1, price: 2500000, unit: "termin" }], details: { project: "Renovasi rumah Pak Hendra (Contoh)", contractRef: "SPB-CONTOH-001", milestone: "Termin 2", progress: 50, contractValue: 10000000, previousPaid: 2500000, retention: 500000, paymentTerms: "Pembayaran setelah verifikasi dokumen pendukung (contoh)" } },
+    "tagihan-termin": { items: [{ desc: "Pekerjaan sesuai progres tahap 2 (contoh)", qty: 1, price: 2500000, unit: "termin" }], details: { project: "Renovasi rumah Pak Hendra (Contoh)", contractRef: "TAG-TERM-CONTOH-001", milestone: "Termin 2", progress: 50, contractValue: 10000000, previousPaid: 2500000, retention: 500000, invoicePeriod: "Oktober 2026", paymentTerms: "Verifikasi progres dan kontrak sebelum pembayaran (contoh)" } },
+    "berita-acara-progres": { items: [{ desc: "Pemasangan rangka atap (contoh)", qty: 1, price: 0, unit: "borongan" }, { desc: "Pengecatan tahap 1 (contoh)", qty: 1, price: 0, unit: "paket" }], details: { project: "Renovasi rumah Pak Hendra (Contoh)", contractRef: "BAP-CONTOH-001", milestone: "Termin 2", progress: 50, location: "Tasikmalaya", inspection: "Progres diperiksa bersama klien (contoh)", description: "Catatan pemeriksaan lapangan; validasi dengan kondisi sebenarnya." } },
     "lembar-data-faktur-pajak": { items: [{ desc: "Jasa layanan sebelum pajak (contoh)", qty: 1, price: 2500000 }], details: { taxId: "00.000.000.0-000.000", taxPeriod: "Oktober 2026 (simulasi)", taxType: "PPN — contoh internal", taxBase: 2500000, taxAmount: 275000, reference: "PAJAK-CONTOH-001", description: "Data simulasi internal; bukan faktur pajak resmi." } },
     "rekap-ppn-internal": { items: [{ desc: "Penjualan kena pajak (contoh)", qty: 1, price: 2500000 }, { desc: "Koreksi transaksi (contoh)", qty: 1, price: 0 }], details: { taxPeriod: "Oktober 2026 (simulasi)", taxType: "Rekap PPN internal", taxBase: 2500000, taxAmount: 275000, taxId: "00.000.000.0-000.000", description: "Rekap simulasi untuk pemeriksaan internal." } },
     "lembar-data-bukti-potong": { items: [], details: { taxId: "00.000.000.0-000.000", taxPeriod: "Oktober 2026 (simulasi)", taxType: "PPh — contoh internal", taxBase: 2500000, taxAmount: 50000, description: "Data simulasi internal; bukan bukti potong resmi." } },
@@ -1393,9 +1404,9 @@ function buildExampleState(issued = true) {
   }
 
   if (sample.template === "kwitansi-a4") {
-    sample.receivedFrom = "CV Mitra Sejahtera (Contoh)";
-    sample.forPayment = "Pembayaran jasa tahap pertama (contoh)";
-    sample.amount = 1750000;
+    sample.receivedFrom = "Toko Barokah (Contoh)";
+    sample.forPayment = "Pembayaran borongan pasang keramik (contoh)";
+    sample.amount = 900000;
   }
   if (sample.template === "struk-ansuran") {
     sample.contractNo = "KRD-CONTOH-001";

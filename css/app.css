@@ -1476,7 +1476,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .item-card .field label { display: block; margin-bottom: 6px; }
 .item-card input { width: 100%; min-width: 0; max-width: 100%; }
 .item-card .item-desc-field input { min-height: 44px; }
-.item-card-grid { display: grid; grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: 12px; }
+.item-card-grid { display: grid; grid-template-columns: minmax(0, .6fr) minmax(0, .8fr) minmax(0, 1.3fr); gap: 12px; }
 .item-card-grid .field { margin-bottom: 0; }
 .item-line-total {
   display: flex;
@@ -1499,7 +1499,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .items-foot .hint-line { font-weight: 700; text-align: right; }
 @media screen and (max-width: 600px) {
   .item-card { padding: 12px; }
-  .item-card-grid { grid-template-columns: minmax(0, .7fr) minmax(0, 1.3fr); gap: 10px; }
+  .item-card-grid { grid-template-columns: minmax(0, .6fr) minmax(0, .8fr) minmax(0, 1.3fr); gap: 10px; }
   .item-line-total strong { font-size: 15px; }
   .items-foot { align-items: stretch; flex-direction: column; }
   .items-foot > .btn { width: 100%; justify-content: center; }
