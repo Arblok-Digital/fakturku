@@ -2,6 +2,7 @@ export default {
   id: "invoice-digital",
   label: "Invoice Digital (Share WA/TG)",
   category: "finance",
+  price_per_doc: 0,
   output: "screen",
   uses: ["due", "client", "items", "payment"],
 

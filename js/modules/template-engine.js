@@ -19,6 +19,24 @@ export function getTemplate(id) {
   return TEMPLATES.find((t) => t.id === id) || TEMPLATES[0];
 }
 
+/* Harga efektif satu dokumen (Rp), sama dengan perhitungan server `issue_document`:
+   kategori yang sudah dibuka = gratis · harga template (0 = gratis) · kalau tidak, harga kategori. */
+export function effectiveDocPrice(templateId, categories, unlockedCategories) {
+  const tpl = getTemplate(templateId);
+  const cat = tpl.category || "finance";
+  if ((unlockedCategories || []).includes(cat)) return 0;
+  if (tpl.price_per_doc != null) return Number(tpl.price_per_doc) || 0;
+  const meta = (categories || []).find((c) => c.id === cat);
+  return Number(meta?.price_per_doc) || 0;
+}
+
+/* Label harga untuk picker: "Gratis" / "Rp2.500/dok". */
+export function priceLabel(price) {
+  const n = Number(price) || 0;
+  if (n <= 0) return "Gratis";
+  return "Rp" + n.toLocaleString("id-ID") + "/dok";
+}
+
 export function renderDoc(state) {
   const tpl = getTemplate(state.template);
   const doc = document.getElementById("doc");

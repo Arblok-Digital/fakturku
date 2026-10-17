@@ -74,6 +74,7 @@
     .cred-cell { display: flex; gap: 6px; align-items: center; }
     .cred-cell input { width: 64px; font-family: var(--font-mono); font-size: 12px; }
     .empty-line { font-size: 12.5px; color: var(--ink-300); padding: 8px 0; }
+    .muted { color: var(--ink-300); font-size: 11px; }
     .back-link { font-size: 12px; color: var(--navy-700); }
     .admin-auth { max-width: 380px; }
     .admin-auth .btn.primary { width: 100%; margin-top: 10px; }
@@ -140,7 +141,7 @@
         <h2>User &amp; Kuota</h2>
         <table class="log-table">
           <thead>
-            <tr><th>Nama</th><th>Email</th><th>Role</th><th>Kuota</th><th>Adjust</th></tr>
+            <tr><th>Nama</th><th>Email</th><th>Role</th><th>Saldo</th><th>Adjust saldo (Rp)</th></tr>
           </thead>
           <tbody id="us-body"></tbody>
         </table>
@@ -151,7 +152,7 @@
         <h2>Log Transaksi Kuota</h2>
         <table class="log-table">
           <thead>
-            <tr><th>Waktu</th><th>User</th><th>Delta</th><th>Ref</th><th>Sisa</th></tr>
+            <tr><th>Waktu</th><th>User</th><th>Jumlah</th><th>Ref</th><th>Sisa saldo</th></tr>
           </thead>
           <tbody id="tx-body"></tbody>
         </table>
@@ -287,7 +288,7 @@
           return `<tr>
             <td>${fmtTime(r.created_at)}</td>
             <td>${esc(who)}</td>
-            <td>${r.credits} dok</td>
+            <td class="mono">Rp ${Number(r.balance_amount ?? r.price ?? 0).toLocaleString("id-ID")}</td>
             <td class="mono">Rp ${Number(r.price).toLocaleString("id-ID")}</td>
             <td class="mono">${r.code}</td>
             <td><span class="chip ${r.status}">${r.status}</span></td>
@@ -308,22 +309,28 @@
               <option value="admin" ${u.role === "admin" ? "selected" : ""}>admin</option>
               <option value="viewer" ${u.role === "viewer" ? "selected" : ""}>viewer</option>
             </select></td>
-            <td class="mono">${u.credits}</td>
+            <td class="mono">Rp ${Number(u.balance || 0).toLocaleString("id-ID")}<br><span class="muted">trial ${Number(u.trialCredits || 0)}</span></td>
             <td><span class="cred-cell">
-              <input type="number" data-adj="${u.id}" value="10" step="1">
+              <input type="number" data-adj="${u.id}" value="10000" step="1000">
               <button class="act" data-adjgo="${u.id}">Kirim</button>
             </span></td>
           </tr>`).join("");
         $("#us-empty").hidden = users.length > 0;
 
-        $("#tx-body").innerHTML = txs.map((t) => `
+        $("#tx-body").innerHTML = txs.map((t) => {
+          const monetary = ["topup", "issue", "unlock_category", "unlock_all"].includes(t.reason);
+          const amount = monetary ? Number(t.balance_delta) || 0 : Number(t.trial_delta) || Number(t.delta) || 0;
+          const sisa = monetary ? t.balance_after : (t.trial_after ?? t.credits_after);
+          const label = monetary ? "Rp " + Math.abs(amount).toLocaleString("id-ID") : Math.abs(amount) + " dok";
+          return `
           <tr>
             <td>${fmtTime(t.created_at)}</td>
             <td>${esc(t.profiles?.full_name || t.user_id.slice(0, 8))}</td>
-            <td class="mono" style="color:${t.delta > 0 ? "var(--teal-600)" : "var(--danger-600)"}">${t.delta > 0 ? "+" : ""}${t.delta}</td>
+            <td class="mono" style="color:${amount > 0 ? "var(--teal-600)" : "var(--danger-600)"}">${amount > 0 ? "+" : "-"}${label} <span class="muted">${esc(t.reason || "")}</span></td>
             <td class="mono">${esc(t.ref || "")}</td>
-            <td class="mono">${t.credits_after ?? "—"}</td>
-          </tr>`).join("");
+            <td class="mono">${sisa == null ? "—" : (monetary ? "Rp " + Number(sisa).toLocaleString("id-ID") : sisa + " dok")}</td>
+          </tr>`;
+        }).join("");
         $("#tx-empty").hidden = txs.length > 0;
       } catch (e) {
         console.error("dash load", e);
@@ -386,7 +393,7 @@
       const delta = Number(inp?.value) || 0;
       if (!delta) return;
       try {
-        await backend.adjustCredits(id, delta, "manual admin");
+        await backend.adjustBalance(id, delta, "manual admin");
         await loadDash();
       } catch (err) {
         alert("Gagal adjust: " + (err?.message || ""));
@@ -409,7 +416,7 @@
       }
 
       $("#a-pkg").innerHTML = PACKAGES.map((p, i) =>
-        `<option value="${i}">${p.credits} dokumen — Rp ${p.price.toLocaleString("id-ID")}</option>`
+        `<option value="${i}">${esc(p.label || p.id)} — Rp ${Number(p.balance_amount ?? p.price).toLocaleString("id-ID")}</option>`
       ).join("");
 
       function renderLog() {
@@ -418,7 +425,7 @@
           <tr>
             <td>${fmtTime(r.at)}</td>
             <td class="mono">${r.id}</td>
-            <td>${r.credits} dok · Rp ${Number(r.price).toLocaleString("id-ID")}</td>
+            <td>Rp ${Number(r.balance_amount ?? r.price ?? 0).toLocaleString("id-ID")} · ${esc(r.id)}</td>
             <td class="mono">${r.code}</td>
             <td><button class="act no" data-rm="${i}">Hapus</button></td>
           </tr>`).join("");
@@ -437,7 +444,7 @@
         const pkg = PACKAGES[Number($("#a-pkg").value)] || PACKAGES[0];
         const code = adminCode(id);
         const log = loadLog();
-        log.unshift({ id, code, credits: pkg.credits, price: pkg.price, at: new Date().toISOString() });
+        log.unshift({ id, code, balance_amount: Number(pkg.balance_amount ?? pkg.price) || 0, price: pkg.price, at: new Date().toISOString() });
         saveLog(log.slice(0, 200));
         $("#a-code").textContent = code;
         $("#a-out").hidden = false;

@@ -24,7 +24,7 @@
       <span class="mark">BETA</span>
     </div>
     <div class="spacer"></div>
-    <button class="chip-btn" id="kuota" type="button" title="Sisa kuota ekspor">—</button>
+    <button class="chip-btn" id="kuota" type="button" title="Trial &amp; saldo">—</button>
     <button class="icon-btn" id="btn-drafts" type="button" title="Draft tersimpan" aria-label="Draft tersimpan">
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="13" y2="17"/></svg>
       <span class="badge" id="drafts-count" hidden></span>
@@ -376,7 +376,7 @@
       </div>
       <div class="draft-banner noprint" id="draft-banner" hidden>
         <span class="draft-badge">DRAFT</span>
-        <div><strong>Belum diterbitkan</strong><p>Dokumen ini masih draft. Statusnya jadi TERBIT dan kuota 1 terpakai saat kamu Cetak, Simpan, atau Kirim.</p></div>
+        <div><strong>Belum diterbitkan</strong><p>Dokumen ini masih draft. Statusnya jadi TERBIT saat kamu Cetak, Simpan, atau Kirim &mdash; biaya dokumen (kalau ada) dipotong sekali saja.</p></div>
       </div>
       <div class="stage" id="stage">
         <div class="doc doc-a4" id="doc"></div>
@@ -413,13 +413,18 @@
   <div class="modal-back noprint" id="topup-modal" hidden>
     <div class="modal" role="dialog" aria-modal="true" aria-labelledby="topup-title">
       <div class="sheet-handle" aria-hidden="true"></div>
-      <h3 id="topup-title">Kuota &amp; Tagihan</h3>
+      <h3 id="topup-title">Saldo &amp; Tagihan</h3>
       <div class="q-status" id="q-status">Trial tersisa: <b id="q-n">—</b> · Saldo: <b>—</b></div>
       <p class="modal-sub" id="topup-sub">Trial gratis 10 dokumen sudah terpakai. Top-up untuk lanjut — makin besar paket, makin hemat. Bayar per dokumen, re-print &amp; re-share gratis.</p>
 
       <div class="cat-prices" id="cat-prices">
         <h4>Harga per Kategori</h4>
         <div id="cat-price-list"></div>
+      </div>
+
+      <div class="cat-prices" id="cat-unlocks">
+        <h4>Buka Kategori (sekali bayar)</h4>
+        <div id="cat-unlock-list"></div>
       </div>
 
       <div id="topup-packages">
@@ -447,7 +452,7 @@
       </div>
 
       <div class="hist" id="topup-hist">
-        <h4>Riwayat Kuota</h4>
+        <h4>Riwayat Saldo</h4>
         <div id="hist-list"></div>
       </div>
 
@@ -488,13 +493,13 @@
         <div class="admin-tablewrap">
           <table class="admin-table">
             <thead>
-              <tr><th>Waktu</th><th>User</th><th>Paket</th><th>Harga</th><th>ID</th><th>Status</th><th></th></tr>
+              <tr><th>Waktu</th><th>User</th><th>Saldo masuk</th><th>Harga</th><th>ID</th><th>Status</th><th></th></tr>
             </thead>
             <tbody id="adm-tu-body"></tbody>
           </table>
         </div>
         <p class="admin-empty" id="adm-tu-empty" hidden>Belum ada permintaan.</p>
-        <p class="admin-note">Approve hanya setelah bukti transfer masuk &mdash; kuota user bertambah otomatis.</p>
+        <p class="admin-note">Approve hanya setelah bukti transfer masuk &mdash; saldo user bertambah otomatis.</p>
       </section>
 
       <section class="admin-panel">
@@ -514,7 +519,7 @@
           <div class="cash-metric good"><b id="adm-cash-revenue">&mdash;</b><span>Pemasukan</span></div>
           <div class="cash-metric"><b id="adm-cash-count">&mdash;</b><span>Transaksi</span></div>
           <div class="cash-metric"><b id="adm-cash-avg">&mdash;</b><span>Rata-rata</span></div>
-          <div class="cash-metric"><b id="adm-cash-credits">&mdash;</b><span>Kuota terjual</span></div>
+          <div class="cash-metric"><b id="adm-cash-credits">&mdash;</b><span>Saldo terjual</span></div>
           <div class="cash-metric hot"><b id="adm-cash-pending">&mdash;</b><span>Menunggu</span></div>
         </div>
 
@@ -532,11 +537,11 @@
       </section>
 
       <section class="admin-panel">
-        <h4>User &amp; Kuota</h4>
+        <h4>User &amp; Saldo</h4>
         <div class="admin-tablewrap">
           <table class="admin-table">
             <thead>
-              <tr><th>Nama</th><th>Email</th><th>Role</th><th>Kuota</th><th>Adjust</th></tr>
+              <tr><th>Nama</th><th>Email</th><th>Role</th><th>Saldo</th><th>Adjust saldo (Rp)</th></tr>
             </thead>
             <tbody id="adm-us-body"></tbody>
           </table>
@@ -545,11 +550,11 @@
       </section>
 
       <section class="admin-panel">
-        <h4>Log Transaksi Kuota</h4>
+        <h4>Log Transaksi Saldo</h4>
         <div class="admin-tablewrap">
           <table class="admin-table">
             <thead>
-              <tr><th>Waktu</th><th>User</th><th>Delta</th><th>Ref</th><th>Sisa</th></tr>
+              <tr><th>Waktu</th><th>User</th><th>Jumlah</th><th>Ref</th><th>Sisa saldo</th></tr>
             </thead>
             <tbody id="adm-tx-body"></tbody>
           </table>

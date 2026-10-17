@@ -17,8 +17,8 @@ Read `AGENTS.md` first (rules), then this file (where things live). If this map 
 | Formatting | `js/modules/format.js` | `esc`, `rupiah`, `formatDate`, `terbilang`, `verifyCode` (pure) | Side effects |
 | Numbering | `js/modules/numbering.js` | Local prefixes + next number | Remote calls |
 | Output | `js/modules/output.js` | `printDoc`, `shareImage`, `openWhatsApp`, `copySummary`, `downloadImage` | Change state |
-| Remote adapter | `js/modules/backend.js` | Supabase: auth/session, `saveInvoice`, `nextDocumentNumber`, `tryDebit` (billing), `getCategories`, `getPackages`, `admin*` | Render, own UI state |
-| Offline ledger | `js/modules/credit-ledger.js` | Local-mode credits, `PACKAGES`, `CONTACT`, offline top-up | Assume Supabase exists |
+| Remote adapter | `js/modules/backend.js` | Supabase: auth/session, `saveInvoice`, `nextDocumentNumber`, `tryDebit` (billing), `getCategories`, `getPackages`, `getMyUnlocks`, `unlockCategory`, `unlockAllCategories`, `admin*` | Render, own UI state |
+| Offline ledger | `js/modules/credit-ledger.js` | Local-mode mirror of the server wallet: `trial` docs + Rp `balance` + `unlocks[]`, `PACKAGES`, `CONTACT`, offline top-up | Assume Supabase exists |
 | Service worker | `sw.js` | Precache SHELL, offline | — (bump cache version only when it matters) |
 | Serverless API | `api/gemini-assistant.js` | AI assistant endpoint (Gemini key from env), quota RPC, IP rate limit | Expose secrets |
 | Backend schema | `supabase/` (`schema.sql`, `migrations/`) | Tables, RLS, RPCs, seeds | — (high impact; approval required) |
@@ -44,8 +44,8 @@ user edits  ──►  js/app.js (state, tab switching)
                     #doc.innerHTML  ──►  js/modules/output.js  (print / save / WhatsApp / image)
 ```
 
-- **Billing / persist** (remote mode): `backend.tryDebit(ref, category, template, data)` then `backend.saveInvoice(state)`; number from `backend.nextDocumentNumber(category)`.
-- **Offline mode**: `credit-ledger.js` + `numbering.js` handle credits and numbering locally.
+- **Billing / persist** (remote mode): `backend.tryDebit(ref, category, template, data, price)` then `backend.saveInvoice(state)`; number from `backend.nextDocumentNumber(category)`. `price` comes from `effectiveDocPrice()` (see §9); re-issuing the same document is free.
+- **Offline mode**: `credit-ledger.js` + `numbering.js` handle the wallet and numbering locally, using the same rules as the server.
 - `renderDoc` is the **only** rendering entry point. Never render documents anywhere else.
 
 ---
@@ -68,7 +68,7 @@ user edits  ──►  js/app.js (state, tab switching)
 Two kinds of templates, one registry:
 
 - **Special (4)**: `js/templates/faktur-a4.js`, `invoice-digital.js`, `kwitansi-a4.js`, `struk-ansuran.js`.
-- **Business (32)**: `js/templates/business-documents.js` — `definitions[]` + shared renderers (`renderDocument`, `itemRows`, `signatureBlock`, `renderThermal`, `renderPayroll`).
+- **Business (47)**: `js/templates/business-documents.js` — `definitions[]` + shared renderers (`renderDocument`, `itemRows`, `signatureBlock`, `renderThermal`, `renderPayroll`).
 
 Shared field metadata lives in `business-documents.js`:
 - `labels` — human label per detail key.
@@ -87,6 +87,7 @@ Per-template render hints (all optional, backwards compatible):
 | `signatures:[left,right]` | Signature block labels (defaults exist, but set them explicitly) |
 | `legalNote:true` / `disclaimer:"..."` | Adds the "not legal/official advice" footer |
 | `payroll:true` / `output:"thermal"` | Alternate renderers |
+| `price_per_doc:<int>` | Overrides the category price. **`0` = free (tier A)**; omit to inherit `document_categories.price_per_doc`. Must match the DB row (see §9). |
 
 ### Adding or changing a template — READ THIS
 
@@ -143,8 +144,8 @@ Rule of thumb: **preview = frontend; terbit = frontend + DB.** Never split those
 | A document's layout, fields, or columns | `js/templates/business-documents.js` + `renderDoc` in `js/modules/template-engine.js` |
 | Document/state shape, drafts, totals | `js/modules/invoice-engine.js` |
 | Print / save / share behaviour | `js/modules/output.js` |
-| Auth, billing, saves, admin | `js/modules/backend.js` (+ `supabase/`) — approval required |
-| Credits in offline mode | `js/modules/credit-ledger.js` |
+| Auth, billing, saves, admin | `js/modules/backend.js` (+ `supabase/`) — approval required; billing model in §9 |
+| Credits/wallet in offline mode | `js/modules/credit-ledger.js` |
 | Serverless AI endpoint | `api/gemini-assistant.js` |
 | Headers / rewrites / deploy | `vercel.json` |
 
@@ -155,7 +156,41 @@ Rule of thumb: **preview = frontend; terbit = frontend + DB.** Never split those
 - The repo's `supabase/` schema can lag the **live** DB. Before touching billing/RPC/migrations, read the
   **live** function/table definitions (e.g. from the Supabase SQL editor). Do not assume repo schema = live.
 - Example of past drift: `issue_document` argument list differed between repo files and the live DB.
+- `supabase/migrations/` in this repo is a **record of what was applied**, not a replayable chain — some live
+  migrations (e.g. `category_wallet_billing`, `topup_package_validation`, `admin_push_notifications`) are not in the repo.
+  Prefer an idempotent SQL script shown to the user over `supabase db push`, which is unsafe here.
 - `sw.js` serves the app shell offline; stale caches can mask frontend changes during testing
   (unregister the SW / use a fresh origin).
 
-_Last updated: 2026-10-17 (Phase 1 renderer/UX branch)._
+---
+
+## 9. Billing model (live, since Fase 5 — 2026-10-17)
+
+Wallet = `ledger_accounts`: `trial_credits` (documents, default 10) + `balance` (Rupiah). The legacy
+`credits` column is unused. Price per document = **`document_templates.price_per_doc` ?? `document_categories.price_per_doc`**
+(`price_per_doc = 0` means free). Mirrored in the frontend by `effectiveDocPrice()` in `js/modules/template-engine.js`.
+
+| Tier | Templates | Price |
+|---|---|---|
+| A — free | `nota-kontan`, `kwitansi-a4`, `struk-pos`, `invoice-digital` | Rp0 (does not consume trial) |
+| B — standard | `finance` Rp1.000 · `umkm`/`logistik` Rp500 | per document |
+| C — premium | `proyek`, `legal`, `pajak`, `operasional` | Rp2.500 per document |
+
+Category unlock (`category_unlocks`, one-time): Rp39.000 per tier-C category, Rp129.000 for all
+(`billing_settings.all_categories_price`). An unlocked category is free forever and beats trial.
+
+Charge order in `issue_document` (server) / `tryDebit` (offline): unlocked category → free template →
+`trial_credits` → `balance`. Insufficient balance returns `false` (no error, no charge). Ledger reasons:
+`free_issue`, `unlock_issue`, `trial_issue`, `issue`, `unlock_category`, `unlock_all`, `topup`.
+
+RPCs: `get_categories()` (now includes `unlock_price`), `get_my_unlocks()`, `unlock_category(text)`,
+`unlock_all_categories()`, `issue_document(...)`, plus the unchanged top-up flow
+(`get_packages`, `request_topup`, `approve_topup`) which tops up `balance`.
+
+> Changing any price/RPC here is a **billing change** → show the SQL and get explicit approval first.
+> After changing prices in the DB, update `LOCAL_CATEGORIES` (`backend.js`), `credit-ledger.js`
+> (`PACKAGES`, `UNLOCK_ALL_PRICE`), and `price_per_doc` in the tier-A template modules.
+
+---
+
+_Last updated: 2026-10-17 (Phase 5 billing branch)._

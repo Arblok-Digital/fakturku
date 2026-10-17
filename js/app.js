@@ -1,4 +1,4 @@
-﻿import { TEMPLATES, getTemplate, renderDoc, getCategory } from "./modules/template-engine.js";
+﻿import { TEMPLATES, getTemplate, renderDoc, getCategory, effectiveDocPrice, priceLabel } from "./modules/template-engine.js";
 import {
   blankState, getPath, setPath, totals, saveCurrent, loadCurrent,
   listDrafts, saveDraft, deleteDraft, getDraft, PREFIX,
@@ -24,6 +24,8 @@ const remote = { session: null, credits: null, trialCredits: null, balance: null
 
 /* category cache */
 let categoriesCache = [];
+/* kategori yang sudah dibuka user (sekali bayar) — harga dokumen di kategori ini jadi Gratis */
+let unlockedCategories = [];
 
 const $ = (sel) => document.querySelector(sel);
 const editor = $("#editor");
@@ -66,11 +68,6 @@ function render() {
   fitPreview();
 }
 
-function currentCredits() {
-  if (backend.isRemote()) return remote.credits ?? 0;
-  return ledger.creditsLeft();
-}
-
 function updateKuota() {
   const el = $("#kuota");
   if (backend.isRemote() && remote.trialCredits === null) {
@@ -87,10 +84,10 @@ function updateKuota() {
     el.classList.toggle("empty", trial <= 0 && balance <= 0);
     return;
   }
-  const n = currentCredits();
-  el.textContent = n > 0 ? `Kuota: ${n}` : "Kuota habis";
-  el.title = `Sisa kuota lokal: ${n}`;
-  el.classList.toggle("empty", n <= 0);
+  const b = ledger.billingState();
+  el.textContent = `T${b.trialCredits} · ${rupiah(b.balance)}`;
+  el.title = `Trial tersisa: ${b.trialCredits} dokumen. Saldo: ${rupiah(b.balance)}`;
+  el.classList.toggle("empty", b.trialCredits <= 0 && b.balance <= 0);
 }
 
 function reserveServerNumberForCurrentState() {
@@ -275,9 +272,8 @@ function renderTemplatePicker() {
     return activeFilter === "all" || cat === activeFilter;
   });
   gridEl.innerHTML = visible.length ? visible.map((t) => {
-    const meta = categoriesCache.find((c) => c.id === (t.category || "finance"));
-    const price = meta?.price_per_doc || 1000;
-    return `<option value="${esc(t.id)}" ${state.template === t.id ? "selected" : ""}>${esc(t.label)} · ${rupiah(price)}/dok</option>`;
+    const price = effectiveDocPrice(t.id, categoriesCache, unlockedCategories);
+    return `<option value="${esc(t.id)}" ${state.template === t.id ? "selected" : ""}>${esc(t.label)} — ${priceLabel(price)}</option>`;
   }).join("") : `<option value="" selected disabled>Format belum tersedia di kategori ini</option>`;
   if (visible.some((t) => t.id === state.template)) gridEl.value = state.template;
 }
@@ -458,8 +454,9 @@ async function markIssued() {
       if (!reserved || state._serverNumberRequired) return false;
     }
     let ok = false;
-    try { ok = await backend.tryDebit(state.number, category, state.template, state); }
-    catch { toast("Server tidak terhubung — coba lagi."); return false; }
+    const docPrice = effectiveDocPrice(state.template, categoriesCache, unlockedCategories);
+    try { ok = await backend.tryDebit(state.number, category, state.template, state, docPrice); }
+    catch { toast("Server tidak terhubung - coba lagi."); return false; }
     if (!ok) { openTopUp(); return false; }
     await refreshRemoteBilling();
     state.issued = true;
@@ -468,7 +465,8 @@ async function markIssued() {
     render();
     return true;
   }
-  if (!ledger.tryDebit(state.number, category)) { openTopUp(); return false; }
+  const localPrice = effectiveDocPrice(state.template, categoriesCache, unlockedCategories);
+  if (!ledger.tryDebit(state.number, category, localPrice)) { openTopUp(); return false; }
   state.issued = true;
   saveCurrent(state);
   render();
@@ -552,7 +550,7 @@ const modal = $("#topup-modal");
 function showPackages() {
   const packages = backend.isRemote()
     ? remote.packages
-    : ledger.PACKAGES.map((p, i) => ({ ...p, id: String(i), label: `${p.credits} dokumen`, balance_amount: p.price }));
+    : ledger.PACKAGES.map((p) => ({ ...p, credits: 0 }));
   $("#pkg-list").innerHTML = (packages || []).map((p) =>
     `<button class="pkg" type="button" data-pkg="${esc(p.id)}">
        <span class="c">${esc(p.label || (p.credits + " dokumen"))}</span>
@@ -586,15 +584,22 @@ function showPending(rec) {
 
 function renderBillingHistory(list) {
   const hist = (list || ledger.requestHistory()).slice().reverse().slice(0, 20);
+  const MONETARY = ["topup", "issue", "unlock_category", "unlock_all"];
   $("#hist-list").innerHTML = hist.length
     ? hist.map((h) => {
-        const monetary = h.reason === "topup" || h.reason === "issue";
+        const monetary = MONETARY.includes(h.reason);
+        const free = h.reason === "free_issue" || h.reason === "unlock_issue";
         const plus = h.amount > 0;
         const label = h.ref === "TRIAL" || h.reason === "trial" ? "Trial gratis"
           : h.reason === "topup" ? "Top-up saldo"
+          : free ? "Dokumen gratis"
+          : h.reason === "unlock_category" ? "Buka kategori"
+          : h.reason === "unlock_all" ? "Buka semua kategori"
           : h.reason === "issue" ? "Biaya dokumen"
           : plus ? "Saldo masuk" : "Ekspor dokumen";
-        const amountLabel = monetary ? rupiah(Math.abs(h.amount)) : `${Math.abs(h.amount)} dokumen`;
+        const amountLabel = free ? "Gratis"
+          : monetary ? rupiah(Math.abs(h.amount))
+          : `${Math.abs(h.amount)} dokumen`;
         const d = new Date(h.at);
         const when = d.toLocaleDateString("id-ID", { day: "2-digit", month: "short" }) + " " +
           d.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
@@ -604,8 +609,8 @@ function renderBillingHistory(list) {
           : "";
         return `<div class="hist-row">
           <span class="lbl">${label}${catBadge}${h.ref && h.ref !== "TRIAL" ? `<span class="sub">${esc(h.ref)} · ${when}</span>` : `<span class="sub">${when}</span>`}</span>
-          <span class="amt ${plus ? "plus" : "minus"}">${plus ? "+" : ""}${amountLabel}</span>
-          <span class="sisa">${h.sisa != null ? (monetary ? "saldo " + rupiah(h.sisa) : "sisa " + h.sisa) : ""}</span>
+          <span class="amt ${plus ? "plus" : free ? "" : "minus"}">${plus ? "+" : ""}${amountLabel}</span>
+          <span class="sisa">${free || h.sisa == null ? "" : (monetary ? "saldo " + rupiah(h.sisa) : "sisa " + h.sisa)}</span>
         </div>`;
       }).join("")
     : `<div class="hist-empty">Belum ada transaksi.</div>`;
@@ -623,7 +628,31 @@ function renderCatPrices() {
       <span class="cat-badge" style="background:${c.color}22;color:${c.color}">${c.icon} ${esc(c.label)}</span>
       <span class="cat-price mono">${rupiah(c.price_per_doc)}/dok</span>
     </div>`
-  ).join("");
+  ).join("") + `<div class="hint-line">Nota kontan, kwitansi, struk POS, dan invoice digital selalu <b>Gratis</b>.</div>`;
+}
+
+/* Buka kategori sekali bayar — harga dari DB (get_categories.unlock_price). */
+function renderCatUnlocks() {
+  const wrap = $("#cat-unlocks");
+  const list = $("#cat-unlock-list");
+  if (!wrap || !list) return;
+  const unlockable = categoriesCache.filter((c) => c.active !== false && Number(c.unlock_price) > 0);
+  if (!unlockable.length) { wrap.hidden = true; return; }
+  wrap.hidden = false;
+  const remaining = unlockable.filter((c) => !unlockedCategories.includes(c.id));
+  const rows = unlockable.map((c) => {
+    const open = unlockedCategories.includes(c.id);
+    return `<div class="cat-price-row">
+      <span class="cat-badge" style="background:${c.color}22;color:${c.color}">${c.icon} ${esc(c.label)}</span>
+      ${open
+        ? `<span class="cat-price mono">Terbuka · Gratis</span>`
+        : `<button class="btn" type="button" data-unlock="${esc(c.id)}">Buka · ${rupiah(c.unlock_price)}</button>`}
+    </div>`;
+  }).join("");
+  const bundle = remaining.length > 1
+    ? `<button class="btn" type="button" data-unlock-all="1">Buka semua kategori · ${rupiah(ledger.UNLOCK_ALL_PRICE)}</button>`
+    : "";
+  list.innerHTML = rows + bundle;
 }
 
 async function openTopUp() {
@@ -637,13 +666,15 @@ async function openTopUp() {
     try { categoriesCache = await backend.getCategories(); } catch { /* ignore */ }
   }
   renderCatPrices();
-  const n = currentCredits();
+  try { unlockedCategories = await backend.getMyUnlocks(); } catch { /* pakai cache */ }
+  renderCatUnlocks();
   if (backend.isRemote()) {
     $("#q-status").innerHTML = `Trial tersisa: <b id="q-n">${Number(remote.trialCredits) || 0}</b> · Saldo: <b>${rupiah(Number(remote.balance) || 0)}</b>`;
     $("#q-status").classList.toggle("empty", (Number(remote.trialCredits) || 0) <= 0 && (Number(remote.balance) || 0) <= 0);
   } else {
-    $("#q-n").textContent = n;
-    $("#q-status").classList.toggle("empty", n <= 0);
+    const b = ledger.billingState();
+    $("#q-status").innerHTML = `Trial tersisa: <b id="q-n">${b.trialCredits}</b> · Saldo: <b>${rupiah(b.balance)}</b>`;
+    $("#q-status").classList.toggle("empty", b.trialCredits <= 0 && b.balance <= 0);
   }
   $("#topup-contact").innerHTML = `<span class="topup-transfer-instruction"><strong>Transfer untuk top-up</strong><span>Pilih paket di atas, lalu transfer sesuai nominalnya ke e-wallet berikut. Saldo diproses setelah admin memverifikasi pembayaran.</span></span><span class="topup-wallet-row"><span class="topup-wallet-icon" role="img" aria-label="Ikon e-wallet"><svg viewBox="0 0 72 28" width="72" height="28" aria-hidden="true" focusable="false"><rect x="1" y="1" width="70" height="26" rx="13" fill="#118EEA"/><text x="36" y="18.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="700" letter-spacing=".3" fill="#fff">DANA</text></svg></span><span class="topup-wallet-number mono">${ledger.CONTACT}</span></span><span class="topup-transfer-note">Setelah transfer, simpan bukti pembayaran. ID permintaan dan langkah konfirmasi akan muncul setelah paket dipilih.</span>`;
   renderBillingHistory(backend.isRemote() ? remote.history : ledger.requestHistory());
@@ -661,7 +692,7 @@ $("#pkg-list").addEventListener("click", async (e) => {
   if (key == null) return;
   const pkg = backend.isRemote()
     ? remote.packages.find((p) => p.id === key)
-    : ledger.PACKAGES[Number(key)];
+    : ledger.PACKAGES.find((p) => p.id === key);
   if (!pkg) { toast("Paket tidak ditemukan. Muat ulang panel top-up."); return; }
   if (backend.isRemote()) {
     try {
@@ -701,7 +732,7 @@ $("#btn-redeem").addEventListener("click", () => {
     $("#topup-code").value = "";
     openTopUp();
     updateKuota();
-    toast("Top-up masuk — sisa kuota: " + ledger.creditsLeft());
+    toast("Top-up masuk — saldo sekarang " + rupiah(ledger.billingState().balance));
   } else {
     toast("Kode salah, atau belum ada permintaan top-up");
   }
@@ -714,6 +745,35 @@ $("#topup-code").addEventListener("keydown", (e) => {
 $("#topup-close").addEventListener("click", () => { modal.hidden = true; });
 modal.addEventListener("click", (e) => { if (e.target === modal) modal.hidden = true; });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !modal.hidden) modal.hidden = true; });
+
+/* buka kategori sekali bayar (saldo Rupiah) */
+$("#cat-unlock-list").addEventListener("click", async (e) => {
+  const one = e.target.closest("[data-unlock]");
+  const all = e.target.closest("[data-unlock-all]");
+  if (!one && !all) return;
+  const cat = one ? one.dataset.unlock : "";
+  const meta = cat ? categoriesCache.find((c) => c.id === cat) : null;
+  if (cat && !meta) return;
+  const price = cat ? Number(meta.unlock_price) || 0 : ledger.UNLOCK_ALL_PRICE;
+  const nama = cat ? meta.label : "semua kategori";
+  if (!confirm(`Buka ${nama} seharga ${rupiah(price)}? Saldo langsung dipotong dan berlaku seterusnya.`)) return;
+  try {
+    const res = cat
+      ? await backend.unlockCategory(cat, price)
+      : await backend.unlockAllCategories(categoriesCache, ledger.UNLOCK_ALL_PRICE);
+    if (res && res.ok) {
+      toast(res.already ? `Kategori ${nama} sudah terbuka` : `Kategori ${nama} terbuka — dokumennya Gratis selamanya`);
+      await refreshRemoteBilling();
+      await openTopUp();
+    } else if (res?.reason === "insufficient") {
+      toast(`Saldo kurang. Butuh ${rupiah(res.price || price)} — saldo kamu ${rupiah(res.balance || 0)}.`);
+    } else {
+      toast("Gagal membuka kategori. Coba lagi.");
+    }
+  } catch (err) {
+    toast("Gagal membuka kategori: " + (err?.message || "server"));
+  }
+});
 $("#kuota").addEventListener("click", openTopUp);
 $("#kuota").setAttribute("role", "button");
 $("#kuota").setAttribute("tabindex", "0");
@@ -789,19 +849,21 @@ $("#auth-pass").addEventListener("keydown", (e) => { if (e.key === "Enter") auth
 
 async function refreshRemoteBilling() {
   try {
-    const [billing, h, p] = await Promise.all([
-      backend.billingState(), backend.history(), backend.pendingTopup(),
+    const [billing, h, p, u] = await Promise.all([
+      backend.billingState(), backend.history(), backend.pendingTopup(), backend.getMyUnlocks(),
     ]);
     remote.credits = billing.credits;
     remote.trialCredits = billing.trialCredits;
     remote.balance = billing.balance;
     remote.history = h;
     remote.pending = p;
+    unlockedCategories = Array.isArray(u) ? u : [];
   } catch (e) {
     console.warn("billing refresh gagal", e);
     toast("Saldo belum tersinkron. Coba muat ulang.");
   }
   updateKuota();
+  renderTemplatePicker();
 }
 
 async function handleSession(session) {
@@ -846,7 +908,7 @@ $("#btn-auth").addEventListener("click", async () => {
 /* ---------- panel admin (hanya role admin) ----------
    Isi panel ini setara admin.html, tapi menyatu di dalam app supaya satu
    link login. Panel murni UI: wewenang sebenarnya dijaga server — approve,
-   reject, set_role, dan adjust_credits semuanya memakai is_admin() di database.
+   reject, set_role, dan adjust_balance semuanya memakai is_admin() di database.
    Di sini kita hanya menyembunyikan/menampilkan panel dan memanggil RPC. */
 const adminModal = $("#admin-modal");
 let adminAllowed = false;
@@ -875,7 +937,7 @@ function renderAdminTopups(rows) {
     return `<tr>
       <td data-label="Waktu">${admEsc(admWhen(r.created_at))}</td>
       <td data-label="User">${admEsc(admWho(r.profiles, r.user_id))}</td>
-      <td data-label="Paket">${Number(r.credits) || 0} dok</td>
+      <td class="mono" data-label="Saldo masuk">Rp ${Number(r.balance_amount ?? r.price ?? 0).toLocaleString("id-ID")}</td>
       <td class="mono" data-label="Harga">Rp ${Number(r.price || 0).toLocaleString("id-ID")}</td>
       <td class="mono" data-label="ID">${admEsc(r.code)}</td>
       <td data-label="Status"><span class="admin-chip ${admEsc(String(r.status || ""))}">${admEsc(r.status || "—")}</span></td>
@@ -895,9 +957,9 @@ function renderAdminUsers(rows) {
       <td data-label="Role"><select class="mini" data-role="${admEsc(u.id)}" aria-label="Role ${admEsc(u.email)}">
         ${["pic", "admin", "viewer"].map((r) => `<option value="${r}"${u.role === r ? " selected" : ""}>${r}</option>`).join("")}
       </select></td>
-      <td class="mono" data-label="Kuota">${Number(u.credits) || 0}</td>
-      <td data-label="Adjust"><span class="admin-cred">
-        <input type="number" data-adj="${admEsc(u.id)}" value="10" step="1" aria-label="Jumlah adjust untuk ${admEsc(u.email)}">
+      <td class="mono" data-label="Saldo">Rp ${Number(u.balance || 0).toLocaleString("id-ID")}<br><span class="muted">trial ${Number(u.trialCredits || 0)} dok</span></td>
+      <td data-label="Adjust saldo (Rp)"><span class="admin-cred">
+        <input type="number" data-adj="${admEsc(u.id)}" value="10000" step="1000" aria-label="Jumlah adjust saldo untuk ${admEsc(u.email)}">
         <button class="admin-act" type="button" data-adjgo="${admEsc(u.id)}">Kirim</button>
       </span></td>
     </tr>`).join("");
@@ -905,14 +967,19 @@ function renderAdminUsers(rows) {
 }
 
 function renderAdminTx(rows) {
+  const MONETARY = ["topup", "issue", "unlock_category", "unlock_all"];
   $("#adm-tx-body").innerHTML = rows.map((t) => {
-    const d = Number(t.delta) || 0;
+    const monetary = MONETARY.includes(t.reason);
+    const amount = monetary ? Number(t.balance_delta) || 0 : Number(t.trial_delta) || Number(t.delta) || 0;
+    const sisa = monetary ? t.balance_after : (t.trial_after ?? t.credits_after);
+    const label = monetary ? cashRp(Math.abs(amount)) : Math.abs(amount) + " dok";
+    const sisaLabel = sisa == null ? "—" : (monetary ? cashRp(sisa) : sisa + " dok");
     return `<tr>
       <td data-label="Waktu">${admEsc(admWhen(t.created_at))}</td>
       <td data-label="User">${admEsc(admWho(t.profiles, t.user_id))}</td>
-      <td class="mono ${d >= 0 ? "plus" : "minus"}" data-label="Delta">${d > 0 ? "+" : ""}${d}</td>
+      <td class="mono ${amount >= 0 ? "plus" : "minus"}" data-label="Jumlah">${amount > 0 ? "+" : "-"}${label} <span class="muted">${admEsc(t.reason || "")}</span></td>
       <td class="mono" data-label="Ref">${admEsc(t.ref || "")}</td>
-      <td class="mono" data-label="Sisa">${t.credits_after ?? "—"}</td>
+      <td class="mono" data-label="Sisa saldo">${admEsc(sisaLabel)}</td>
     </tr>`;
   }).join("");
   $("#adm-tx-empty").hidden = rows.length > 0;
@@ -980,7 +1047,7 @@ function cashAggregate() {
   return {
     count: approved.length,
     revenue,
-    credits: approved.reduce((s, r) => s + (Number(r.credits) || 0), 0),
+    credits: approved.reduce((s, r) => s + (Number(r.balance_amount) || 0), 0),
     avg: approved.length ? Math.round(revenue / approved.length) : 0,
     pendingCount: pending.length,
     pendingSum: pending.reduce((s, r) => s + (Number(r.price) || 0), 0),
@@ -1011,7 +1078,7 @@ function renderCashflow() {
   $("#adm-cash-revenue").textContent = cashRp(agg.revenue);
   $("#adm-cash-count").textContent = agg.count;
   $("#adm-cash-avg").textContent = agg.avg ? cashRp(agg.avg) : "—";
-  $("#adm-cash-credits").textContent = agg.credits;
+  $("#adm-cash-credits").textContent = cashRp(agg.credits);
   $("#adm-cash-pending").textContent = cashRp(agg.pendingSum);
   $("#adm-cash-pending").parentElement.title = agg.pendingCount + " permintaan menunggu";
 
@@ -1233,7 +1300,7 @@ $("#adm-us-body").addEventListener("click", async (e) => {
   if (!delta) { toast("Isi jumlah adjust dulu."); return; }
   if (!confirm("Adjust kuota " + (delta > 0 ? "+" : "") + delta + " untuk user ini?")) return;
   try {
-    await backend.adjustCredits(id, delta, "manual admin");
+    await backend.adjustBalance(id, delta, "manual admin");
     toast("Kuota disesuaikan " + (delta > 0 ? "+" : "") + delta + ".");
     await loadAdminPanel();
   } catch (err) {

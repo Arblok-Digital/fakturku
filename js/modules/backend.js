@@ -87,7 +87,7 @@ export async function isAdminUser() {
 
 export async function billingState() {
   if (!sb) {
-    return { credits: local.creditsLeft(), trialCredits: local.creditsLeft(), balance: 0 };
+    return local.billingState();
   }
   const user = await getUser();
   if (!user) return { credits: 0, trialCredits: 0, balance: 0 };
@@ -123,8 +123,8 @@ export async function nextDocumentNumber(category) {
   return data;
 }
 
-export async function tryDebit(ref, category, template, documentData) {
-  if (!sb) return local.tryDebit(ref, category);
+export async function tryDebit(ref, category, template, documentData, price) {
+  if (!sb) return local.tryDebit(ref, category, price);
   const user = await getUser();
   if (!user) return false;
   if (!template || !documentData || typeof documentData !== "object") {
@@ -150,14 +150,16 @@ export async function history() {
     .order("created_at", { ascending: false })
     .limit(30);
   if (error) throw error;
+  /* reason moneter = mengubah saldo Rupiah; sisanya = potong trial (dokumen). */
+  const MONETARY = ["topup", "issue", "unlock_category", "unlock_all"];
   return (data ?? []).map((r) => ({
     at: r.created_at,
-    amount: ["topup", "issue"].includes(r.reason) ? Number(r.balance_delta) || 0
+    amount: MONETARY.includes(r.reason) ? Number(r.balance_delta) || 0
       : Number(r.trial_delta) || Number(r.delta) || 0,
     reason: r.reason || "",
     ref: r.ref || "",
     category: r.category || "",
-    sisa: ["topup", "issue"].includes(r.reason) ? r.balance_after : (r.trial_after ?? r.credits_after),
+    sisa: MONETARY.includes(r.reason) ? r.balance_after : (r.trial_after ?? r.credits_after),
     balanceAfter: r.balance_after,
     trialAfter: r.trial_after,
   }));
@@ -230,12 +232,7 @@ export async function getCategories(force) {
 export async function getPackages(force) {
   if (_packages && !force) return _packages;
   if (!sb) {
-    _packages = local.PACKAGES.map((p, i) => ({
-      id: ["starter", "bisnis", "pro"][i] || `pkg${i}`,
-      label: `${p.credits} dokumen`,
-      credits: p.credits,
-      price: p.price,
-    }));
+    _packages = local.PACKAGES.map((p) => ({ ...p, credits: 0 }));
     return _packages;
   }
   const { data, error } = await sb.rpc("get_packages");
@@ -244,19 +241,44 @@ export async function getPackages(force) {
   return _packages;
 }
 
+/* ---------- buka kategori (sekali bayar) ---------- */
+
+export async function getMyUnlocks() {
+  if (!sb) return local.unlocks();
+  const user = await getUser();
+  if (!user) return [];
+  const { data, error } = await sb.rpc("get_my_unlocks");
+  if (error) throw error;
+  return Array.isArray(data) ? data : [];
+}
+
+export async function unlockCategory(category, price) {
+  if (!sb) return local.unlockCategory(category, price);
+  const { data, error } = await sb.rpc("unlock_category", { p_category: category });
+  if (error) throw error;
+  return data || { ok: false, reason: "server" };
+}
+
+export async function unlockAllCategories(categories, price) {
+  if (!sb) return local.unlockAllCategories(categories, price);
+  const { data, error } = await sb.rpc("unlock_all_categories");
+  if (error) throw error;
+  return data || { ok: false, reason: "server" };
+}
+
 export function getCategoryMeta(categories, id) {
   return (categories || []).find((c) => c.id === id) || null;
 }
 
-/* fallback lokal (tanpa Supabase) — kategori default */
+/* fallback lokal (tanpa Supabase) — harga & buka kategori disamakan dengan DB live */
 const LOCAL_CATEGORIES = [
-  { id: "finance",     label: "Finance",     icon: "💰", color: "#16324F", price_per_doc: 1000, prefix: "FIN", active: true, sort_order: 1 },
-  { id: "legal",       label: "Legal",       icon: "⚖️", color: "#4A3B7A", price_per_doc: 2000, prefix: "LEG", active: true, sort_order: 2 },
-  { id: "umkm",        label: "UMKM",        icon: "🏪", color: "#0E7C6B", price_per_doc: 500,  prefix: "UMK", active: true, sort_order: 3 },
-  { id: "logistik",    label: "Logistik",    icon: "📦", color: "#B45309", price_per_doc: 500,  prefix: "LOG", active: true, sort_order: 4 },
-  { id: "pajak",       label: "Pajak",       icon: "🧾", color: "#A4291F", price_per_doc: 1500, prefix: "PKT", active: true, sort_order: 5 },
-  { id: "proyek",      label: "Proyek",      icon: "🏗️", color: "#2D6A4F", price_per_doc: 1500, prefix: "PRJ", active: true, sort_order: 6 },
-  { id: "operasional", label: "Operasional", icon: "📋", color: "#475569", price_per_doc: 750,  prefix: "OPS", active: true, sort_order: 7 },
+  { id: "finance",     label: "Finance",     icon: "💰", color: "#16324F", price_per_doc: 1000, unlock_price: null,  prefix: "FIN", active: true, sort_order: 1 },
+  { id: "legal",       label: "Legal",       icon: "⚖️", color: "#4A3B7A", price_per_doc: 2500, unlock_price: 39000, prefix: "LEG", active: true, sort_order: 2 },
+  { id: "umkm",        label: "UMKM",        icon: "🏪", color: "#0E7C6B", price_per_doc: 500,  unlock_price: null,  prefix: "UMK", active: true, sort_order: 3 },
+  { id: "logistik",    label: "Logistik",    icon: "📦", color: "#B45309", price_per_doc: 500,  unlock_price: null,  prefix: "LOG", active: true, sort_order: 4 },
+  { id: "pajak",       label: "Pajak",       icon: "🧾", color: "#A4291F", price_per_doc: 2500, unlock_price: 39000, prefix: "PKT", active: true, sort_order: 5 },
+  { id: "proyek",      label: "Proyek",      icon: "🏗️", color: "#2D6A4F", price_per_doc: 2500, unlock_price: 39000, prefix: "PRJ", active: true, sort_order: 6 },
+  { id: "operasional", label: "Operasional", icon: "📋", color: "#475569", price_per_doc: 2500, unlock_price: 39000, prefix: "OPS", active: true, sort_order: 7 },
 ];
 
 // ---------- invoices (cloud sync) ----------
@@ -298,7 +320,7 @@ async function fetchProfileMap() {
 export async function adminPending() {
   const [reqRes, profMap] = await Promise.all([
     sb.from("topup_requests")
-      .select("code, credits, price, status, created_at, user_id")
+      .select("code, credits, price, balance_amount, status, created_at, user_id")
       .order("created_at", { ascending: false })
       .limit(50),
     fetchProfileMap(),
@@ -325,19 +347,21 @@ export async function rejectTopup(code) {
 export async function adminUsers() {
   const [profRes, ledRes] = await Promise.all([
     sb.from("profiles").select("id, full_name, email, role, created_at"),
-    sb.from("ledger_accounts").select("user_id, credits"),
+    sb.from("ledger_accounts").select("user_id, credits, trial_credits, balance"),
   ]);
   if (profRes.error) throw profRes.error;
   if (ledRes.error) throw ledRes.error;
   const ledMap = {};
-  for (const l of ledRes.data ?? []) ledMap[l.user_id] = l.credits;
+  for (const l of ledRes.data ?? []) ledMap[l.user_id] = l;
   return (profRes.data ?? []).map((u) => ({
     id: u.id,
     name: u.full_name || "-",
     email: u.email || "-",
     role: u.role,
     created: u.created_at,
-    credits: ledMap[u.id] ?? 0,
+    credits: ledMap[u.id]?.credits ?? 0,
+    trialCredits: ledMap[u.id]?.trial_credits ?? 0,
+    balance: ledMap[u.id]?.balance ?? 0,
   }));
 }
 
@@ -346,8 +370,9 @@ export async function setRole(userId, role) {
   if (error) throw error;
 }
 
-export async function adjustCredits(userId, delta, note) {
-  const { error } = await sb.rpc("adjust_credits", {
+/* Tambah/kurangi saldo Rupiah user (admin). Sumber: RPC adjust_balance. */
+export async function adjustBalance(userId, delta, note) {
+  const { error } = await sb.rpc("adjust_balance", {
     p_user_id: userId,
     p_delta: delta,
     p_note: note || "",
@@ -358,7 +383,7 @@ export async function adjustCredits(userId, delta, note) {
 export async function adminTransactions() {
   const [txRes, profMap] = await Promise.all([
     sb.from("credit_transactions")
-      .select("created_at, delta, reason, ref, credits_after, user_id")
+      .select("created_at, delta, reason, ref, credits_after, trial_delta, trial_after, balance_delta, balance_after, user_id")
       .order("created_at", { ascending: false })
       .limit(30),
     fetchProfileMap(),
@@ -399,7 +424,7 @@ export async function adminPendingCount() {
 export async function topupLedger(limit = 2000) {
   const { data, error } = await sb
     .from("topup_requests")
-    .select("code, credits, price, status, created_at, user_id")
+    .select("code, credits, price, balance_amount, status, created_at, user_id")
     .order("created_at", { ascending: false })
     .limit(limit);
   if (error) throw error;
