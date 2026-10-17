@@ -236,10 +236,22 @@ $("#btn-add-item").addEventListener("click", () => {
 /* ---------- compact template picker ---------- */
 let activeFilter = "all";
 
+/* F10: urutan tampil kategori di picker (display-only, tidak mengubah data/DB).
+   DB (get_categories) tetap sumber kebenaran; ini hanya prioritas tampil,
+   menaruh kebutuhan UMKM/logistik/proyek lebih dulu. */
+const CATEGORY_DISPLAY_ORDER = ["umkm", "logistik", "proyek", "finance", "legal", "operasional", "pajak"];
+function orderCategoriesForDisplay(list) {
+  return list.slice().sort((a, b) => {
+    const ia = CATEGORY_DISPLAY_ORDER.indexOf(a.id);
+    const ib = CATEGORY_DISPLAY_ORDER.indexOf(b.id);
+    return (ia < 0 ? 999 : ia) - (ib < 0 ? 999 : ib);
+  });
+}
+
 function renderTemplatePicker() {
   const filterEl = $("#tpl-filter");
   const gridEl = $("#tpl-grid");
-  const cats = categoriesCache.length ? categoriesCache : [
+  const cats = orderCategoriesForDisplay(categoriesCache.length ? categoriesCache : [
     { id: "finance", label: "Finance", icon: "💰" },
     { id: "legal", label: "Legal", icon: "⚖️" },
     { id: "umkm", label: "UMKM", icon: "🏪" },
@@ -247,7 +259,7 @@ function renderTemplatePicker() {
     { id: "pajak", label: "Pajak", icon: "🧾" },
     { id: "proyek", label: "Proyek", icon: "🏗️" },
     { id: "operasional", label: "Operasional", icon: "📋" },
-  ];
+  ]);
   const filterCats = [{ id: "all", label: "Semua kategori", icon: "" }, ...cats.filter((c) => c.active !== false)];
   if (!filterCats.some((c) => c.id === activeFilter)) activeFilter = "all";
   filterEl.innerHTML = filterCats.map((c) =>
