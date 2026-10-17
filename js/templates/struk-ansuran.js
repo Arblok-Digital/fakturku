@@ -34,12 +34,22 @@ export default {
 
       <div class="th-rule"></div>
       ${s.remaining ? kv("Sisa Tagihan", h.rupiah(s.remaining)) : ""}
-      ${kv("Diterima oleh", h.esc(s.signatures.maker.name) || "-")}
 
-      <div class="th-sign">
-        <div class="space"></div>
-        <div class="th-rule solid"></div>
-        <div>${h.esc(s.signatures.maker.name) || "(..........................)"}</div>
+      <div class="th-sign2">
+        <div class="col">
+          <div class="lbl">Dibuat oleh</div>
+          <div class="space"></div>
+          <div class="th-rule solid"></div>
+          <div class="nm">${h.esc(s.signatures.maker.name) || "(...............)"}</div>
+          ${s.signatures.maker.title ? `<div class="ti">${h.esc(s.signatures.maker.title)}</div>` : ""}
+        </div>
+        <div class="col">
+          <div class="lbl">Diterima oleh</div>
+          <div class="space"></div>
+          <div class="th-rule solid"></div>
+          <div class="nm">${h.esc(s.signatures.receiver.name) || "(...............)"}</div>
+          ${s.signatures.receiver.title ? `<div class="ti">${h.esc(s.signatures.receiver.title)}</div>` : ""}
+        </div>
       </div>
 
       <div class="th-rule"></div>

@@ -541,8 +541,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-weight: 700; font-size: 13px; padding: 4px 0;
 }
 .doc-thermal .th-foot { text-align: center; font-size: 8.5px; margin-top: 6px; white-space: pre-line; }
-.doc-thermal .th-sign { text-align: center; margin-top: 10px; font-size: 9px; }
-.doc-thermal .th-sign .space { height: 40px; }
+.doc-thermal .th-sign2 { display: flex; gap: 10px; margin-top: 10px; font-size: 8.5px; text-align: center; }
+.doc-thermal .th-sign2 .col { flex: 1 1 0; min-width: 0; }
+.doc-thermal .th-sign2 .lbl { color: #000; }
+.doc-thermal .th-sign2 .space { height: 38px; }
+.doc-thermal .th-sign2 .nm { font-weight: 600; word-break: break-word; }
+.doc-thermal .th-sign2 .ti { color: var(--ink-500); word-break: break-word; }
 
 /* digital (screen/share) */
 .doc-screen .d-head { text-align: center; border-bottom: 2px solid var(--navy-700); padding-bottom: 12px; }
