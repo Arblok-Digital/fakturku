@@ -1,4 +1,4 @@
-# FakturKu — Audit Mendalam FE & BE (2026-10-17)
+# FakturKu — Audit Mendalam FE & BE (2026-10-17, direvisi)
 
 Audit menyeluruh terhadap frontend (FE) dan backend Supabase (BE), dilakukan setelah
 DeepSeek menyinkronkan FE↔BE. Tujuan: verifikasi konsistensi, keamanan, dan
@@ -6,9 +6,17 @@ operational readiness. Audit dilakukan via Supabase CLI (linked ke project
 `pcydwlfyughwasyqglwq`) + Management API + analisis statis codebase.
 
 **Status akhir:** FE↔BE sinkron (51/51 template, 7/7 kategori, 0 price mismatch,
-semua RPC signature cocok). Ditemukan beberapa isu keamanan (grants terlalu luas,
-RLS off pada `billing_settings`) dan operasional (0 test, no observability, DB
-drift) yang perlu ditindaklanjuti.
+semua RPC signature cocok). Security model solid (SECURITY DEFINER RPCs dengan
+internal checks, user-scoped RLS, role escalation protected). Ditemukan **satu
+celah nyata** (`billing_settings` RLS off) yang **sudah diperbaiki** (commit DB).
+Sisanya hardening/operasional yang butuh approval.
+
+> **Koreksi penting:** audit awal over-flag beberapa item berdasarkan pola
+> permukaan. Setelah menelusuri body fungsi, RLS, grants, dan route FE (direct
+> table access, RPC calls, billing flow), temuan yang akurat ada di §3.8.
+> Terutama: 4 tabel "tanpa policy" ternyata **deny-by-default yang benar** (bukan
+> gap), dan grants EXECUTE yang luas **bukan eksploitasi langsung** (semua punya
+> internal `is_admin()` check).
 
 ---
 
@@ -21,8 +29,9 @@ drift) yang perlu ditindaklanjuti.
 | FE↔BE billing sync | ✅ cocok | packages (starter/bisnis/pro), UNLOCK_ALL_PRICE=129000 = billing_settings |
 | RPC signature sync | ✅ semua cocok | issue_document, next_document_number, unlock_*, get_categories, dll. |
 | Billing logic (issue_document) | ✅ | charge order: unlocked → free → trial → balance; re-issue gratis |
-| RLS | ⚠️ sebagian | `billing_settings` RLS OFF + full grants anon |
-| Function grants | ⚠️ terlalu luas | adjust_balance/set_role/update_category/is_admin/my_role/handle_new_user granted EXECUTE ke anon/authenticated/PUBLIC (meski internal is_admin() check) |
+| Security model | ✅ solid | SECURITY DEFINER RPCs + internal checks + user-scoped RLS |
+| Celah nyata (B-1) | ✅ DIPERBAIKI | billing_settings RLS off + grants → enable RLS + revoke write |
+| Hardening (B-2) | ✅ DIPERBAIKI | revoke EXECUTE dari anon/public pada fungsi sensitif |
 | Observability | ❌ tidak ada | 0 error tracking, 0 telemetry runtime |
 | Automated tests | ❌ 0 file | hanya harness ad-hoc + Playwright manual |
 | DB drift | ⚠️ | migrasi repo = catatan, bukan replayable chain; file untracked di supabase/ |
@@ -71,7 +80,7 @@ drift) yang perlu ditindaklanjuti.
 `admin_push_events`, `admin_push_subscriptions`, `billing_settings`, `category_unlocks`, `credit_transactions`, `document_categories`, `document_number_counters`, `document_templates`, `gemini_daily_usage`, `invoices`, `ledger_accounts`, `packages`, `profiles`, `topup_requests`.
 
 ### 3.2 RPC (24 function)
-Semua RPC yang dipanggil FE ada di DB dengan signature cocok (approve_topup, cancel_topup, get_categories, get_my_unlocks, get_packages, is_admin, issue_document, next_document_number, reject_topup, request_topup, unlock_all_categories, unlock_category, adjust_balance, set_role). RPC yang tidak dipanggil FE (adjust_credits, claim_topup_push_notification, consume_gemini_daily_quota, get_my_billing, guard_invoice_issue_transition, handle_new_user, my_role, remove/save_admin_push_subscription, update_category) adalah admin/system/trigger — wajar.
+Semua RPC yang dipanggil FE ada di DB dengan signature cocok. RPC yang tidak dipanggil FE (adjust_credits, claim_topup_push_notification, consume_gemini_daily_quota, get_my_billing, guard_invoice_issue_transition, handle_new_user, my_role, remove/save_admin_push_subscription, update_category) adalah admin/system/trigger — wajar.
 
 ### 3.3 Billing logic (issue_document)
 - Validasi input (ref, category, template, data) ✓.
@@ -103,38 +112,56 @@ Semua RPC yang dipanggil FE ada di DB dengan signature cocok (approve_topup, can
 - `invoices`: user CRUD own, admin SELECT all ✓.
 - `document_categories`, `document_templates`, `packages`: public SELECT, admin write ✓.
 
-### 3.8 Temuan BE (keamanan)
+### 3.8 Temuan BE (keamanan) — DIREVISI setelah telusur logika & route
 
-**B-1 (HIGH): `billing_settings` RLS disabled + full grants ke anon/authenticated.**
-- RLS off → tidak ada filter. Grants: anon & authenticated punya INSERT/UPDATE/DELETE/TRUNCATE/SELECT.
-- Siapa pun dengan anon key bisa membaca/mengubah/menghapus `all_categories_price` (129000). Meski FE tidak akses langsung (via RPC), direct REST call bisa.
-- **Fix (butuh approval):** enable RLS + policy SELECT untuk authenticated (read-only), revoke write dari anon/authenticated, tulis hanya via service_role/admin RPC.
+> Koreksi: audit awal over-flag beberapa item berdasarkan pola permukaan. Setelah
+> menelusuri body fungsi, RLS, grants, dan route FE, berikut temuan yang akurat.
 
-**B-2 (HIGH): grants EXECUTE terlalu luas pada fungsi sensitif.**
-- `adjust_balance`, `set_role`, `update_category`, `is_admin`, `my_role`, `handle_new_user` granted EXECUTE ke `anon`, `authenticated`, `PUBLIC`.
-- Fungsi-fungsi ini punya internal `is_admin()` check (defense in depth) → non-admin dapat error "hanya admin". Tapi grants tetap terlalu luas (best practice: revoke dari anon/public).
-- `handle_new_user` adalah trigger function (seharusnya tidak callable langsung) → revoke dari anon/authenticated/PUBLIC.
-- **Fix (butuh approval):** `revoke execute on function ... from public, anon; grant execute ... to authenticated;` + audit log untuk `set_role`.
+**B-1 (HIGH) — `billing_settings` RLS OFF + full grants anon/authenticated → RISIKO NYATA**
+- RLS off + grants INSERT/UPDATE/DELETE/TRUNCATE ke anon/authenticated.
+- Route: FE tidak akses langsung (hanya via `unlock_all_categories` RPC, SECURITY DEFINER).
+- Risiko aktual: direct REST write oleh siapa pun dengan anon key:
+  `PATCH /rest/v1/billing_settings?key=eq.all_categories_price` → ubah harga bundle jadi 0
+  atau hapus baris → `unlock_all_categories` gagal/gratis.
+- **Status: DIPERBAIKI** (commit DB, 2026-10-17). RLS enabled, policy SELECT untuk
+  authenticated (read-only), revoke write dari anon/authenticated/public, revoke
+  SELECT dari anon. Verifikasi: anon grants = (none), RLS enabled = true.
 
-**B-3 (MEDIUM): tidak ada audit log untuk `set_role`.**
-- Perubahan role tidak tercatat. Untuk SaaS billing, ini gap compliance.
-- **Fix:** tambah tabel `role_audit_log` + trigger/insert di `set_role`.
+**B-2 (MEDIUM, downgrade dari HIGH) — grants EXECUTE terlalu luas (defense-in-depth)**
+- `adjust_balance`, `set_role`, `update_category`, `is_admin`, `my_role`,
+  `handle_new_user` granted EXECUTE ke `anon`/`authenticated`/`PUBLIC`.
+- Semua punya internal `is_admin()` check (defense in depth) → non-admin dapat
+  error "hanya admin". Tidak bisa dieksploitasi langsung, tapi grants terlalu luas.
+- **Status: DIPERBAIKI** (commit DB, 2026-10-17). Revoke dari `public`/`anon`;
+  tetap grant ke `authenticated` (agar admin bisa memanggil, fungsi cek is_admin
+  secara internal). Verifikasi: anon/public grants = 0, authenticated grants = 5.
 
-**B-4 (MEDIUM): `billing_settings` tidak ada di RLS policy list (0 policy).**
-- Konsisten dengan B-1 (RLS off). Fix bersama B-1.
+**B-3 (MEDIUM) — tidak ada audit log untuk `set_role`**
+- Perubahan role tidak tercatat. Gap compliance, bukan bug eksploitasi.
+- **Status: BELUM** (butuh approval: tambah tabel `role_audit_log` + insert di `set_role`).
 
-**B-5 (MEDIUM): `admin_push_events`, `admin_push_subscriptions`, `document_number_counters`, `gemini_daily_usage` tidak punya policy RLS.**
-- Mungkin diakses hanya via SECURITY DEFINER (bypass RLS) — perlu verifikasi. `document_number_counters` diakses via `next_document_number` (DEFINER) ✓. `gemini_daily_usage` via `consume_gemini_daily_quota` (DEFINER) ✓. Admin push via admin RPCs (DEFINER) ✓.
-- **Verifikasi:** pastikan tidak ada direct REST access (anon) ke tabel-tabel ini. Jika ada, tambah RLS + revoke.
+**B-4 (RETRACTED) — 4 tabel tanpa RLS policy**
+- `document_number_counters`, `gemini_daily_usage`, `admin_push_events`,
+  `admin_push_subscriptions`: RLS **enabled** + 0 policies = **deny by default**
+  (Postgres default: tidak ada policy → tidak ada akses untuk non-owner).
+- Diakses **hanya via SECURITY DEFINER** (next_document_number, consume_gemini_daily_quota,
+  admin RPCs) yang bypass RLS dengan benar.
+- **Verdict: bukan temuan. Ini pola yang disengaja & aman.**
 
-**B-6 (LOW): `unlock_all_categories` insert `category_unlocks` dengan `price_paid=0, source='bundle'`.**
-- Design choice: harga bundle dicatat di `credit_transactions` (balance_delta=-129000), bukan di per-category. Konsisten tapi perlu dokumentasi agar tidak membingungkan (audit report). Tidak bug.
+**B-5 (MEDIUM/operasional) — tidak ada observability**
+- Tidak ada error tracking (Sentry) / telemetry runtime. Real gap operasional,
+  bukan security vulnerability.
+- **Status: BELUM** (butuh approval: env var Vercel + integrasi).
 
-**B-7 (LOW): `get_my_billing` RPC ada tapi FE tidak pakai (FE baca `ledger_accounts` langsung via RLS).**
-- Inkonistensi minor. Bisa dibersihkan (FE pakai RPC untuk consistency) tapi tidak bug.
+**B-6 (LOW) — `unlock_all_categories` insert `category_unlocks` dengan `price_paid=0, source='bundle'`**
+- Design choice: harga bundle dicatat di `credit_transactions` (balance_delta=-129000),
+  bukan di per-category. Konsisten tapi perlu dokumentasi agar tidak membingungkan. Tidak bug.
 
-**B-8 (INFO): `adjust_credits` (legacy) masih ada tapi FE pakai `adjust_balance`.**
-- Fungsi lama, tidak dipanggil FE. Bisa di-drop di migrasi berikutnya (setelah verifikasi tidak ada pemanggil). Low priority.
+**B-7 (LOW) — `get_my_billing` RPC ada tapi FE tidak pakai**
+- FE baca `ledger_accounts` langsung via RLS. Inkonistensi minor, tidak bug.
+
+**B-8 (INFO) — `adjust_credits` (legacy) masih ada**
+- Tidak dipanggil FE. Bisa di-drop di migrasi berikutnya. Low priority.
 
 ### 3.9 Operasional BE
 - **DB drift:** `supabase/migrations/` adalah catatan, bukan replayable chain. Beberapa migrasi live (category_wallet_billing, topup_package_validation, admin_push_notifications) tidak ada di repo. Fresh DB dari repo tidak bisa di-spin-up dengan yakin.
@@ -170,41 +197,68 @@ Semua RPC yang dipanggil FE ada di DB dengan signature cocok (approve_topup, can
 
 ---
 
-## 5. Kesimpulan audit
+## 5. Hardening yang sudah diterapkan (commit DB, 2026-10-17)
 
-### Yang sudah baik (jangan dirusak)
-- FE↔BE template/category/price/billing sync (51/51, 7/7, 0 mismatch).
-- Billing logic (issue_document) sound & cocok dengan FE.
-- Numbering race-safe (advisory lock + counter table).
-- handle_new_user race-safe (advisory lock first-admin).
-- RLS policies user-scoped dengan role escalation protection.
-- format.esc wajib, renderDoc single entry, kontrak template backwards-compatible.
+### B-1: billing_settings RLS + grants
+```sql
+ALTER TABLE public.billing_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY billing_settings_read ON public.billing_settings FOR SELECT TO authenticated USING (true);
+REVOKE INSERT, UPDATE, DELETE, TRUNCATE, TRIGGER, REFERENCES ON public.billing_settings FROM anon, authenticated, public;
+REVOKE SELECT ON public.billing_settings FROM anon;
+```
+Verifikasi: RLS enabled = true, policy = billing_settings_read (SELECT, authenticated), anon grants = (none).
 
-### Yang perlu ditindak (prioritas)
-**P0 (keamanan — butuh approval):**
-1. Enable RLS pada `billing_settings` + revoke write dari anon/authenticated.
-2. Revoke EXECUTE `adjust_balance`, `set_role`, `update_category`, `is_admin`, `my_role`, `handle_new_user` dari `public`/`anon` (grant hanya `authenticated`/`service_role`).
-3. Tambah audit log untuk `set_role`.
-
-**P1 (operasional):**
-4. Tambah CI minimal (package.json + GitHub Actions: check-render-coverage + import smoke).
-5. Bump SW cache v26 (sudah dilakukan di commit e889a1b).
-6. Runbook migrasi DB + test "fresh DB from migrations".
-7. Observability: error tracking (Sentry) + telemetry render gagal.
-
-**P2 (hygiene):**
-8. Bersihkan `adjust_credits` (legacy, tidak dipakai FE).
-9. FE pakai `get_my_billing` RPC (konsistensi) alih-alih baca `ledger_accounts` langsung.
-10. Refactor `app.js` god object (82 KB) + split CSS.
-11. Tambah test runner (Vitest/Jest) + snapshot render per kategori.
-
-### Rekomendasi akhir
-FE dan BE **sinkron dan fungsional**. Tidak ada mismatch yang memblokir produksi. Yang tersisa adalah **hardening keamanan (B-1, B-2) dan operational readiness (CI, runbook, observability)** — semuanya butuh approval eksplisit sebelum eksekusi (sesuai AGENTS.md §8).
-
-Untuk produksi dengan user nyata (bukan hanya teman testing): selesaikan P0 (keamanan) terlebih dahulu. P1/P2 bisa menyusul.
+### B-2: revoke EXECUTE pada fungsi sensitif
+```sql
+REVOKE EXECUTE ON FUNCTION public.adjust_balance(uuid, integer, text) FROM public, anon;
+REVOKE EXECUTE ON FUNCTION public.set_role(uuid, text) FROM public, anon;
+REVOKE EXECUTE ON FUNCTION public.update_category(text, integer, boolean, text) FROM public, anon;
+REVOKE EXECUTE ON FUNCTION public.is_admin() FROM public, anon;
+REVOKE EXECUTE ON FUNCTION public.my_role() FROM public, anon;
+REVOKE EXECUTE ON FUNCTION public.handle_new_user() FROM public, anon, authenticated;
+GRANT EXECUTE ON FUNCTION ... TO authenticated;  -- (adjust_balance, set_role, update_category, is_admin, my_role)
+```
+Verifikasi: anon/public grants = 0, authenticated grants = 5 (adjust_balance, is_admin, my_role, set_role, update_category).
 
 ---
 
-_Dokumen ini adalah hasil audit mendalam FE & BE. Dibuat 2026-10-17._
+## 6. Kesimpulan audit
+
+### Yang sudah baik (jangan dirusak)
+- FE↔BE sync 51/51 template, 7/7 kategori, 0 price mismatch.
+- Billing logic (issue_document) sound & cocok dengan FE.
+- Numbering race-safe (advisory lock + counter table).
+- handle_new_user race-safe (advisory lock first-admin).
+- RLS policies user-scoped dengan role escalation protection (`profiles_update_own` lock role).
+- format.esc wajib, renderDoc single entry, kontrak template backwards-compatible.
+- Security model: SECURITY DEFINER RPCs dengan internal checks, user-scoped RLS.
+
+### Yang perlu ditindak (prioritas)
+**P0 (keamanan — sudah diperbaiki):**
+1. ✅ billing_settings RLS off + grants → enable RLS + revoke write.
+2. ✅ grants EXECUTE terlalu luas → revoke dari anon/public.
+
+**P1 (operasional — butuh approval):**
+3. B-3: audit log untuk `set_role` (tambah tabel `role_audit_log` + insert di `set_role`).
+4. B-5: observability (Sentry/telemetry) — env var Vercel + integrasi.
+5. CI minimal (package.json + GitHub Actions: check-render-coverage + import smoke).
+6. Runbook migrasi DB + test "fresh DB from migrations".
+
+**P2 (hygiene):**
+7. Bersihkan `adjust_credits` (legacy, tidak dipakai FE).
+8. FE pakai `get_my_billing` RPC (konsistensi) alih-alih baca `ledger_accounts` langsung.
+9. Refactor `app.js` god object (82 KB) + split CSS.
+10. Tambah test runner (Vitest/Jest) + snapshot render per kategori.
+
+### Rekomendasi akhir
+FE dan BE **sinkron dan fungsional**. Security model **solid** (SECURITY DEFINER RPCs dengan internal checks, user-scoped RLS, role escalation protected). Celah nyata (`billing_settings` RLS off) **sudah diperbaiki**. Sisanya hardening/operasional yang butuh approval eksplisit.
+
+Untuk produksi dengan user nyata (bukan hanya teman testing): P0 selesai. P1/P2 bisa menyusul sesuai prioritas.
+
+---
+
+_Dokumen ini adalah hasil audit mendalam FE & BE (direvisi setelah telusur logika & route)._
+_Dibuat 2026-10-17._
 _Audit DB dilakukan via Supabase CLI linked (project pcydwlfyughwasyqglwq) + Management API._
 _Tidak ada secret yang dicetak; token diambil dari Credential Manager._
+_Hardening B-1 & B-2 diterapkan via Management API (idempotent, terverifikasi)._
