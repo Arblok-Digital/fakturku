@@ -19,7 +19,7 @@ export default {
           <div class="nm">${h.esc(s.issuer.name) || "&nbsp;"}</div>
           <div class="addr">${h.esc(s.issuer.address)}</div>
           <div class="mono">NPWP: ${h.esc(s.issuer.npwp)}</div>
-          <div class="mono">Telp: ${h.esc(s.issuer.phone)}</div>
+          <div class="mono">Telp: ${h.esc(s.issuer.phone)}${s.issuer.email ? " · " + h.esc(s.issuer.email) : ""}</div>
         </div>
         <div class="doc-title">
           <div class="t">Kwitansi</div>

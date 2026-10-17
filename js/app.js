@@ -6,6 +6,7 @@ import {
 import { terbilang, rupiah, formatDate, esc } from "./modules/format.js";
 import { nextNumber, getPrefix, nextNumberByCategory } from "./modules/numbering.js";
 import { printDoc, downloadImage, openWhatsApp } from "./modules/output.js";
+import { fieldUsed, printsTotals } from "./modules/editor-fields.js";
 import * as ledger from "./modules/credit-ledger.js";
 import * as backend from "./modules/backend.js";
 
@@ -134,7 +135,14 @@ function scheduleCloudSync() {
 
 function applySections(tpl) {
   document.querySelectorAll("[data-when]").forEach((el) => {
-    el.hidden = !tpl.uses.includes(el.dataset.when);
+    el.hidden = !(tpl.uses || []).includes(el.dataset.when);
+  });
+  /* Hanya tampilkan field yang benar-benar dipakai template terpilih, supaya apa yang
+     terlihat/diisi di editor selalu muncul di dokumen (lihat js/modules/editor-fields.js). */
+  editor.querySelectorAll("[data-bind]").forEach((el) => {
+    const wrap = el.closest(".field") || el.closest(".check") || el;
+    const gate = wrap.dataset.when;
+    wrap.hidden = gate ? !(tpl.uses || []).includes(gate) : !fieldUsed(tpl, el.dataset.bind);
   });
 }
 
@@ -1314,6 +1322,13 @@ $("#tab-preview").addEventListener("click", () => switchTab("preview"));
 $("#tab-example").addEventListener("click", () => switchTab("example"));
 $("#tab-example-desktop").addEventListener("click", () => switchTab($("#workspace").dataset.tab === "preview" && $("#example-banner").hidden === false ? "preview" : "example"));
 
+/* Dokumen penjualan/tagihan yang contohnya memakai diskon + PPN. */
+const TAXED_SAMPLE = new Set([
+  "faktur-a4", "invoice-digital", "nota-kontan", "struk-pos", "surat-penawaran", "surat-pesanan",
+  "purchase-order", "proforma-invoice", "credit-note", "debit-note", "surat-tagihan",
+  "invoice-berulang", "tagihan-termin", "nota-servis",
+]);
+
 function buildExampleState(issued = true) {
   const today = new Date();
   const dateValue = (d) => {
@@ -1504,6 +1519,16 @@ function buildExampleState(issued = true) {
     sample.fine = 0;
     sample.installmentDue = plusDays(7);
     sample.remaining = 2500000;
+  }
+
+  /* Blok total: contoh diskon + PPN untuk dokumen penjualan/tagihan supaya keduanya
+     benar-benar terbukti tampil di hasil render (sebelumnya selalu 0, sehingga
+     diskon "hilang" saat dicek). Diskon 5% dari subtotal + PPN 11%. */
+  const totalsTpl = getTemplate(sample.template) || {};
+  if (printsTotals(totalsTpl) && TAXED_SAMPLE.has(sample.template)) {
+    const subtotal = (sample.items || []).reduce((n, it) => n + (Number(it.qty) || 0) * (Number(it.price) || 0), 0);
+    if (subtotal > 0) sample.discount = Math.round(subtotal * 0.05);
+    sample.taxRate = 11;
   }
   return sample;
 }

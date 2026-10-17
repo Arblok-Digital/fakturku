@@ -1,3 +1,5 @@
+import { partyExtras } from "../modules/editor-fields.js";
+
 const labels = {
   subject:"Perihal", reference:"Referensi dokumen", description:"Uraian / keterangan", period:"Periode", location:"Lokasi", validity:"Berlaku sampai", paymentTerms:"Syarat pembayaran", reason:"Alasan / dasar", status:"Status / hasil pemeriksaan",
   origin:"Lokasi asal", destination:"Tujuan pengiriman", driver:"Pengantar / pengemudi", vehicle:"Kendaraan / ekspedisi", condition:"Kondisi barang / hasil", quantity:"Jumlah / volume", unit:"Satuan",
@@ -120,24 +122,87 @@ function signatureBlock(s,t,h) {
     return '<div class="doc-sign"><div class="role">' + h.esc(label) + '</div><div class="space"></div><div class="line-name">' + h.esc(person && person.name || "") + '</div><div class="line-title">' + h.esc(person && person.title || "") + '</div></div>';
   }).join("") + '</div>';
 }
+/* Baris tanda tangan thermal (dipakai struk): "Dibuat oleh" / "Diterima oleh". */
+function thermalSign(label, person, h) {
+  person = person || {};
+  return '<div class="col"><div class="lbl">' + h.esc(label) + '</div><div class="space"></div><div class="th-rule solid"></div>'
+    + '<div class="nm">' + (h.esc(person.name) || "(...............)") + '</div>'
+    + (person.title ? '<div class="ti">' + h.esc(person.title) + '</div>' : '')
+    + '</div>';
+}
 function renderThermal(s,t,h) {
+  var esc = h.esc, tot = h.totals(s);
+  var kv = function(k, v) { return '<div class="th-kv"><span class="k">' + esc(k) + '</span><span class="v">' + v + '</span></div>'; };
+  /* Tiap item dua baris: uraian + jumlah, lalu qty × harga satuan (pola struk),
+     supaya satuan dan harga satuan ikut tercetak. */
   var rows = (s.items || []).filter(function(it){return it.desc || it.qty || it.price;}).map(function(it){
-    return '<div class="th-kv"><span class="k">' + h.esc(it.desc || "") + ' ×' + (Number(it.qty)||0) + '</span><span class="v">' + h.rupiah((Number(it.qty)||0)*(Number(it.price)||0)) + '</span></div>';
+    var qty = Number(it.qty)||0, price = Number(it.price)||0;
+    return '<div class="th-kv"><span class="k">' + esc(it.desc || "") + '</span><span class="v">' + h.rupiah(qty*price) + '</span></div>'
+      + '<div class="th-kv th-det"><span class="k">' + qty + (it.unit ? ' ' + esc(it.unit) : '') + ' × ' + h.rupiah(price) + '</span><span class="v"></span></div>';
   }).join("");
-  var total = h.totals(s).total;
-  return '<div class="th-title">' + h.esc(s.issuer.name || "NAMA USAHA") + '</div><div class="th-sub">' + h.esc(s.issuer.address || "") + '</div><div class="th-rule solid"></div><div class="th-title">' + h.esc(t.title) + '</div><div class="th-kv"><span>No.</span><span>' + h.esc(s.number) + '</span></div><div class="th-kv"><span>Tanggal</span><span>' + h.formatDate(s.date) + '</span></div>' + (s.client.name ? '<div class="th-kv"><span>Pelanggan</span><span>' + h.esc(s.client.name) + '</span></div>' : '') + '<div class="th-rule"></div>' + rows + '<div class="th-rule solid"></div><div class="th-total"><span>TOTAL</span><span>' + h.rupiah(total) + '</span></div>' + (s.payment.method ? '<div class="th-kv"><span>Metode</span><span>' + h.esc(s.payment.method) + '</span></div>' : '') + '<div class="th-rule"></div><div class="th-foot">Terima kasih telah berbelanja.</div>';
+  /* Diskon & PPN ikut dicetak bila ada, supaya rincian cocok dengan TOTAL
+     (sebelumnya hanya TOTAL sehingga diskon tidak pernah terlihat di struk). */
+  var extra = (tot.discount ? kv("Subtotal", h.rupiah(tot.subtotal)) + kv("Diskon", "(" + h.rupiah(tot.discount) + ")") : "")
+    + (tot.tax ? kv("PPN " + (Number(s.taxRate)||0) + "%", h.rupiah(tot.tax)) : "");
+  var pay = (s.payment.bank || s.payment.accountNo || s.payment.method)
+    ? '<div class="th-rule"></div>'
+      + (s.payment.bank ? kv("Bank", esc(s.payment.bank)) : "")
+      + (s.payment.accountNo ? kv("No. Rek", esc(s.payment.accountNo)) : "")
+      + (s.payment.accountName ? kv("A/N", esc(s.payment.accountName)) : "")
+      + (s.payment.method ? kv("Metode", esc(s.payment.method)) : "")
+    : "";
+  var sign = (s.signatures.maker.name || s.signatures.receiver.name)
+    ? '<div class="th-sign2">' + thermalSign("Dibuat oleh", s.signatures.maker, h) + thermalSign("Diterima oleh", s.signatures.receiver, h) + '</div>'
+    : "";
+  return '<div class="th-title">' + esc(s.issuer.name || "NAMA USAHA") + '</div>'
+    + '<div class="th-sub">' + esc(s.issuer.address || "")
+      + (s.issuer.npwp ? "\nNPWP: " + esc(s.issuer.npwp) : "")
+      + (s.issuer.phone || s.issuer.email ? "\nTelp: " + esc(s.issuer.phone || "") + (s.issuer.email ? " · " + esc(s.issuer.email) : "") : "")
+    + '</div>'
+    + '<div class="th-rule solid"></div><div class="th-title">' + esc(t.title) + '</div>'
+    + kv("No.", esc(s.number)) + kv("Tanggal", h.formatDate(s.date))
+    + (s.client.name ? kv("Pelanggan", esc(s.client.name)) : "")
+    + (s.client.address ? '<div class="th-sub" style="text-align:left">' + esc(s.client.address) + '</div>' : "")
+    + (partyExtras(t) && s.client.npwp ? kv("NPWP", esc(s.client.npwp)) : "")
+    + (partyExtras(t) && s.client.phone ? kv("Telp", esc(s.client.phone)) : "")
+    + '<div class="th-rule"></div>' + rows
+    + '<div class="th-rule solid"></div>' + extra
+    + '<div class="th-total"><span>TOTAL</span><span>' + h.rupiah(tot.total) + '</span></div>'
+    + pay + sign
+    + '<div class="th-rule"></div>'
+    + '<div class="th-foot">' + (s.notes ? esc(s.notes) + "\n" : "") + 'Terima kasih telah berbelanja.</div>';
 }
 function renderPayroll(s,t,h) {
   var d=s.details || {}, base=Number(d.baseSalary)||0, allowance=Number(d.allowances)||0, deduction=Number(d.deductions)||0;
   var net=d.netPay !== "" && d.netPay != null ? Number(d.netPay) : base+allowance-deduction;
-  return '<div class="doc-head"><div class="doc-issuer"><div class="nm">' + h.esc(s.issuer.name || "") + '</div><div class="addr">' + h.esc(s.issuer.address || "") + '</div></div><div class="doc-title"><div class="t">' + h.esc(t.title) + '</div><div class="no">No. ' + h.esc(s.number) + '</div></div></div><hr class="doc-rule"><table class="doc-meta"><tr><td class="k">Karyawan</td><td>' + h.esc(d.employee || "") + '</td></tr><tr><td class="k">ID / NIK</td><td>' + h.esc(d.employeeId || "") + '</td></tr><tr><td class="k">Jabatan</td><td>' + h.esc(d.position || "") + '</td></tr><tr><td class="k">Departemen</td><td>' + h.esc(d.department || "") + '</td></tr><tr><td class="k">Periode</td><td>' + h.esc(d.period || "") + '</td></tr></table><table class="doc-table"><thead><tr><th>Komponen</th><th class="r">Jumlah</th></tr></thead><tbody><tr><td>Gaji pokok</td><td class="r">' + h.rupiah(base) + '</td></tr><tr><td>Tunjangan</td><td class="r">' + h.rupiah(allowance) + '</td></tr><tr><td>Potongan</td><td class="r">(' + h.rupiah(deduction) + ')</td></tr></tbody></table><div class="doc-totals"><table><tr class="grand"><td>Gaji Bersih</td><td class="r">' + h.rupiah(net) + '</td></tr></table></div><div class="doc-foot">Dokumen internal. Bagikan hanya kepada pihak yang berwenang.</div>' + signatureBlock(s,t,h) + '<div class="doc-verify">Kode verifikasi: ' + h.verifyCode(s.number) + ' · FakturKu</div>';
+  var metaRows=[["Karyawan",d.employee],["ID / NIK",d.employeeId],["Jabatan",d.position],["Departemen",d.department],["Periode",d.period],["Referensi pembayaran",d.bankRef]]
+    .filter(function(r){ return r[1] !== "" && r[1] != null; })
+    .map(function(r){ return '<tr><td class="k">' + h.esc(r[0]) + '</td><td>' + h.esc(r[1]) + '</td></tr>'; }).join("");
+  var pay=(s.payment.bank || s.payment.accountNo || s.payment.method)
+    ? '<div class="doc-pay"><div class="doc-lbl">Informasi Pembayaran</div>'
+      + (s.payment.bank ? 'Bank: <b class="mono">' + h.esc(s.payment.bank) + '</b>' : "")
+      + (s.payment.accountNo ? (s.payment.bank ? '<br>' : "") + 'No. Rekening: <b class="mono">' + h.esc(s.payment.accountNo) + '</b>' : "")
+      + (s.payment.accountName ? '<br>Atas Nama: <b>' + h.esc(s.payment.accountName) + '</b>' : "")
+      + (s.payment.method ? '<br>Metode: ' + h.esc(s.payment.method) : "")
+      + '</div>'
+    : "";
+  return '<div class="doc-head"><div class="doc-issuer"><div class="nm">' + h.esc(s.issuer.name || "") + '</div><div class="addr">' + h.esc(s.issuer.address || "") + '</div>'
+      + (s.issuer.npwp ? '<div class="mono">NPWP: ' + h.esc(s.issuer.npwp) + '</div>' : "")
+      + '<div class="mono">' + h.esc(s.issuer.phone || "") + (s.issuer.email ? ' · ' + h.esc(s.issuer.email) : "") + '</div></div>'
+      + '<div class="doc-title"><div class="t">' + h.esc(t.title) + '</div><div class="no">No. ' + h.esc(s.number) + '</div><div class="no">Tanggal: ' + h.formatDate(s.date) + '</div></div></div><hr class="doc-rule">'
+      + '<table class="doc-meta">' + metaRows + '</table>'
+      + '<table class="doc-table"><thead><tr><th>Komponen</th><th class="r">Jumlah</th></tr></thead><tbody><tr><td>Gaji pokok</td><td class="r">' + h.rupiah(base) + '</td></tr><tr><td>Tunjangan</td><td class="r">' + h.rupiah(allowance) + '</td></tr><tr><td>Potongan</td><td class="r">(' + h.rupiah(deduction) + ')</td></tr></tbody></table><div class="doc-totals"><table><tr class="grand"><td>Gaji Bersih</td><td class="r">' + h.rupiah(net) + '</td></tr></table></div><div class="doc-terbilang">Terbilang: <b>' + h.terbilang(net) + '</b></div>'
+      + '<div class="doc-foot">Dokumen internal. Bagikan hanya kepada pihak yang berwenang.</div>'
+      + pay
+      + (s.notes ? '<div class="doc-foot"><b>Catatan:</b> ' + h.esc(s.notes) + '</div>' : "")
+      + signatureBlock(s,t,h) + '<div class="doc-verify">Kode verifikasi: ' + h.verifyCode(s.number) + ' · FakturKu</div>';
 }
 function renderDocument(s,h,t) {
   if (t.payroll) return renderPayroll(s,t,h);
   if (t.output === "thermal") return renderThermal(s,t,h);
   var total=h.totals(s), logo=s.logo ? '<img class="doc-logo" src="' + h.esc(s.logo) + '" alt="Logo">' : '';
-  var issuer='<div class="doc-issuer">' + logo + '<div class="nm">' + h.esc(s.issuer.name || '') + '</div><div class="addr">' + h.esc(s.issuer.address || '') + '</div><div class="mono">' + h.esc(s.issuer.phone || '') + (s.issuer.email ? ' · ' + h.esc(s.issuer.email) : '') + '</div></div>';
-  var client=t.uses.indexOf("client")>=0 ? '<div><div class="doc-lbl">' + h.esc(t.partyLabel || 'Kepada / Pihak Terkait') + '</div><b>' + h.esc(s.client.name || '') + '</b><div class="addr">' + h.esc(s.client.address || '') + '</div></div>' : '';
+  var issuer='<div class="doc-issuer">' + logo + '<div class="nm">' + h.esc(s.issuer.name || '') + '</div><div class="addr">' + h.esc(s.issuer.address || '') + '</div>' + (s.issuer.npwp ? '<div class="mono">NPWP: ' + h.esc(s.issuer.npwp) + '</div>' : '') + '<div class="mono">' + h.esc(s.issuer.phone || '') + (s.issuer.email ? ' · ' + h.esc(s.issuer.email) : '') + '</div></div>';
+  var client=t.uses.indexOf("client")>=0 ? '<div><div class="doc-lbl">' + h.esc(t.partyLabel || 'Kepada / Pihak Terkait') + '</div><b>' + h.esc(s.client.name || '') + '</b><div class="addr">' + h.esc(s.client.address || '') + '</div>' + (partyExtras(t) && s.client.npwp ? '<div class="mono">NPWP: ' + h.esc(s.client.npwp) + '</div>' : '') + (partyExtras(t) && s.client.phone ? '<div class="mono">Telp: ' + h.esc(s.client.phone) + '</div>' : '') + '</div>' : '';
   /* F1: label "Kategori" internal tidak lagi dicetak. Blok pihak hanya muncul bila template punya pihak terkait. */
   var parties=client ? '<div class="doc-parties">' + client + '</div>' : '';
   var meta=renderRows(s,t,h), details=meta ? '<table class="doc-meta" style="margin:14px 0">' + meta + '</table>' : '';

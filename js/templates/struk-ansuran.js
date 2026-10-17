@@ -11,7 +11,7 @@ export default {
 
     return `
       <div class="th-title">${h.esc(s.issuer.name) || "NAMA PERUSAHAAN"}</div>
-      <div class="th-sub">${h.esc(s.issuer.address)}${s.issuer.phone ? "\nTelp: " + h.esc(s.issuer.phone) : ""}</div>
+      <div class="th-sub">${h.esc(s.issuer.address)}${s.issuer.npwp ? "\nNPWP: " + h.esc(s.issuer.npwp) : ""}${s.issuer.phone || s.issuer.email ? "\nTelp: " + h.esc(s.issuer.phone || "") + (s.issuer.email ? " · " + h.esc(s.issuer.email) : "") : ""}</div>
       <div class="th-rule solid"></div>
       <div class="th-title" style="font-size:11px">BUKTI PEMBAYARAN ANGSURAN</div>
       <div class="th-rule"></div>

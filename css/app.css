@@ -253,6 +253,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
 .grid2 > .field { min-width: 0; }
 .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
+/* Field yang tidak dipakai template harus benar-benar hilang: `.field`/`.check`
+   memakai display:flex sehingga atribut [hidden] saja tidak cukup. */
+.fsec .field[hidden], .fsec .check[hidden] { display: none; }
 .field label {
   font-size: 12px;
   font-weight: 500;
@@ -536,6 +539,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .doc-thermal .th-kv { display: flex; justify-content: space-between; gap: 6px; padding: 1px 0; }
 .doc-thermal .th-kv .k { color: #000; }
 .doc-thermal .th-kv .v { font-weight: 600; text-align: right; word-break: break-all; }
+/* Baris rincian (qty × harga satuan) di bawah uraian item. */
+.doc-thermal .th-kv.th-det { font-size: 8px; color: var(--ink-500); }
+.doc-thermal .th-kv.th-det .k { color: var(--ink-500); }
 .doc-thermal .th-total {
   display: flex; justify-content: space-between;
   font-weight: 700; font-size: 13px; padding: 4px 0;
@@ -567,6 +573,15 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .doc-screen .d-kv { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 12px; }
 .doc-screen .d-kv .k { color: var(--ink-500); }
 .doc-screen .d-kv .v { font-family: var(--font-mono); text-align: right; }
+/* Rincian qty × harga satuan di bawah tiap baris item (melengkapi d-kv). */
+.doc-screen .d-det { font-size: 11px; color: var(--ink-500); padding: 0 0 5px; }
+/* Blok tanda tangan pada dokumen layar (48-51): "Dibuat oleh" / "Diterima oleh". */
+.doc-screen .d-signs { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 18px; }
+.doc-screen .d-sign { text-align: center; }
+.doc-screen .d-sign .role { font-size: 10.5px; color: var(--ink-500); }
+.doc-screen .d-sign .space { height: 46px; }
+.doc-screen .d-sign .line-name { border-top: 1px solid var(--ink-900); padding-top: 4px; font-weight: 600; }
+.doc-screen .d-sign .line-title { font-size: 10.5px; color: var(--ink-500); }
 
 /* ---------- print ---------- */
 .print-only { display: none; }
