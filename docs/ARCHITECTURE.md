@@ -86,6 +86,7 @@ Per-template render hints (all optional, backwards compatible):
 | `partyLabel:"..."` | Overrides the party block heading (default "Kepada / Pihak Terkait") |
 | `signatures:[left,right]` | Signature block labels (defaults exist, but set them explicitly) |
 | `legalNote:true` / `disclaimer:"..."` | Adds the "not legal/official advice" footer |
+| `defaultTerms:"..."` | Contoh klausul. Auto-filled **hanya bila klausul masih kosong**, dipakai juga sebagai klausul di tab Contoh. Dicetak hanya jika `uses` memuat `terms`. Teks contoh — jangan klaim sah/resmi. |
 | `payroll:true` / `output:"thermal"` | Alternate renderers |
 | `price_per_doc:<int>` | Overrides the category price. **`0` = free (tier A)**; omit to inherit `document_categories.price_per_doc`. Must match the DB row (see §9). |
 

@@ -1358,7 +1358,12 @@ function buildExampleState(issued = true) {
     accountName: "UD Sumber Jaya (Contoh)",
     method: "Transfer bank (contoh)"
   };
-  sample.terms = "Contoh syarat: ruang lingkup dan jadwal mengikuti kesepakatan tertulis para pihak. Ganti klausul ini sesuai kebutuhan.";
+  // F7 lanjutan: klausul contoh diambil dari definisi template (defaultTerms) supaya dokumen
+  // contoh tidak kosong dan tidak memakai teks generik yang sama untuk semua format.
+  const termsTpl = getTemplate(state.template) || {};
+  sample.terms = (termsTpl.uses || []).indexOf("terms") >= 0
+    ? (termsTpl.defaultTerms || "Contoh syarat & ketentuan: sesuaikan dengan kesepakatan para pihak.")
+    : "";
   sample.signatures = {
     maker: { name: "Dedi Kurnia (Contoh)", title: "Pemilik Usaha" },
     receiver: { name: "Budi Santoso (Contoh)", title: "Penerima / Penanggung Jawab" }
@@ -1441,11 +1446,11 @@ function buildExampleState(issued = true) {
     "bukti-terima-barang": { items: [{ desc: "Semen 50 kg (contoh)", qty: 40, price: 0, unit: "sak" }, { desc: "Besi beton 10 mm (contoh)", qty: 20, price: 0, unit: "batang" }], details: { reference: "BTB-CONTOH-001", condition: "Baik, kemasan utuh (contoh)", inspection: "Jumlah dan kondisi dihitung ulang (contoh)", location: "Lokasi proyek, Tasikmalaya", unit: "sak" } },
     "surat-retur": { items: [{ desc: "Semen mengeras saat diterima (contoh)", qty: 5, price: 0, unit: "sak" }], details: { reference: "RETUR-CONTOH-001", returnReason: "Semen sudah mengeras saat pemeriksaan (contoh)", condition: "Menunggu penggantian dari toko (contoh)", origin: "Lokasi proyek", destination: "Toko pengirim material" } },
     "packing-list": { items: [{ desc: "Semen 50 kg", qty: 40, price: 0, unit: "sak" }, { desc: "Besi beton 10 mm", qty: 20, price: 0, unit: "batang" }], details: { reference: "PL-CONTOH-001", packing: "40 sak + 20 batang (contoh)", origin: "Gudang UD Sumber Jaya", destination: "Lokasi proyek", vehicle: "Pick-up (contoh)", unit: "sak" } },
-    "perjanjian-kerja-sama": { items: [], details: { reference: "PKS-CONTOH-001", subject: "Kerja sama penyediaan layanan", contractDate: dateValue(today), scope: "Penyediaan layanan dan dukungan sesuai ruang lingkup tertulis (contoh)", effectiveDate: dateValue(today), endDate: plusDays(365), location: "Tasikmalaya" }, terms: "Contoh kerangka: ruang lingkup, hak, kewajiban, masa berlaku, dan penyelesaian perselisihan perlu ditinjau serta disepakati para pihak sebelum ditandatangani." },
-    "surat-kuasa": { items: [], details: { reference: "SK-CONTOH-001", subject: "Kuasa pengambilan dokumen", recipientRole: "Penerima kuasa (contoh)", scope: "Mengambil dokumen administrasi yang disebutkan secara spesifik (contoh)", effectiveDate: dateValue(today), endDate: plusDays(7), witness: "Saksi (contoh)" }, terms: "Contoh kerangka surat kuasa. Isi identitas dan batas kewenangan secara akurat serta periksa persyaratan penerima dokumen." },
+    "perjanjian-kerja-sama": { items: [], details: { reference: "PKS-CONTOH-001", subject: "Kerja sama penyediaan layanan", contractDate: dateValue(today), scope: "Penyediaan layanan dan dukungan sesuai ruang lingkup tertulis (contoh)", effectiveDate: dateValue(today), endDate: plusDays(365), location: "Tasikmalaya" } },
+    "surat-kuasa": { items: [], details: { reference: "SK-CONTOH-001", subject: "Kuasa pengambilan dokumen", recipientRole: "Penerima kuasa (contoh)", scope: "Mengambil dokumen administrasi yang disebutkan secara spesifik (contoh)", effectiveDate: dateValue(today), endDate: plusDays(7), witness: "Saksi (contoh)" } },
     "spk": { items: [{ desc: "Borongan pasang rangka & atap (contoh)", qty: 1, price: 6500000, unit: "borongan" }], details: { reference: "SPK-CONTOH-001", contractRef: "KONTRAK-CONTOH-001", scope: "Pekerjaan rangka, atap, dan serah terima (contoh)", location: "Tasikmalaya", effectiveDate: dateValue(today), endDate: plusDays(14), paymentTerms: "Pembayaran berdasarkan progres yang disetujui (contoh)" } },
-    "loi": { items: [], details: { reference: "LOI-CONTOH-001", subject: "Minat kerja sama suplai material", scope: "Penjajakan ruang lingkup, jadwal, dan estimasi biaya material (contoh)", effectiveDate: dateValue(today), endDate: plusDays(30), location: "Tasikmalaya" }, terms: "Contoh pernyataan minat awal; bukan pengganti kontrak final. Tinjau konsekuensi dan ketentuan yang disepakati sebelum digunakan." },
-    "surat-pernyataan": { items: [], details: { reference: "SP-CONTOH-001", subject: "Pernyataan penerimaan barang", reason: "Keperluan administrasi (contoh)", location: "Tasikmalaya" }, terms: "Saya menyatakan bahwa informasi yang dicantumkan akan diisi sesuai keadaan sebenarnya. Teks ini hanya contoh dan perlu disesuaikan dengan fakta." },
+    "loi": { items: [], details: { reference: "LOI-CONTOH-001", subject: "Minat kerja sama suplai material", scope: "Penjajakan ruang lingkup, jadwal, dan estimasi biaya material (contoh)", effectiveDate: dateValue(today), endDate: plusDays(30), location: "Tasikmalaya" } },
+    "surat-pernyataan": { items: [], details: { reference: "SP-CONTOH-001", subject: "Pernyataan penerimaan barang", reason: "Keperluan administrasi (contoh)", location: "Tasikmalaya" } },
     "memo-internal": { items: [], details: { subject: "Jadwal pengiriman material", authority: "Operasional", description: "Pengiriman material dijadwalkan ulang ke esok pagi. Koordinasikan dengan pengemudi dan penerima (contoh).", requestedBy: "Koordinator Gudang (Contoh)" } },
     "surat-perjalanan-dinas": { items: [], details: { employee: "Asep Saepudin (Contoh)", employeeId: "KARYAWAN-CONTOH-001", position: "Tukang", department: "Produksi", location: "Bandung", period: "20–21 Oktober 2026 (contoh)", reason: "Pengerjaan proyek di luar kota (contoh)", budget: 750000 } },
     "klaim-biaya": { items: [{ desc: "Bensin & tol (contoh)", qty: 1, price: 125000 }, { desc: "Makan di jalan (contoh)", qty: 1, price: 85000 }], details: { employee: "Asep Saepudin (Contoh)", employeeId: "KARYAWAN-CONTOH-001", department: "Produksi", period: "Oktober 2026", reason: "Transport dan konsumsi tugas luar (contoh)", approvedBy: "Dedi Kurnia (Contoh)" } },
@@ -1483,7 +1488,6 @@ function buildExampleState(issued = true) {
     if (profile.client) sample.client = { ...sample.client, ...profile.client };
     if (profile.payment) sample.payment = { ...sample.payment, ...profile.payment };
     if (profile.details) Object.assign(sample.details, profile.details);
-    if (profile.terms) sample.terms = profile.terms;
   }
 
   if (sample.template === "kwitansi-a4") {

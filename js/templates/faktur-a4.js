@@ -4,6 +4,8 @@ export default {
   category: "finance",
   output: "a4",
   uses: ["due", "client", "items", "payment", "terms"],
+  // F7 lanjutan: contoh klausul bawaan agar dokumen tidak kosong. Wajib ditinjau & disesuaikan pengguna.
+  defaultTerms: "Contoh syarat & ketentuan (wajib disesuaikan):\n1. Pembayaran mengikuti jumlah dan jatuh tempo pada dokumen ini.\n2. Barang/jasa yang sudah diterima dianggap sesuai, kecuali dikonfirmasi lain dalam 3 hari kerja.\n3. Harga belum termasuk pajak/biaya pengiriman, kecuali disebutkan lain.\n4. Dokumen ini bukan bukti pembayaran sampai dana diterima.",
 
   render(s, h) {
     const t = h.totals(s);
@@ -108,7 +110,7 @@ export default {
       </div>
 
       ${s.notes ? `<div class="doc-foot"><b>Catatan:</b> ${h.esc(s.notes)}</div>` : ""}
-      ${s.terms ? `<div class="doc-foot">${h.esc(s.terms)}</div>` : ""}
+      ${s.terms ? `<div class="doc-foot" style="white-space:pre-wrap">${h.esc(s.terms)}</div>` : ""}
       <div class="doc-verify">Kode verifikasi: ${h.verifyCode(s.number)} · Dokumen diterbitkan oleh FakturKu</div>
     `;
   },
