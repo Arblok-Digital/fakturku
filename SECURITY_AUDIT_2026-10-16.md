@@ -55,3 +55,27 @@ Status: **Documentation only - no code or pipeline changes.**
 - Prepared for: DeepSeek/security continuation (already familiar with pipeline & numbering/billing).
 - No commits pushed, no production changes made in this audit.  
 - If patching is approved: create feature branch, implement 2/6/8 first (comment removal + headers + attribute escaping), preview verify, then promote in separate step.
+
+## 7. Validation Log (2026-10-17, local, not pushed)
+
+Local commits ahead of `origin/master` (Production still at `89a9d80`):
+- `14cdd04` chore(security): remove password-location comment + add XFO/XCTO/Referrer/Permissions headers
+- `0c30488` docs(security): add this audit note
+- `7bdce8d` fix(auth): clear stale session when Supabase refresh token invalid
+
+Static validation:
+- `vercel.json` parses as valid JSON; security header block present (X-Frame-Options: DENY, X-Content-Type-Options: nosniff, Referrer-Policy: strict-origin-when-cross-origin, Permissions-Policy).
+- `js/config.js`: `.env.local` hint removed; no env file tracked by git.
+- `node --check` passes for `js/modules/backend.js` and `js/config.js`.
+- `git diff origin/master..master` touches only 4 files; working tree clean.
+
+Runtime validation (Playwright, local static server `http://127.0.0.1:5500`):
+- Injected a realistic expired JWT + bogus refresh token into `localStorage` key `sb-pcydwlfyughwasyqglwq-auth-token`, then reloaded.
+- Reproduced the reported failure exactly once: `POST .../auth/v1/token?grant_type=refresh_token => 400`.
+- After that, the invalid session was removed from storage, the login modal was shown (`#auth-modal` visible, `#workspace` hidden), and the app stayed functional (`get_categories => 200`).
+- Second reload: zero auth requests, zero console errors → the bad session does not repeat/linger.
+
+Caveats / not yet verifiable locally:
+- The single 400 comes from supabase-js internal auto-refresh on a genuinely revoked token; the fix removes the lingering session and prevents repetition, but the first attempt still happens once.
+- HTTP security headers are served by Vercel; they can only be verified end-to-end after a Preview deployment (requires push).
+- Item 8 (single-quote attribute escaping in `js/app.js` item inputs) was intentionally left unchanged to avoid touching render logic.
