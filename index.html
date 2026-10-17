@@ -277,6 +277,19 @@
           <div class="field"><label for="f-detail-invoicePeriod">Periode penagihan</label><input id="f-detail-invoicePeriod" type="text" data-bind="details.invoicePeriod" placeholder="Contoh: Oktober 2026"></div></div>
       </div>
 
+      <div class="fsec" data-when="business-service">
+        <h3>Detail Servis</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-complaint">Keluhan pelanggan</label><input id="f-detail-complaint" type="text" data-bind="details.complaint"></div>
+          <div class="field"><label for="f-detail-action">Tindakan / perbaikan</label><input id="f-detail-action" type="text" data-bind="details.action"></div>
+          <div class="field"><label for="f-detail-warranty">Garansi</label><input id="f-detail-warranty" type="text" data-bind="details.warranty" placeholder="Contoh: 30 hari"></div></div>
+      </div>
+
+      <div class="fsec" data-when="business-cash">
+        <h3>Detail Kas</h3>
+        <div class="grid2"><div class="field"><label for="f-detail-cashKind">Jenis kas</label><input id="f-detail-cashKind" type="text" data-bind="details.cashKind" placeholder="Kas masuk / Kas keluar"></div>
+          <div class="field"><label for="f-detail-party">Terima dari / dibayar kepada</label><input id="f-detail-party" type="text" data-bind="details.party"></div></div>
+      </div>
+
       <div class="fsec" data-when="business-logistics">
         <h3>Detail Logistik</h3>
         <div class="grid2"><div class="field"><label for="f-detail-origin">Lokasi asal</label><input id="f-detail-origin" type="text" data-bind="details.origin"></div>
@@ -289,7 +302,9 @@
           <div class="field"><label for="f-detail-unit">Satuan</label><input id="f-detail-unit" type="text" data-bind="details.unit"></div>
           <div class="field"><label for="f-detail-returnReason">Alasan retur</label><input id="f-detail-returnReason" type="text" data-bind="details.returnReason"></div>
           <div class="field"><label for="f-detail-packing">Jumlah kemasan</label><input id="f-detail-packing" type="text" data-bind="details.packing"></div>
-          <div class="field"><label for="f-detail-invoiceRef">Nomor invoice terkait</label><input id="f-detail-invoiceRef" type="text" data-bind="details.invoiceRef"></div></div>
+          <div class="field"><label for="f-detail-invoiceRef">Nomor invoice terkait</label><input id="f-detail-invoiceRef" type="text" data-bind="details.invoiceRef"></div>
+          <div class="field"><label for="f-detail-discrepancy">Selisih / ketidaksesuaian</label><input id="f-detail-discrepancy" type="text" data-bind="details.discrepancy"></div>
+          <div class="field"><label for="f-detail-followUp">Tindak lanjut</label><input id="f-detail-followUp" type="text" data-bind="details.followUp"></div></div>
       </div>
 
       <div class="fsec" data-when="business-contract">
@@ -300,7 +315,9 @@
           <div class="field"><label for="f-detail-effectiveDate">Mulai berlaku</label><input id="f-detail-effectiveDate" type="date" data-bind="details.effectiveDate"></div>
           <div class="field"><label for="f-detail-endDate">Akhir berlaku</label><input id="f-detail-endDate" type="date" data-bind="details.endDate"></div>
           <div class="field"><label for="f-detail-recipientRole">Jabatan penerima</label><input id="f-detail-recipientRole" type="text" data-bind="details.recipientRole"></div>
-          <div class="field"><label for="f-detail-witness">Saksi</label><input id="f-detail-witness" type="text" data-bind="details.witness"></div></div>
+          <div class="field"><label for="f-detail-witness">Saksi</label><input id="f-detail-witness" type="text" data-bind="details.witness"></div>
+          <div class="field"><label for="f-detail-rentObject">Objek sewa</label><input id="f-detail-rentObject" type="text" data-bind="details.rentObject"></div>
+          <div class="field"><label for="f-detail-deposit">Jaminan / deposit (Rp)</label><input id="f-detail-deposit" type="number" data-bind="details.deposit"></div></div>
       </div>
 
       <div class="fsec" data-when="business-project">
@@ -314,7 +331,10 @@
           <div class="field"><label for="f-detail-contractValue">Nilai kontrak (Rp)</label><input id="f-detail-contractValue" type="number" data-bind="details.contractValue"></div>
           <div class="field"><label for="f-detail-previousPaid">Pembayaran sebelumnya (Rp)</label><input id="f-detail-previousPaid" type="number" data-bind="details.previousPaid"></div>
           <div class="field"><label for="f-detail-retention">Retensi / potongan (Rp)</label><input id="f-detail-retention" type="number" data-bind="details.retention"></div>
-          <div class="field"><label for="f-detail-inspection">Hasil pemeriksaan</label><input id="f-detail-inspection" type="text" data-bind="details.inspection"></div></div>
+          <div class="field"><label for="f-detail-inspection">Hasil pemeriksaan</label><input id="f-detail-inspection" type="text" data-bind="details.inspection"></div>
+          <div class="field"><label for="f-detail-weather">Cuaca</label><input id="f-detail-weather" type="text" data-bind="details.weather"></div>
+          <div class="field"><label for="f-detail-workforce">Tenaga kerja</label><input id="f-detail-workforce" type="text" data-bind="details.workforce"></div>
+          <div class="field"><label for="f-detail-constraint">Kendala</label><input id="f-detail-constraint" type="text" data-bind="details.constraint"></div></div>
       </div>
 
       <div class="fsec" data-when="business-hr">
