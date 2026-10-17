@@ -32,6 +32,7 @@ Read this file before editing, testing, committing, or deploying.
 
 ## 4. Where to look first
 
+- `docs/ARCHITECTURE.md`: layer map, data pipeline, template contract, invariants, and a per-task "start here" reading list. **Read this before exploring the repo** — it exists so agents don't have to read the whole codebase.
 - `index.html`: app structure and mobile bottom navigation.
 - `css/app.css`: app/editor/preview/mobile styles.
 - `css/landing.css`: landing page styles.
