@@ -807,11 +807,27 @@ function closeAuth() {
 
 function setAuthMode(mode) {
   authMode = mode;
+  const copy = {
+    in: { title: "Masuk FakturKu", go: "Masuk", placeholder: "Minimal 8 karakter", autocomplete: "current-password", sub: "Masuk ke akun untuk melanjutkan." },
+    up: { title: "Daftar FakturKu", go: "Daftar", placeholder: "Minimal 8 karakter", autocomplete: "new-password", sub: "Buat akun baru untuk mulai membuat dokumen." },
+    req: { title: "Lupa password?", go: "Kirim tautan", placeholder: "Minimal 8 karakter", autocomplete: "current-password", sub: "Masukkan email akun; kami kirim tautan untuk mengatur ulang password." },
+    recover: { title: "Atur ulang password", go: "Simpan password", placeholder: "Password baru (min. 8)", autocomplete: "new-password", sub: "Buat password baru untuk akunmu." },
+  }[mode] || { title: "Masuk FakturKu", go: "Masuk", placeholder: "Minimal 8 karakter", autocomplete: "current-password", sub: "Masuk ke akun untuk melanjutkan." };
+
   $("#auth-tab-in").classList.toggle("on", mode === "in");
   $("#auth-tab-up").classList.toggle("on", mode === "up");
   $("#auth-name-field").hidden = mode !== "up";
-  $("#auth-title").textContent = mode === "in" ? "Masuk FakturKu" : "Daftar FakturKu";
-  $("#auth-go").textContent = mode === "in" ? "Masuk" : "Daftar";
+  $("#auth-email-field").hidden = mode === "recover";
+  $("#auth-pass-field").hidden = mode === "req";
+  authModal.querySelector(".auth-tabs").hidden = mode === "req" || mode === "recover";
+  $("#auth-forgot").hidden = mode !== "in";
+  $("#auth-back").hidden = mode !== "req";
+  const pass = $("#auth-pass");
+  pass.setAttribute("autocomplete", copy.autocomplete);
+  pass.placeholder = copy.placeholder;
+  $("#auth-title").textContent = copy.title;
+  $("#auth-sub").textContent = copy.sub;
+  $("#auth-go").textContent = copy.go;
   const err = $("#auth-err");
   err.hidden = true;
   err.classList.remove("ok");
@@ -819,6 +835,8 @@ function setAuthMode(mode) {
 
 $("#auth-tab-in").addEventListener("click", () => setAuthMode("in"));
 $("#auth-tab-up").addEventListener("click", () => setAuthMode("up"));
+$("#auth-forgot").addEventListener("click", () => setAuthMode("req"));
+$("#auth-back").addEventListener("click", () => setAuthMode("in"));
 
 async function authSubmit() {
   const email = $("#auth-email").value.trim();
@@ -827,28 +845,64 @@ async function authSubmit() {
   const err = $("#auth-err");
   err.hidden = true;
   err.classList.remove("ok");
-  if (!email || !pass) { err.textContent = "Email & password wajib diisi."; err.hidden = false; return; }
-  if (authMode === "up" && pass.length < 6) { err.textContent = "Password minimal 6 karakter."; err.hidden = false; return; }
   const go = $("#auth-go");
   const wasMode = authMode;
+  const labels = { in: "Masuk", up: "Daftar", req: "Kirim tautan", recover: "Simpan password" };
+
+  if (wasMode === "req") {
+    if (!email) { err.textContent = "Isi email akunmu dulu."; err.hidden = false; return; }
+    go.disabled = true;
+    go.textContent = "Mengirim.";
+    try {
+      await backend.requestPasswordReset(email);
+      err.textContent = "Kalau email terdaftar, tautan reset sudah dikirim. Cek inbox/spam, lalu buka tautannya di perangkat ini.";
+      err.hidden = false;
+      err.classList.add("ok");
+    } catch (e) {
+      err.textContent = e?.message || "Gagal mengirim tautan. Coba lagi.";
+      err.hidden = false;
+    } finally {
+      go.disabled = false;
+      go.textContent = labels[wasMode];
+    }
+    return;
+  }
+
+  if ((wasMode !== "recover" && !email) || !pass) {
+    err.textContent = wasMode === "recover" ? "Isi password baru dulu." : "Email & password wajib diisi.";
+    err.hidden = false;
+    return;
+  }
+  if ((wasMode === "up" || wasMode === "recover") && pass.length < 8) {
+    err.textContent = "Password minimal 8 karakter.";
+    err.hidden = false;
+    return;
+  }
+
   go.disabled = true;
   go.textContent = "Memproses…";
   try {
     if (wasMode === "in") {
       await backend.signIn(email, pass);
-    } else {
+    } else if (wasMode === "up") {
       await backend.signUp(email, pass, name);
       setAuthMode("in");
-      err.textContent = "Pendaftaran OK. Kalau diminta konfirmasi email, buka link di email dulu, lalu masuk.";
+      err.textContent = "Pendaftaran berhasil. Silakan masuk.";
       err.hidden = false;
       err.classList.add("ok");
+    } else if (wasMode === "recover") {
+      await backend.updatePassword(pass);
+      const session = await backend.getSession();
+      if (session) handleSession(session);
+      setAuthMode("in");
+      toast("Password diperbarui.");
     }
   } catch (e) {
     err.textContent = e?.message || "Gagal — coba lagi.";
     err.hidden = false;
   } finally {
     go.disabled = false;
-    go.textContent = authMode === "in" ? "Masuk" : "Daftar";
+    go.textContent = labels[authMode] || "Masuk";
   }
 }
 $("#auth-go").addEventListener("click", authSubmit);
@@ -1592,7 +1646,17 @@ async function boot() {
   render();
 
   if (backend.isRemote()) {
-    backend.onAuthChange((s) => { handleSession(s); });
+    backend.onAuthChange((s, event) => {
+      /* Tautan reset password membuka app dengan sesi recovery: tampilkan form password baru. */
+      if (event === "PASSWORD_RECOVERY") {
+        openAuth();
+        setAuthMode("recover");
+        $("#auth-pass").value = "";
+        $("#auth-pass").focus();
+        return;
+      }
+      handleSession(s);
+    });
     try {
       const s = await backend.getSession();
       if (s) handleSession(s);

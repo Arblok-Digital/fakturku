@@ -4,8 +4,71 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>FakturKu — Workspace Dokumen Bisnis</title>
-  <meta name="description" content="Workspace dokumen bisnis FakturKu. Jelajahi kategori Finance, Legal, UMKM, Logistik, Pajak, Proyek, dan Operasional; buat dokumen, pratinjau, cetak, dan bagikan.">
+  <meta name="description" content="FakturKu — buat faktur, kwitansi, invoice digital, dan 51 template dokumen bisnis dalam 7 kategori. Preview, cetak A4 atau thermal, lalu bagikan ke WhatsApp.">
+  <link rel="canonical" href="https://fakturku.vercel.app/">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="FakturKu">
+  <meta property="og:locale" content="id_ID">
+  <meta property="og:url" content="https://fakturku.vercel.app/">
+  <meta property="og:title" content="FakturKu — Dokumen rapi, urusan beres">
+  <meta property="og:description" content="Buat faktur, kwitansi, invoice digital, dan 51 template dokumen bisnis dalam 7 kategori. Preview, cetak A4/thermal, bagikan ke WhatsApp.">
+  <meta property="og:image" content="https://fakturku.vercel.app/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="FakturKu — workspace dokumen bisnis: faktur, kwitansi, dan invoice digital">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="FakturKu — Dokumen rapi, urusan beres">
+  <meta name="twitter:description" content="Buat faktur, kwitansi, invoice digital, dan 51 template dokumen bisnis dalam 7 kategori. Preview, cetak A4/thermal, bagikan ke WhatsApp.">
+  <meta name="twitter:image" content="https://fakturku.vercel.app/og-image.png">
   <meta name="theme-color" content="#16324F">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "Organization",
+        "@id": "https://fakturku.vercel.app/#organization",
+        "name": "FakturKu",
+        "url": "https://fakturku.vercel.app/",
+        "logo": "https://fakturku.vercel.app/icon-512.png",
+        "description": "Workspace dokumen bisnis untuk membuat faktur, kwitansi, invoice digital, dan template administrasi lainnya."
+      },
+      {
+        "@type": "WebSite",
+        "@id": "https://fakturku.vercel.app/#website",
+        "url": "https://fakturku.vercel.app/",
+        "name": "FakturKu",
+        "inLanguage": "id-ID",
+        "publisher": { "@id": "https://fakturku.vercel.app/#organization" }
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://fakturku.vercel.app/#app",
+        "name": "FakturKu",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "url": "https://fakturku.vercel.app/",
+        "description": "Aplikasi web untuk membuat dokumen bisnis: faktur, kwitansi, invoice digital, struk, surat penawaran, purchase order, dan lainnya. Cetak A4 atau thermal 58 mm dan bagikan sebagai gambar.",
+        "inLanguage": "id-ID",
+        "featureList": [
+          "51 template dokumen bisnis dalam 7 kategori",
+          "Preview dokumen sebelum cetak",
+          "Cetak A4 dan struk thermal 58 mm",
+          "Simpan sebagai gambar dan bagikan ke WhatsApp",
+          "Nomor dokumen otomatis"
+        ],
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "IDR",
+          "description": "Akun gratis dengan kuota dokumen awal."
+        },
+        "publisher": { "@id": "https://fakturku.vercel.app/#organization" }
+      }
+    ]
+  }
+  </script>
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="icon-180.png">
@@ -802,14 +865,18 @@
         <div class="final-auth-copy"><p class="section-kicker reveal">SIAP MULAI?</p><h2 class="section-heading reveal">Dokumen rapi. Urusan beres.</h2><p class="section-intro reveal">Lihat contoh, pahami alurnya, lalu masuk atau buat akun untuk melanjutkan di workspace FakturKu.</p><div class="auth-mini-points reveal"><span>7 kategori kebutuhan</span><span>Preview dokumen</span><span>Print & bagikan</span></div></div>
         <section class="auth-card reveal" id="landing-auth-panel" aria-label="Masuk atau daftar akun">
           <h2 id="auth-title">Selamat datang</h2>
-          <p class="modal-sub">Masuk ke akun atau buat akun baru untuk melanjutkan.</p>
+          <p class="modal-sub" id="auth-sub">Masuk ke akun atau buat akun baru untuk melanjutkan.</p>
           <div class="auth-tabs" role="tablist" aria-label="Jenis akses akun">
             <button type="button" id="auth-tab-in" class="on" role="tab" aria-selected="true">Masuk</button>
             <button type="button" id="auth-tab-up" role="tab" aria-selected="false">Daftar</button>
           </div>
           <div class="field" id="auth-name-field" hidden><label for="auth-name">Nama</label><input id="auth-name" type="text" autocomplete="name" placeholder="Nama lengkap"></div>
-          <div class="field"><label for="auth-email">Email</label><input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com"></div>
-          <div class="field"><label for="auth-pass">Password</label><input id="auth-pass" type="password" autocomplete="current-password" placeholder="Minimal 6 karakter"></div>
+          <div class="field" id="auth-email-field"><label for="auth-email">Email</label><input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com"></div>
+          <div class="field" id="auth-pass-field"><label for="auth-pass">Password</label><input id="auth-pass" type="password" autocomplete="current-password" placeholder="Minimal 8 karakter"></div>
+          <div class="auth-assist">
+            <button type="button" class="auth-link" id="auth-forgot">Lupa password?</button>
+            <button type="button" class="auth-link" id="auth-back" hidden>Kembali masuk</button>
+          </div>
           <p class="auth-err" id="auth-err" hidden></p>
           <button class="btn primary" type="button" id="auth-go">Masuk</button>
           <p class="auth-note">Dengan melanjutkan, Anda dapat mengelola dokumen dan informasi akun melalui FakturKu.</p>

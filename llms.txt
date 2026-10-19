@@ -1,0 +1,18 @@
+# FakturKu
+
+> FakturKu adalah aplikasi web (PWA) berbahasa Indonesia untuk membuat dokumen bisnis: faktur, kwitansi, invoice digital, struk, surat penawaran, purchase order, dan template administrasi lainnya. Pengguna mengisi data, melihat pratinjau, lalu mencetak (A4 atau thermal 58 mm) atau menyimpan sebagai gambar untuk dibagikan.
+
+Fakta utama:
+- Situs resmi: https://fakturku.vercel.app/
+- Bahasa antarmuka: Bahasa Indonesia (`id-ID`).
+- 51 template dokumen dalam 7 kategori: Finance, Legal, UMKM, Logistik, Pajak, Proyek, Operasional.
+- Output: pratinjau di layar, cetak A4, cetak struk thermal 58 mm, simpan gambar, bagikan ke WhatsApp.
+- Akun: email + password; tersedia kuota dokumen awal gratis dan top-up saldo.
+- Nomor dokumen dibuat otomatis dan unik per pengguna.
+- Data dokumen dapat disimpan sebagai draft di perangkat dan disinkronkan ke akun.
+- Asisten AI membantu menjelaskan kolom dan menyusun saran isian; saran tidak diterapkan otomatis.
+- Template pajak/hukum bersifat alat bantu administratif, bukan formulir resmi atau jaminan kepatuhan.
+
+Halaman:
+- https://fakturku.vercel.app/ — landing, katalog kategori, alur kerja, dan pendaftaran.
+- https://fakturku.vercel.app/admin — panel admin (tidak untuk publik, `noindex`).

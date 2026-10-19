@@ -255,7 +255,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 10px; }
 /* Field yang tidak dipakai template harus benar-benar hilang: `.field`/`.check`
    memakai display:flex sehingga atribut [hidden] saja tidak cukup. */
-.fsec .field[hidden], .fsec .check[hidden] { display: none; }
+.fsec .field[hidden], .fsec .check[hidden],
+.auth-card .field[hidden], .auth-card .auth-tabs[hidden] { display: none; }
 .field label {
   font-size: 12px;
   font-weight: 500;

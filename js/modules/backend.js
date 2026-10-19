@@ -60,9 +60,22 @@ export async function signOut() {
   if (sb) await sb.auth.signOut();
 }
 
+/* Kirim tautan reset password. redirectTo harus ada di allow-list Supabase. */
+export async function requestPasswordReset(email) {
+  const redirectTo = location.origin + location.pathname;
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo });
+  if (error) throw error;
+}
+
+/* Dipakai setelah user membuka tautan recovery (event PASSWORD_RECOVERY). */
+export async function updatePassword(newPassword) {
+  const { error } = await sb.auth.updateUser({ password: newPassword });
+  if (error) throw error;
+}
+
 export function onAuthChange(cb) {
   if (!sb) return () => {};
-  const { data } = sb.auth.onAuthStateChange((_e, session) => cb(session));
+  const { data } = sb.auth.onAuthStateChange((event, session) => cb(session, event));
   return () => data.subscription.unsubscribe();
 }
 
