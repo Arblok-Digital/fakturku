@@ -1,0 +1,28 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: syntax + render coverage
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Syntax check (semua JS runtime)
+        run: node tools/check-syntax.mjs
+
+      - name: Render coverage (51 template)
+        run: node tools/check-render-coverage.mjs

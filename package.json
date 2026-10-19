@@ -1,0 +1,10 @@
+{
+  "name": "fakturku",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node tools/check-syntax.mjs && node tools/check-render-coverage.mjs",
+    "check:syntax": "node tools/check-syntax.mjs",
+    "check:render": "node tools/check-render-coverage.mjs"
+  }
+}
