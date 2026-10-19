@@ -10,6 +10,17 @@ import { fieldUsed, printsTotals } from "./modules/editor-fields.js";
 import * as ledger from "./modules/credit-ledger.js";
 import * as backend from "./modules/backend.js";
 
+/* Deteksi tautan recovery HARUS dilakukan sebelum supabase-js memproses URL hash.
+   Event PASSWORD_RECOVERY bisa terlewat bila listener dipasang setelah client init. */
+const bootHash = String(location.hash || "");
+const bootRecovery = /(?:^|[#&])type=recovery(?:&|$)/.test(bootHash);
+const bootAuthError = (() => {
+  const m = bootHash.match(/(?:^|[#&])error_description=([^&]*)/);
+  if (!m) return "";
+  try { return decodeURIComponent(m[1].replace(/\+/g, " ")); } catch { return ""; }
+})();
+let recoveryPending = bootRecovery;
+
 const storedState = loadCurrent();
 const hasStoredState = Boolean(storedState);
 let state = storedState || blankState("faktur-a4");
@@ -805,6 +816,22 @@ function closeAuth() {
   $("#workspace").hidden = false;
 }
 
+/* Tampilkan form password baru untuk sesi recovery. */
+function openRecovery() {
+  recoveryPending = true;
+  openAuth();
+  setAuthMode("recover");
+  $("#auth-pass").value = "";
+  $("#auth-pass").focus();
+}
+
+function showAuthError(message) {
+  const err = $("#auth-err");
+  err.textContent = message;
+  err.hidden = false;
+  err.classList.remove("ok");
+}
+
 function setAuthMode(mode) {
   authMode = mode;
   const copy = {
@@ -859,7 +886,10 @@ async function authSubmit() {
       err.hidden = false;
       err.classList.add("ok");
     } catch (e) {
-      err.textContent = e?.message || "Gagal mengirim tautan. Coba lagi.";
+      const msg = Number(e?.status) === 429
+        ? "Terlalu banyak permintaan email. Tunggu beberapa menit, lalu coba lagi."
+        : (e?.message || "Gagal mengirim tautan. Coba lagi.");
+      err.textContent = msg;
       err.hidden = false;
     } finally {
       go.disabled = false;
@@ -892,10 +922,12 @@ async function authSubmit() {
       err.classList.add("ok");
     } else if (wasMode === "recover") {
       await backend.updatePassword(pass);
+      recoveryPending = false;
+      try { history.replaceState(null, "", location.pathname + location.search); } catch { /* abaikan */ }
       const session = await backend.getSession();
       if (session) handleSession(session);
       setAuthMode("in");
-      toast("Password diperbarui.");
+      toast("Password diperbarui. Kamu sudah masuk.");
     }
   } catch (e) {
     err.textContent = e?.message || "Gagal — coba lagi.";
@@ -1649,17 +1681,26 @@ async function boot() {
     backend.onAuthChange((s, event) => {
       /* Tautan reset password membuka app dengan sesi recovery: tampilkan form password baru. */
       if (event === "PASSWORD_RECOVERY") {
-        openAuth();
-        setAuthMode("recover");
-        $("#auth-pass").value = "";
-        $("#auth-pass").focus();
+        openRecovery();
         return;
       }
+      /* Jangan buka workspace saat sesi recovery belum diganti password baru. */
+      if (recoveryPending) return;
       handleSession(s);
     });
     try {
       const s = await backend.getSession();
-      if (s) handleSession(s);
+      if (bootRecovery) {
+        /* Hash recovery bisa saja sudah diproses sebelum listener terpasang. */
+        openRecovery();
+      } else if (s) {
+        handleSession(s);
+        if (bootAuthError) toast("Tautan reset tidak valid atau sudah kedaluwarsa.");
+      } else if (bootAuthError) {
+        openAuth();
+        setAuthMode("req");
+        showAuthError("Tautan reset tidak valid atau sudah kedaluwarsa. " + bootAuthError);
+      }
     } catch (e) {
       console.warn("backend init gagal", e);
     }

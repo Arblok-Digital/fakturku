@@ -90,6 +90,25 @@ muncul di jawaban mesin pencari/AI.
 - Catatan: alur *recover* dengan tautan asli belum diuji end-to-end (butuh inbox);
   jalur kode sudah direview, UI mode `recover` sudah terpasang.
 
+### 5.1 E2E reset password (2026-10-19, setelah perbaikan)
+
+Akar masalah: event `PASSWORD_RECOVERY` bisa terlewat karena supabase-js memproses
+URL hash saat client dibuat, sebelum listener dipasang. Perbaikan: hash recovery
+dideteksi di awal modul (`bootRecovery`) dan form recovery ditampilkan setelah
+`getSession()`; sesi recovery tidak boleh membuka workspace sebelum password diganti.
+
+Uji nyata memakai user tes sementara (dibuat & dihapus via Admin API):
+1. Buat user tes (`email_confirm=true`) → trigger `handle_new_user` jalan.
+2. `admin/generate_link` tipe `recovery` dengan `redirect_to` lokal → buka tautan di Playwright.
+3. App menampilkan **"Atur ulang password"** (workspace tetap tersembunyi) ✔
+4. Isi password baru → tersimpan, workspace terbuka, hash URL dibersihkan ✔
+5. `POST /auth/v1/token?grant_type=password` dengan password baru → **200**, user id cocok ✔
+6. Login dengan password lama → **400** (ditolak) ✔
+7. User tes dihapus; sisa baris `reset-e2e-%` di `auth.users` = **0** ✔
+
+Tambahan: pesan ramah untuk tautan kedaluwarsa (`error_description` di hash) dan
+rate limit email (429).
+
 ## 6. Menjadwalkan backup harian (Windows)
 
 ```powershell
