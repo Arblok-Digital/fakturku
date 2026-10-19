@@ -1,0 +1,22 @@
+Caption Facebook — Arblok Digital (soft selling)
+Dipublikasikan: 2026-10-19 04:47 UTC
+Post ID: 1286079987914847_122131099743395717
+Permalink: https://www.facebook.com/122131099791395717/posts/122131099743395717
+
+---
+
+Pernah nggak, pas lagi di lokasi pelanggan tiba-tiba diminta invoice "sekarang"?
+
+Yang biasanya terjadi: buka laptop, cari file lama, copy-paste, ganti nomor dan tanggal, lalu berharap formatnya masih sama seperti terakhir kali dipakai.
+
+Padahal dokumen bisnis semestinya bukan pekerjaan tambahan. Cukup diisi, dicek, lalu dikirim.
+
+Dari situ kami membuat FakturKu: workspace dokumen bisnis yang jalan langsung di browser HP. Pilih format (faktur, kwitansi, surat jalan, penawaran, sampai rekap penjualan), isi data, lihat pratinjau, lalu cetak A4/thermal atau bagikan lewat WhatsApp.
+
+Ada 51 format dokumen di 7 kategori, dan 10 dokumen pertama gratis untuk dicoba. Tanpa perlu install.
+
+Kalau kebetulan alurnya mirip dengan yang Anda alami, boleh dicoba pelan-pelan di https://fakturku.vercel.app — tidak harus sekarang, dan tidak harus langsung dipakai semuanya. :)
+
+Catatan kecil: FakturKu masih BETA. Template di dalamnya adalah alat bantu administrasi umum, bukan dokumen resmi atau tersertifikasi, jadi tetap periksa sebelum dipakai untuk keperluan formal.
+
+#FakturKu #ArblokDigital #UMKM #DokumenBisnis #Tasikmalaya
