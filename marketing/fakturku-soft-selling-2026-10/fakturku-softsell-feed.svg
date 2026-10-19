@@ -1,0 +1,99 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1350" viewBox="0 0 1080 1350">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="55%" stop-color="#fbfcfe"/>
+      <stop offset="100%" stop-color="#f2f5ff"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#2457e6" stop-opacity="0.16"/>
+      <stop offset="100%" stop-color="#2457e6" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="dots" width="26" height="26" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.7" fill="#2457e6" opacity="0.20"/>
+    </pattern>
+    <filter id="cardShadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="18" stdDeviation="26" flood-color="#0f2547" flood-opacity="0.14"/>
+    </filter>
+    <filter id="pillShadow" x="-30%" y="-40%" width="160%" height="190%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#0f2547" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1080" height="1350" fill="url(#bgGrad)"/>
+  <ellipse cx="960" cy="150" rx="420" ry="300" fill="url(#glow)"/>
+  <rect x="640" y="60" width="360" height="360" fill="url(#dots)" opacity="0.55"/>
+
+  <rect x="76" y="64" width="60" height="60" rx="14" fill="#2457e6"/>
+  <text x="106" y="107" font-family="IBM Plex Sans" font-size="34" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0" opacity="1">F</text>
+  <text x="152" y="105" font-family="IBM Plex Sans" font-size="34" font-weight="700" fill="#111827" text-anchor="start" letter-spacing="-0.6" opacity="1">FakturKu</text>
+  <rect x="322" y="76" width="76" height="32" rx="16" fill="#eef2ff" stroke="#c7d2fe"/>
+  <text x="360" y="99" font-family="IBM Plex Sans" font-size="15" font-weight="600" fill="#2457e6" text-anchor="middle" letter-spacing="1.2" opacity="1">BETA</text>
+  <text x="1004" y="100" font-family="IBM Plex Mono" font-size="19" font-weight="400" fill="#8b95a5" text-anchor="end" letter-spacing="0" opacity="1">fakturku.vercel.app</text>
+
+  <rect x="76" y="196" width="12" height="12" rx="3" fill="#2457e6"/>
+  <text x="100" y="208" font-family="IBM Plex Mono" font-size="18" font-weight="600" fill="#2457e6" text-anchor="start" letter-spacing="2.6" opacity="1">WORKSPACE DOKUMEN BISNIS</text>
+
+  <text x="72" y="322" font-family="IBM Plex Sans" font-size="96" font-weight="700" fill="#111827" text-anchor="start" letter-spacing="-2.6" opacity="1">Faktur rapi,</text>
+  <text x="72" y="424" font-family="IBM Plex Sans" font-size="96" font-weight="700" fill="#111827" text-anchor="start" letter-spacing="-2.6" opacity="1">tanpa harus</text>
+  <text x="72" y="526" font-family="IBM Plex Sans" font-size="96" font-weight="700" fill="#2457e6" text-anchor="start" letter-spacing="-2.6" opacity="1">buka laptop.</text>
+
+  <text x="76" y="596" font-family="IBM Plex Sans" font-size="29" font-weight="400" fill="#4b5563" text-anchor="start" letter-spacing="0" opacity="1">Isi data dari HP, cek pratinjau, lalu cetak atau</text>
+  <text x="76" y="638" font-family="IBM Plex Sans" font-size="29" font-weight="400" fill="#4b5563" text-anchor="start" letter-spacing="0" opacity="1">kirim ke pelanggan lewat WhatsApp.</text>
+
+  <g filter="url(#pillShadow)">
+    <rect x="700" y="640" width="304" height="66" rx="33" fill="#ffffff" stroke="#e4e7ec"/>
+    <circle cx="734" cy="673" r="15" fill="#dcfce7"/>
+    <path d="M727 673 l5 5 l10 -10" fill="none" stroke="#15803d" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+    <text x="762" y="680" font-family="IBM Plex Sans" font-size="20" font-weight="600" fill="#111827" text-anchor="start" letter-spacing="0" opacity="1">Total otomatis dihitung</text>
+  </g>
+
+  <g filter="url(#cardShadow)">
+    <rect x="76" y="700" width="928" height="432" rx="20" fill="#ffffff" stroke="#e4e7ec"/>
+  </g>
+  <rect x="76" y="700" width="8" height="432" rx="4" fill="#2457e6"/>
+
+  <rect x="116" y="736" width="44" height="44" rx="10" fill="#2457e6"/>
+  <text x="138" y="766" font-family="IBM Plex Sans" font-size="24" font-weight="700" fill="#fff" text-anchor="middle" letter-spacing="0" opacity="1">F</text>
+  <text x="176" y="756" font-family="IBM Plex Mono" font-size="15" font-weight="600" fill="#4b5563" text-anchor="start" letter-spacing="1.8" opacity="1">FAKTURKU · FINANCE</text>
+  <text x="176" y="779" font-family="IBM Plex Sans" font-size="16" font-weight="400" fill="#8b95a5" text-anchor="start" letter-spacing="0" opacity="1">Contoh dokumen</text>
+  <rect x="756" y="742" width="212" height="34" rx="17" fill="#ecfdf3" stroke="#bbf7d0"/>
+  <text x="862" y="765" font-family="IBM Plex Mono" font-size="15" font-weight="600" fill="#15803d" text-anchor="middle" letter-spacing="1.4" opacity="1">PREVIEW SIAP</text>
+
+  <text x="116" y="838" font-family="IBM Plex Sans" font-size="38" font-weight="700" fill="#111827" text-anchor="start" letter-spacing="-0.8" opacity="1">INVOICE</text>
+  <text x="116" y="868" font-family="IBM Plex Mono" font-size="18" font-weight="400" fill="#8b95a5" text-anchor="start" letter-spacing="0" opacity="1">INV-2026-0108</text>
+
+  <line x1="116" y1="892" x2="964" y2="892" stroke="#e4e7ec" stroke-width="1.5"/>
+
+  <text x="116" y="926" font-family="IBM Plex Sans" font-size="22" font-weight="400" fill="#4b5563" text-anchor="start" letter-spacing="0" opacity="1">Jasa desain feed Instagram</text>
+  <text x="964" y="926" font-family="IBM Plex Mono" font-size="22" font-weight="400" fill="#111827" text-anchor="end" letter-spacing="0" opacity="1">Rp 1.500.000</text>
+  <text x="116" y="964" font-family="IBM Plex Sans" font-size="22" font-weight="400" fill="#4b5563" text-anchor="start" letter-spacing="0" opacity="1">Setup halaman Facebook</text>
+  <text x="964" y="964" font-family="IBM Plex Mono" font-size="22" font-weight="400" fill="#111827" text-anchor="end" letter-spacing="0" opacity="1">Rp 1.250.000</text>
+  <text x="116" y="1002" font-family="IBM Plex Sans" font-size="22" font-weight="400" fill="#4b5563" text-anchor="start" letter-spacing="0" opacity="1">Pendampingan konten 1 bulan</text>
+  <text x="964" y="1002" font-family="IBM Plex Mono" font-size="22" font-weight="400" fill="#111827" text-anchor="end" letter-spacing="0" opacity="1">Rp 1.000.000</text>
+
+  <line x1="116" y1="1028" x2="964" y2="1028" stroke="#e4e7ec" stroke-width="1.5"/>
+
+  <text x="116" y="1090" font-family="IBM Plex Mono" font-size="15" font-weight="600" fill="#4b5563" text-anchor="start" letter-spacing="2" opacity="1">TOTAL TAGIHAN</text>
+  <text x="964" y="1096" font-family="IBM Plex Sans" font-size="42" font-weight="700" fill="#2457e6" text-anchor="end" letter-spacing="-1" opacity="1">Rp 3.750.000</text>
+
+  <rect x="76" y="1176" width="286" height="52" rx="26" fill="#eef2ff"/>
+  <circle cx="106" cy="1202" r="11" fill="#ffffff"/>
+  <path d="M101 1202 l4 4 l8 -8" fill="none" stroke="#2457e6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="128" y="1211" font-family="IBM Plex Sans" font-size="21" font-weight="600" fill="#1d46bf" text-anchor="start" letter-spacing="0" opacity="1">51 format dokumen</text>
+
+  <rect x="378" y="1176" width="286" height="52" rx="26" fill="#eef2ff"/>
+  <circle cx="408" cy="1202" r="11" fill="#ffffff"/>
+  <path d="M403 1202 l4 4 l8 -8" fill="none" stroke="#2457e6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="430" y="1211" font-family="IBM Plex Sans" font-size="21" font-weight="600" fill="#1d46bf" text-anchor="start" letter-spacing="0" opacity="1">Cetak A4 &amp; thermal</text>
+
+  <rect x="680" y="1176" width="324" height="52" rx="26" fill="#eef2ff"/>
+  <circle cx="710" cy="1202" r="11" fill="#ffffff"/>
+  <path d="M705 1202 l4 4 l8 -8" fill="none" stroke="#2457e6" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <text x="732" y="1211" font-family="IBM Plex Sans" font-size="21" font-weight="600" fill="#1d46bf" text-anchor="start" letter-spacing="0" opacity="1">Kirim via WhatsApp</text>
+
+  <line x1="76" y1="1272" x2="1004" y2="1272" stroke="#e4e7ec" stroke-width="1.5"/>
+
+  <text x="76" y="1318" font-family="IBM Plex Sans" font-size="19" font-weight="400" fill="#8b95a5" text-anchor="start" letter-spacing="0" opacity="1">Arblok Digital · Tasikmalaya</text>
+  <text x="1004" y="1318" font-family="IBM Plex Sans" font-size="21" font-weight="700" fill="#2457e6" text-anchor="end" letter-spacing="0" opacity="1">Coba gratis, tanpa install ↗</text>
+</svg>
