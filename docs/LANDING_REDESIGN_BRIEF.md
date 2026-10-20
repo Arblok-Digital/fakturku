@@ -1,7 +1,23 @@
 # Brief — Redesign Landing Page FakturKu (mobile-first, 3 detik)
 
-Status: **menunggu review** · Tanggal: 20 Okt 2026 · Owner: Arblok Digital
-Branch implementasi: `feat/landing-redesign-2026-10-2x` (dibuat saat mulai coding)
+Status: **Tahap 1-3 selesai (2026-10-20), menunggu review** - Branch: `feat/landing-redesign-2026-10-20` - Owner: Arblok Digital
+
+### Status implementasi per tahap
+
+| Tahap | Status | Catatan |
+|---|---|---|
+| 1. Hero split + copy | Selesai | 2 kolom (>=1024px): kiri pesan + chips + stage, kanan form. H1 memakai versi B (lebih tegas). |
+| 2. Auth bottom sheet | Selesai | Satu node `.auth-card` dipindah via JS (desktop ke kolom kanan, mobile ke sheet). Scroll lock, ESC, backdrop, focus trap, `aria-modal`. |
+| 3. Animasi mesin dokumen | Selesai | 7 kategori autoplay 3,6 dtk, chip bisa diambil alih (jeda 8 dtk), jeda saat tab tak terlihat / sheet terbuka, `prefers-reduced-motion` ke frame pertama statis. |
+| 4. Galeri 51 template | Belum | Section kategori lama masih ada; galeri belum dibuat. |
+| 5. Menu akun/panduan | Belum | Avatar masih = tombol Keluar. |
+| 6. Polish + Lighthouse | Belum | Belum diukur. |
+
+**Keputusan teknis saat implementasi:**
+- `overflow` landing diubah dari `clip` ke `overflow-x: clip` agar bottom sheet `position: fixed` tidak terpotong.
+- Item grid hero diberi `min-width: 0`; tanpa itu chips `scroll-x` memaksa kolom melebar dan teks terpotong di mobile.
+- `openAuth()` (buka landing) dipisah dari `promptAuth()` (buka form). Kalau digabung, form ikut terbuka sendiri saat boot karena `handleSession(null)`.
+- Pesan error GoTrue yang menutupi trigger database ("Database error saving new user") diganti kalimat yang bisa dibaca user.
 
 ---
 
