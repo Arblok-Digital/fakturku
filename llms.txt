@@ -15,4 +15,6 @@ Fakta utama:
 
 Halaman:
 - https://fakturku.vercel.app/ — landing, katalog kategori, alur kerja, dan pendaftaran.
+- https://fakturku.vercel.app/privasi.html — kebijakan privasi (data yang dikumpulkan, dasar pemrosesan, retensi, hak pengguna).
+- https://fakturku.vercel.app/ketentuan.html — syarat & ketentuan (akun, kuota, top-up, batasan tanggung jawab).
 - https://fakturku.vercel.app/admin — panel admin (tidak untuk publik, `noindex`).

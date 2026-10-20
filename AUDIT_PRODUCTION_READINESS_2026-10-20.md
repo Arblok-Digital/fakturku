@@ -269,7 +269,26 @@ email palsu tetap bisa masuk selama autentikasi email nonaktif). Serangan diarah
 - `supabase-js` di-CDN **dipin ke versi 2.117.3** (sebelumnya `@2` = selalu terbaru, bisa berubah
   sendiri di browser user).
 
-### 6.6 Sisa pekerjaan (tidak bisa diselesaikan tanpa kredensial user)
+### 6.6 Hasil verifikasi di production (setelah deploy `bf2411d`)
+
+| Yang diuji | Hasil |
+|---|---|
+| Pendaftaran normal (UI) | ✅ "Pendaftaran berhasil", workspace terbuka, **trial T10** |
+| Pendaftaran domain disposable (UI) | ✅ ditolak, pesan ramah: "Email dari layanan sekali pakai tidak kami terima…" |
+| Pendaftaran alamat role (`support@gmail.com`) | ✅ ditolak (HTTP 400, `role_address`) |
+| Pendaftaran plus-addressing | ✅ boleh daftar, `limited=true` (tanpa kuota trial) |
+| Email dengan 8 digit (tahun) | ✅ **tidak** ikut diblokir (ambang disetel 9 digit setelah uji) |
+| Pendaftaran di luar 5/menit/IP | ✅ HTTP 429 |
+| Reset password (E2E, production) | ✅ form "Atur ulang password" → tersimpan → login password baru **200**, password lama **400** |
+| API AI | ✅ GET 405, POST tanpa token 401 (tetap fail-closed) |
+| Panel `/admin` | ✅ termuat, `noindex`, 0 error fungsional |
+| Halaman legal | ✅ `privasi.html` & `ketentuan.html` → 200 |
+| Header CSP | ✅ aktif di production |
+| Drift migrasi | ✅ **TIDAK ADA DRIFT** (versi & object sinkron repo ↔ live) |
+| Data live setelah semua uji | ✅ 5 user, 31 invoice, 51 template, saldo Rp87.000 — tidak berubah |
+| Sisa user tes | ✅ 0 |
+
+### 6.7 Sisa pekerjaan (tidak bisa diselesaikan tanpa kredensial user)
 
 | Item | Yang dibutuhkan |
 |---|---|
