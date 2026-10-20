@@ -61,18 +61,35 @@ $repoFiles = Get-ChildItem $repoDir -Filter *.sql | Sort-Object Name
 $repoVersions = @()
 foreach ($f in $repoFiles) { $repoVersions += $f.BaseName.Substring(0, 14) }
 
+# Versi yang hanya tercatat di live, tapi efeknya sudah tercakup file repo
+# (dicatat saat penyelarasan 2026-10-20). Efeknya diverifikasi lewat cek objek di bawah.
+$coveredByRepo = @{
+  "20261013100000" = "20261012080000_category_billing.sql, 20261017000100_sync_business_templates_phase4.sql"
+  "20261013130000" = "20261017000200_billing_phase5_free_tier_category_unlock.sql"
+  "20261013140000" = "20261020110000_reconcile_missing_objects.sql"
+}
+
 $liveRows = Run-Sql "SELECT version FROM supabase_migrations.schema_migrations ORDER BY version;"
 $liveVersions = @($liveRows | ForEach-Object { [string]$_.version })
 
 $onlyRepo  = $repoVersions  | Where-Object { $liveVersions -notcontains $_ }
 $onlyLive  = $liveVersions  | Where-Object { $repoVersions -notcontains $_ }
+$uncovered = $onlyLive | Where-Object { -not $coveredByRepo.ContainsKey($_) }
 
 Write-Output "=== VERSI MIGRASI ==="
 Write-Output ("repo : " + ($repoVersions -join ", "))
 Write-Output ("live : " + ($liveVersions -join ", "))
 if ($onlyRepo) { Write-Output ("HANYA DI REPO (belum jalan di live): " + ($onlyRepo -join ", ")) }
-if ($onlyLive) { Write-Output ("HANYA DI LIVE (belum ada di repo): " + ($onlyLive -join ", ")) }
-if (-not $onlyRepo -and -not $onlyLive) { Write-Output "  versi: SAMA" }
+if ($onlyLive) {
+  Write-Output ("HANYA DI LIVE: " + ($onlyLive -join ", "))
+  foreach ($v in $onlyLive) {
+    if ($coveredByRepo.ContainsKey($v)) {
+      Write-Output ("  -> " + $v + " efeknya tercakup: " + $coveredByRepo[$v])
+    } else {
+      Write-Output ("  -> " + $v + " BELUM TERCakup file repo (perlu migrasi rekonsiliasi)")
+    }
+  }
+}
 
 Write-Output ""
 Write-Output "=== OBJECTS LIVE YANG BELUM ADA DI MIGRASI REPO ==="
@@ -100,7 +117,7 @@ if ($missing.Count -eq 0) {
   $missing | ForEach-Object { Write-Output ("  " + $_.kind + " " + $_.name + " " + $_.detail) }
 }
 
-$drift = ($missing.Count -gt 0) -or ($onlyRepo.Count -gt 0) -or ($onlyLive.Count -gt 0)
+$drift = ($missing.Count -gt 0) -or ($onlyRepo.Count -gt 0) -or ($uncovered.Count -gt 0)
 Write-Output ""
 if ($drift) {
   Write-Output "HASIL: DRIFT DITEMUKAN"
