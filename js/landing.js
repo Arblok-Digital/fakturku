@@ -79,7 +79,7 @@ if (root) {
     chips: [...root.querySelectorAll("[data-doc-chip]")]
   };
   const STAGE_MS = 3600;
-  const FRAME_MAX_H = 470;
+  const FRAME_MAX_H = 540;
   let stageIndex = 0;
   let stageTimer = null;
   let stagePaused = false;

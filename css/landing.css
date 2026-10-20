@@ -1314,3 +1314,60 @@ body:has(#auth-modal:not([hidden])) #btn-new-fab { display: none !important; }
   .landing-v2 .doc-stage-name { font-size: 14px; }
   .landing-v2 .doc-stage-note { font-size: 12px; }
 }
+
+/* =============================================================
+   Pass: hero TEKS full-width + wrapper KARTU (2026-10-20)
+   Struktur:
+     .hero-inner.hero-layout
+       .hero-copy   -> teks full width (pill, H1, deskripsi, kategori, CTA, checklist)
+       .hero-cards  -> wrapper kartu
+         .hero-stage (Document Preview)  |  .hero-side (Login)
+   Desktop >=1024 : kartu 2 kolom, rata atas (items-start)
+   <1024         : kartu disusun vertikal, full width
+   ============================================================= */
+.landing-v2 .hero-layout {
+  display: flex; flex-direction: column; align-items: stretch;
+  grid-template-columns: none; grid-template-areas: none;
+  gap: clamp(26px, 3.2vw, 44px);
+}
+
+/* ---------- teks hero: full width di atas ---------- */
+.landing-v2 .hero-layout .hero-copy { max-width: none; width: 100%; }
+.landing-v2 .hero-layout .hero-copy h1 { max-width: 900px; }
+.landing-v2 .hero-layout .hero-lead { max-width: 720px; }
+
+/* ---------- wrapper kartu ---------- */
+.landing-v2 .hero-cards {
+  display: grid; align-items: start; min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 450px;
+  column-gap: clamp(32px, 4vw, 56px);
+  row-gap: 32px;
+}
+.landing-v2 .hero-cards > * { min-width: 0; }
+
+/* kartu Document Preview: dokumen di atas, meta di bawah */
+.landing-v2 .hero-cards .hero-stage {
+  grid-area: auto; display: flex; flex-direction: column; gap: 16px;
+  padding: 16px; border-radius: 18px;
+  border: 1px solid #ffffff1f; background: #ffffff08;
+}
+.landing-v2 .hero-cards .doc-frame { width: 100%; max-width: none; height: 520px; }
+.landing-v2 .hero-cards .doc-stage-bar { width: 100%; padding: 0; }
+.landing-v2 .hero-cards .doc-dots { justify-content: flex-start; margin-top: 4px; }
+
+/* kolom Login: rata atas dengan kartu dokumen */
+.landing-v2 .hero-cards .hero-side { grid-area: auto; align-self: start; }
+
+/* ---------- < 1024px: kartu vertikal ---------- */
+@media (max-width: 1023px) {
+  .landing-v2 .hero-cards { grid-template-columns: 1fr; row-gap: 28px; }
+  .landing-v2 .hero-cards .hero-stage { padding: 12px; }
+  .landing-v2 .hero-cards .doc-frame { height: 420px; }
+}
+
+@media (max-width: 760px) {
+  .landing-v2 .hero-layout { gap: 22px; }
+  .landing-v2 .hero-cards { row-gap: 22px; }
+  .landing-v2 .hero-cards .hero-stage { padding: 10px; border-radius: 14px; }
+  .landing-v2 .hero-cards .doc-frame { height: 340px; }
+}
