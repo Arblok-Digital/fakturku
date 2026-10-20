@@ -10,6 +10,7 @@
     "backup": "powershell -ExecutionPolicy Bypass -File tools/backup-fakturku.ps1",
     "backup:mirror": "powershell -ExecutionPolicy Bypass -File tools/backup-fakturku.ps1 -MirrorTo \"$env:OneDrive\\Backup\\fakturku\"",
     "restore:drill": "powershell -ExecutionPolicy Bypass -File tools/restore-fakturku.ps1 -Snapshot latest",
-    "migrations:align": "powershell -ExecutionPolicy Bypass -File tools/align-migrations.ps1"
+    "migrations:align": "powershell -ExecutionPolicy Bypass -File tools/align-migrations.ps1",
+    "kb:export": "node tools/export-kb.mjs"
   }
 }
