@@ -462,7 +462,7 @@ async function markIssued() {
   if (state.issued) return true;
   const category = state.category || getCategory(state.template);
   if (backend.isRemote()) {
-    if (!remote.session) { openAuth(); return false; }
+    if (!remote.session) { promptAuth(); return false; }
     if (state._serverNumberRequired) {
       let reserved = numberReservationFor === state
         ? await numberReservationPromise
@@ -811,6 +811,13 @@ function openAuth() {
   $("#workspace").hidden = true;
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
+
+/* Minta form auth (bottom sheet di mobile) dibuka. Dipakai hanya untuk aksi user,
+   bukan saat boot — kalau tidak, form akan terbuka sendiri di halaman landing. */
+function promptAuth() {
+  openAuth();
+  document.dispatchEvent(new CustomEvent("fakturku:auth-open"));
+}
 function closeAuth() {
   authModal.hidden = true;
   $("#workspace").hidden = false;
@@ -819,7 +826,7 @@ function closeAuth() {
 /* Tampilkan form password baru untuk sesi recovery. */
 function openRecovery() {
   recoveryPending = true;
-  openAuth();
+  promptAuth();
   setAuthMode("recover");
   $("#auth-pass").value = "";
   $("#auth-pass").focus();
@@ -935,7 +942,12 @@ async function authSubmit() {
       toast("Password diperbarui. Kamu sudah masuk.");
     }
   } catch (e) {
-    err.textContent = e?.message || "Gagal — coba lagi.";
+    let msg = e?.message || "Gagal — coba lagi.";
+    /* GoTrue menyembunyikan pesan trigger database; ganti dengan kalimat yang bisa dibaca user. */
+    if (wasMode === "up" && /database error/i.test(msg)) {
+      msg = "Pendaftaran gagal. Coba lagi dengan email yang aktif, atau hubungi kami kalau ini akun kedua.";
+    }
+    err.textContent = msg;
     err.hidden = false;
   } finally {
     go.disabled = false;
@@ -968,6 +980,7 @@ async function refreshRemoteBilling() {
 async function handleSession(session) {
   const uid = session?.user?.id ?? null;
   if (sessionHandled && uid === lastUid) return;
+  const wasHandled = sessionHandled;
   sessionHandled = true;
   lastUid = uid;
   remote.session = session;
@@ -978,6 +991,8 @@ async function handleSession(session) {
     $("#auth-avatar").textContent = (email[0] || "?").toUpperCase();
     btn.title = email;
     closeAuth();
+    /* Tutup bottom sheet auth kalau sedang terbuka. */
+    document.dispatchEvent(new CustomEvent("fakturku:auth-close"));
     await refreshRemoteBilling();
     toast("Terhubung sebagai " + email);
     refreshAdminAccess();
@@ -992,15 +1007,25 @@ async function handleSession(session) {
     updateKuota();
     refreshAdminAccess();
     openAuth();
+    /* Sesi hilang saat aplikasi sedang dipakai -> tawarkan form login.
+       Di boot (wasHandled=false) form tidak dibuka sendiri. */
+    if (wasHandled && !suppressAuthPrompt) {
+      document.dispatchEvent(new CustomEvent("fakturku:auth-open"));
+    }
   }
 }
+
+/* Saat user sengaja keluar, jangan munculkan prompt login lagi. */
+let suppressAuthPrompt = false;
 
 $("#btn-auth").addEventListener("click", async () => {
   if (remote.session) {
     if (!confirm("Keluar dari akun " + (remote.session.user.email || "") + "?")) return;
+    suppressAuthPrompt = true;
     await backend.signOut();
+    suppressAuthPrompt = false;
   } else {
-    openAuth();
+    promptAuth();
   }
 });
 
@@ -1711,7 +1736,7 @@ async function boot() {
           toast("Sesi kamu sudah tidak berlaku. Silakan masuk lagi.");
         }
       } else if (bootAuthError) {
-        openAuth();
+        promptAuth();
         setAuthMode("req");
         showAuthError("Tautan reset tidak valid atau sudah kedaluwarsa. " + bootAuthError);
       }

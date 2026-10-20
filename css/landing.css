@@ -14,7 +14,7 @@ body:has(#auth-modal:not([hidden])) #btn-new-fab { display: none !important; }
   --fk-teal: #37b8a4;
   display: block;
   min-height: 100vh;
-  overflow: clip;
+  overflow-x: clip;
   color: var(--fk-ink);
   background: #f7f9fc;
   padding: 0;
@@ -1071,3 +1071,182 @@ body:has(#auth-modal:not([hidden])) #btn-new-fab { display: none !important; }
 }
 .landing-v2 .legal-links a { color:#cfe0ee; text-decoration:underline; text-underline-offset:3px; }
 .landing-v2 .legal-links a:hover { color:#fff; }
+
+/* =============================================================
+   Pass: split hero "Bukan Cuka faktur" (2026-10-20)
+   - Hero 2 kolom: kiri pesan + stage dokumen, kanan form
+   - Mobile: form jadi bottom sheet, sticky CTA bar di bawah
+   ============================================================= */
+
+/* ---------- grid split ---------- */
+.landing-v2 .hero-split {
+  grid-template-columns: minmax(0, 1.06fr) minmax(340px, .84fr);
+  grid-template-areas: "copy side" "stage side";
+  align-items: start;
+  column-gap: clamp(28px, 4.4vw, 66px);
+  row-gap: clamp(22px, 2.8vw, 38px);
+}
+.landing-v2 .hero-split .hero-copy { grid-area: copy; max-width: 620px; }
+.landing-v2 .hero-split .hero-stage { grid-area: stage; }
+.landing-v2 .hero-split .hero-side { grid-area: side; align-self: center; }
+
+/* ---------- chips jenis dokumen ---------- */
+.landing-v2 .doc-chips {
+  display: flex; gap: 8px; margin-top: 22px;
+  overflow-x: auto; padding-bottom: 6px;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
+}
+.landing-v2 .doc-chips::-webkit-scrollbar { display: none; }
+.landing-v2 .doc-chip {
+  flex: 0 0 auto; min-height: 34px; padding: 0 13px;
+  border: 1px solid #ffffff26; border-radius: 999px; background: #ffffff0d;
+  color: #cfdeea; font-size: 12px; font-weight: 600; cursor: pointer;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
+}
+.landing-v2 .doc-chip:hover { color: #fff; border-color: #ffffff4d; }
+.landing-v2 .doc-chip.is-active { background: #b9f56b; border-color: #b9f56b; color: #101827; }
+
+/* ---------- stage + kartu dokumen ---------- */
+.landing-v2 .hero-stage { position: relative; min-width: 0; }
+.landing-v2 .doc-card {
+  position: relative; max-width: 460px; padding: 24px 24px 20px;
+  border: 1px solid #dce5ec; border-radius: 18px; background: #fff;
+  color: #20384d; box-shadow: 0 30px 80px #040a1466;
+  transition: opacity .26s ease, transform .26s ease;
+}
+.landing-v2 .doc-card.is-swapping { opacity: .2; transform: translateY(8px); }
+.landing-v2 .doc-card-top { display: flex; align-items: center; gap: 12px; padding-bottom: 16px; border-bottom: 1px solid #e7edf2; }
+.landing-v2 .doc-card-mark {
+  display: flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 11px;
+  background: #0b1020; color: #fff; font-weight: 700; font-size: 19px;
+}
+.landing-v2 .doc-card-brand { color: #17364f; font-size: 11px; font-weight: 800; letter-spacing: .06em; }
+.landing-v2 .doc-card-caption { margin-top: 3px; color: #8a9bab; font-size: 9px; letter-spacing: .1em; }
+.landing-v2 .doc-card-status {
+  margin-left: auto; padding: 6px 10px; border-radius: 999px;
+  background: #def8e8; color: #18734a; font-size: 9px; font-weight: 800; letter-spacing: .06em;
+}
+.landing-v2 .doc-card-title { margin: 20px 0 6px; color: #17364f; font-size: 27px; letter-spacing: -.04em; }
+.landing-v2 .doc-card-number { color: #8a9bab; font: 10px var(--font-mono); }
+.landing-v2 .doc-card-copy { margin: 16px 0 20px; color: #56687c; font-size: 13px; line-height: 1.6; }
+.landing-v2 .doc-card-total {
+  display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding-top: 16px; border-top: 1px solid #e7edf2;
+}
+.landing-v2 .doc-card-total small { color: #91a0ad; font-size: 9px; font-weight: 800; letter-spacing: .1em; }
+.landing-v2 .doc-card-total strong { color: #17364f; font-size: 21px; letter-spacing: -.03em; }
+.landing-v2 .doc-card-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
+.landing-v2 .doc-card-tags span {
+  padding: 5px 9px; border: 1px solid #e3e9ef; border-radius: 7px;
+  background: #f5f7f9; color: #6b7d8f; font-size: 10px; font-weight: 600;
+}
+.landing-v2 .doc-dots { display: flex; gap: 7px; justify-content: center; margin-top: 16px; }
+.landing-v2 .doc-dot {
+  width: 7px; height: 7px; padding: 0; border: 0; border-radius: 50%;
+  background: #ffffff33; cursor: pointer; transition: background .2s ease, transform .2s ease;
+}
+.landing-v2 .doc-dot.is-active { background: #b9f56b; transform: scale(1.3); }
+
+/* ---------- CTA band di bawah ---------- */
+.landing-v2 .final-auth-actions { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; }
+.landing-v2 .final-auth-note { margin: 4px 0 0; color: #7c8fa0; font-size: 12px; line-height: 1.6; }
+
+/* ---------- sticky CTA bar (mobile) ---------- */
+.landing-v2 .landing-cta-bar { display: none; }
+
+/* ---------- auth sheet (mobile) ---------- */
+.landing-v2 .auth-sheet-host { display: contents; }
+.landing-v2 .sheet-backdrop { display: none; }
+
+@media (max-width: 1023px) {
+  .landing-v2 .hero-split {
+    grid-template-columns: 1fr;
+    grid-template-areas: "copy" "stage" "side";
+    row-gap: 26px;
+  }
+  .landing-v2 .hero-split .hero-side { display: none; }
+  .landing-v2 .doc-card { max-width: 100%; padding: 20px 20px 18px; }
+  .landing-v2 .doc-card-title { font-size: 23px; }
+
+  /* sticky bar */
+  .landing-v2 .landing-cta-bar {
+    display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
+    transform: translateY(130%);
+    transition: transform .28s cubic-bezier(.22, .61, .36, 1);
+  }
+  body[data-cta="on"] .landing-v2 .landing-cta-bar { transform: none; }
+  .landing-v2 .cta-bar-inner {
+    display: flex; align-items: center; gap: 12px;
+    padding: 11px 16px calc(11px + env(safe-area-inset-bottom));
+    background: #0b1020f2; border-top: 1px solid #ffffff1a;
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  }
+  .landing-v2 .cta-bar-text { display: flex; flex-direction: column; min-width: 0; }
+  .landing-v2 .cta-bar-text strong { color: #f3f6fc; font-size: 13px; }
+  .landing-v2 .cta-bar-text span { color: #aab7ca; font-size: 11px; }
+  .landing-v2 .cta-bar-btn {
+    margin-left: auto; min-height: 42px; padding: 0 16px;
+    border: 0; border-radius: 10px; background: #b9f56b; color: #101827;
+    font-size: 13px; font-weight: 700; cursor: pointer;
+  }
+
+  /* bottom sheet */
+  .landing-v2 .sheet-backdrop {
+    display: block; position: fixed; inset: 0; z-index: 60;
+    background: #040a14b8; opacity: 0; visibility: hidden;
+    transition: opacity .25s ease, visibility .25s ease;
+  }
+  body[data-sheet="open"] .landing-v2 .sheet-backdrop { opacity: 1; visibility: visible; }
+  .landing-v2 .auth-sheet-host .auth-card {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 61;
+    max-width: 560px; margin: 0 auto;
+    border-radius: 22px 22px 0 0; border-bottom: 0;
+    box-shadow: 0 -20px 60px #040a1499;
+    transform: translateY(104%);
+    transition: transform .3s cubic-bezier(.22, .61, .36, 1);
+    padding-bottom: calc(22px + env(safe-area-inset-bottom));
+  }
+  body[data-sheet="open"] .landing-v2 .auth-sheet-host .auth-card { transform: none; }
+  body[data-sheet="open"] { overflow: hidden; }
+}
+
+@media (max-width: 760px) {
+  .landing-v2 .hero-split .hero-copy { max-width: 100%; }
+  .landing-v2 .doc-chips { margin-top: 18px; }
+  .landing-v2 .doc-chip { min-height: 32px; font-size: 11px; padding: 0 11px; }
+  .landing-v2 .doc-card-copy { font-size: 12px; margin: 13px 0 16px; }
+  .landing-v2 .doc-card-total strong { font-size: 18px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .landing-v2 .doc-card,
+  .landing-v2 .landing-cta-bar,
+  .landing-v2 .auth-sheet-host .auth-card { transition: none; }
+}
+
+/* penyempurnaan split hero: H1 padat + chips utuh di desktop */
+.landing-v2 .hero-split h1 { font-size: clamp(38px, 4.3vw, 57px); max-width: 620px; }
+.landing-v2 .hero-split .doc-chips { flex-wrap: wrap; overflow-x: visible; }
+@media (max-width: 760px) {
+  .landing-v2 .hero-split h1 { font-size: clamp(34px, 9.4vw, 44px); }
+  .landing-v2 .hero-split .doc-chips { flex-wrap: nowrap; overflow-x: auto; }
+}
+
+/*_item grid tidak boleh memaksa kolom melebar (chips scroll-x) */
+.landing-v2 .hero-split > * { min-width: 0; }
+.landing-v2 .hero-split .hero-copy { min-width: 0; }
+.landing-v2 .hero-split .hero-stage { min-width: 0; }
+
+/* rapatkan hero desktop agar kartu dokumen mulai terlihat di atas fold */
+@media (min-width: 1024px) {
+  .landing-v2.hero { padding-top: 124px; }
+  .landing-v2 .hero-split h1 { font-size: clamp(38px, 4vw, 52px); }
+  .landing-v2 .hero-split .hero-lead { font-size: 15px; max-width: 500px; }
+  .landing-v2 .hero-split .doc-chips { margin-top: 18px; }
+  .landing-v2 .hero-split .hero-ctas { margin-top: 22px; }
+  .landing-v2 .hero-split .hero-proof { margin-top: 18px; }
+}
+
+/* hero split: baris grid mulai dari atas, tanpa ada ruang kosong Misterius */
+.landing-v2 .hero-split { align-content: start; }

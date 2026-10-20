@@ -669,61 +669,58 @@
       </div>
     </header>
 
-    <section class="hero" id="landing-top">
-      <div class="hero-inner">
+        <section class="hero" id="landing-top">
+      <div class="hero-inner hero-split">
         <div class="hero-copy">
-          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> DOKUMEN BISNIS, TANPA RIBET</p>
-          <h1>Dokumen rapi.<br><span>Urusan beres.</span></h1>
-          <p class="hero-lead">Saat dokumen diminta mendadak, pilih format siap pakai, isi data, periksa pratinjau, lalu cetak atau bagikan sesuai perangkat.</p>
+          <p class="eyebrow"><span class="eyebrow-dot" aria-hidden="true"></span> 51 TEMPLATE · 7 KATEGORI</p>
+          <h1>Bukan cuma faktur.<br><span>51 template dokumen bisnis.</span></h1>
+          <p class="hero-lead">Faktur, kuitansi, struk, surat penawaran, purchase order, SPK, surat jalan, hingga lembar pajak. Isi, lihat pratinjau, cetak A4 atau thermal, kirim WhatsApp.</p>
+
+          <div class="doc-chips" id="doc-chips" role="group" aria-label="Pilih jenis dokumen untuk melihat contoh">
+            <button type="button" class="doc-chip is-active" data-doc-chip="finance" aria-pressed="true">Faktur &amp; Invoice</button>
+            <button type="button" class="doc-chip" data-doc-chip="legal" aria-pressed="false">Surat &amp; Perjanjian</button>
+            <button type="button" class="doc-chip" data-doc-chip="umkm" aria-pressed="false">Nota &amp; Struk</button>
+            <button type="button" class="doc-chip" data-doc-chip="logistik" aria-pressed="false">Surat Jalan</button>
+            <button type="button" class="doc-chip" data-doc-chip="pajak" aria-pressed="false">Lembar Pajak</button>
+            <button type="button" class="doc-chip" data-doc-chip="proyek" aria-pressed="false">SPK &amp; BAST</button>
+            <button type="button" class="doc-chip" data-doc-chip="operasional" aria-pressed="false">Memo &amp; PO</button>
+          </div>
+
           <div class="hero-ctas">
-            <a class="hero-btn hero-btn-primary" href="#hero-document-preview" data-preview-focus>Coba preview dokumen <span aria-hidden="true">↗</span></a>
-            <a class="hero-btn hero-btn-secondary" href="#landing-auth-panel" data-open-auth="up">Buat akun gratis <span aria-hidden="true">↓</span></a>
+            <button type="button" class="hero-btn hero-btn-primary" data-open-auth="up">Buat akun gratis <span aria-hidden="true">↗</span></button>
+            <a class="hero-btn hero-btn-secondary" href="#hero-document-preview" data-preview-focus>Lihat contoh dokumen <span aria-hidden="true">↓</span></a>
           </div>
           <div class="hero-proof" aria-label="Manfaat FakturKu">
-            <span><b>✓</b> Pratinjau langsung</span>
-            <span><b>✓</b> Siap cetak</span>
-            <span><b>✓</b> Mudah dibagikan</span>
+            <span><b>✓</b> 51 template, 7 kategori</span>
+            <span><b>✓</b> Pratinjau sebelum kirim</span>
+            <span><b>✓</b> Cetak A4 &amp; thermal 58 mm</span>
+            <span><b>✓</b> Kirim via WhatsApp</span>
           </div>
         </div>
 
-        <div class="hero-visual" id="hero-document-preview" aria-label="Preview interaktif contoh dokumen">
-          <div class="preview-switcher" role="group" aria-label="Pilih jenis preview dokumen">
-            <button type="button" class="preview-switch is-active" data-hero-preview="invoice" aria-pressed="true">Invoice</button>
-            <button type="button" class="preview-switch" data-hero-preview="receipt" aria-pressed="false">Kuitansi</button>
-            <button type="button" class="preview-switch" data-hero-preview="thermal" aria-pressed="false">Struk</button>
-          </div>
-          <article class="invoice-card hero-document-variant is-active" data-hero-variant="invoice">
-            <div class="invoice-top">
-              <span class="invoice-mark" aria-hidden="true">F</span>
-              <div><div class="invoice-brand">CONTOH DOKUMEN</div><div class="invoice-caption">PRATINJAU INVOICE</div></div>
-              <span class="invoice-paid">LUNAS</span>
+        <div class="hero-stage" id="hero-document-preview" aria-label="Contoh dokumen yang bisa dibuat dengan FakturKu">
+          <article class="doc-card" id="doc-card">
+            <div class="doc-card-top">
+              <span class="doc-card-mark" aria-hidden="true">F</span>
+              <div class="doc-card-ident">
+                <div class="doc-card-brand" id="doc-card-brand">FAKTURKU · FINANCE</div>
+                <div class="doc-card-caption">CONTOH DOKUMEN</div>
+              </div>
+              <span class="doc-card-status">SIAP PAKAI</span>
             </div>
-            <div class="invoice-title-row">
-              <div><h3>INVOICE</h3><div class="invoice-number">INV-2026-0108</div></div>
-              <div class="invoice-date">TANGGAL<br><strong>14 Okt 2026</strong></div>
+            <h3 class="doc-card-title" id="doc-card-title">INVOICE</h3>
+            <div class="doc-card-number" id="doc-card-number">INV-2026-0108</div>
+            <p class="doc-card-copy" id="doc-card-copy">Dokumen keuangan untuk menagih pembayaran dan merapikan catatan transaksi bisnis.</p>
+            <div class="doc-card-total">
+              <small id="doc-card-total-label">TOTAL TAGIHAN</small>
+              <strong id="doc-card-total">Rp 3.750.000</strong>
             </div>
-            <div class="invoice-parties">
-              <div><div class="invoice-label">DARI</div><strong>Arunika Creative</strong><small>Tasikmalaya, Indonesia</small></div>
-              <div><div class="invoice-label">DITAGIHKAN KEPADA</div><strong>PT Maju Bersama</strong><small>Bandung, Jawa Barat</small></div>
-            </div>
-            <div class="invoice-table-head"><span>DESKRIPSI</span><span>QTY</span><span>JUMLAH</span></div>
-            <div class="invoice-row"><span>Desain identitas visual</span><span>1</span><span>Rp 2.500.000</span></div>
-            <div class="invoice-row"><span>Paket konten media sosial</span><span>1</span><span>Rp 1.250.000</span></div>
-            <div class="invoice-total"><small>TOTAL TAGIHAN</small><strong>Rp 3.750.000</strong></div>
+            <div class="doc-card-tags" id="doc-card-tags"></div>
           </article>
-          <article class="invoice-card hero-document-variant receipt-variant" data-hero-variant="receipt" hidden>
-            <div class="invoice-top"><span class="invoice-mark" aria-hidden="true">F</span><div><div class="invoice-brand">CONTOH DOKUMEN</div><div class="invoice-caption">BUKTI PENERIMAAN</div></div><span class="invoice-paid">TERCATAT</span></div>
-            <div class="invoice-title-row"><div><h3>KUITANSI</h3><div class="invoice-number">KW-2026-0018</div></div><div class="invoice-date">TANGGAL<br><strong>15 Okt 2026</strong></div></div>
-            <div class="receipt-amount"><small>JUMLAH DITERIMA</small><strong>Rp 850.000</strong></div>
-            <div class="receipt-detail"><span>Telah diterima dari</span><b>CV Sumber Rezeki</b><span>Untuk pembayaran</span><b>Pengadaan perlengkapan</b></div>
-            <div class="receipt-sign"><span>Yang menerima,</span><b>Admin FakturKu</b></div>
-          </article>
-          <article class="invoice-card hero-document-variant thermal-variant" data-hero-variant="thermal" hidden>
-            <div class="thermal-hero-paper"><div class="thermal-hero-brand">FAKTURKU</div><strong>BUKTI TRANSAKSI</strong><span>15/10/2026 · 09:42</span><i></i><div class="thermal-hero-line"><span>Kopi susu</span><b>18.000</b></div><div class="thermal-hero-line"><span>Roti bakar</span><b>22.000</b></div><i></i><div class="thermal-hero-total"><span>TOTAL</span><b>Rp 40.000</b></div><small>TERIMA KASIH</small></div>
-          </article>
-          <div class="floating-note floating-one"><span class="note-icon" style="background:#ddf8e7;color:#18734b">✓</span><span><strong id="hero-note-title">Total otomatis dihitung</strong><small id="hero-note-sub">Contoh preview dokumen</small></span></div>
-          <div class="floating-note floating-two"><span class="note-icon" style="background:#fff0d9;color:#a35c12">↗</span><span><strong>Output fleksibel</strong><small>Print • Save as • WhatsApp</small></span></div>
+          <div class="doc-dots" id="doc-dots" role="group" aria-label="Ganti contoh dokumen"></div>
         </div>
+
+        <div class="hero-side" id="hero-side"></div>
       </div>
     </section>
 
@@ -860,27 +857,14 @@
       </div>
     </section>
 
-    <section class="landing-section landing-auth-section" id="landing-register">
+        <section class="landing-section landing-auth-section" id="landing-register">
       <div class="section-inner final-auth-layout">
-        <div class="final-auth-copy"><p class="section-kicker reveal">SIAP MULAI?</p><h2 class="section-heading reveal">Dokumen rapi. Urusan beres.</h2><p class="section-intro reveal">Lihat contoh, pahami alurnya, lalu masuk atau buat akun untuk melanjutkan di workspace FakturKu.</p><div class="auth-mini-points reveal"><span>7 kategori kebutuhan</span><span>Preview dokumen</span><span>Print & bagikan</span></div></div>
-        <section class="auth-card reveal" id="landing-auth-panel" aria-label="Masuk atau daftar akun">
-          <h2 id="auth-title">Selamat datang</h2>
-          <p class="modal-sub" id="auth-sub">Masuk ke akun atau buat akun baru untuk melanjutkan.</p>
-          <div class="auth-tabs" role="tablist" aria-label="Jenis akses akun">
-            <button type="button" id="auth-tab-in" class="on" role="tab" aria-selected="true">Masuk</button>
-            <button type="button" id="auth-tab-up" role="tab" aria-selected="false">Daftar</button>
-          </div>
-          <div class="field" id="auth-name-field" hidden><label for="auth-name">Nama</label><input id="auth-name" type="text" autocomplete="name" placeholder="Nama lengkap"></div>
-          <div class="field" id="auth-email-field"><label for="auth-email">Email</label><input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com"></div>
-          <div class="field" id="auth-pass-field"><label for="auth-pass">Password</label><input id="auth-pass" type="password" autocomplete="current-password" placeholder="Minimal 8 karakter"></div>
-          <div class="auth-assist">
-            <button type="button" class="auth-link" id="auth-forgot">Lupa password?</button>
-            <button type="button" class="auth-link" id="auth-back" hidden>Kembali masuk</button>
-          </div>
-          <p class="auth-err" id="auth-err" hidden></p>
-          <button class="btn primary" type="button" id="auth-go">Masuk</button>
-          <p class="auth-note">Dengan melanjutkan, Anda dapat mengelola dokumen dan informasi akun melalui FakturKu.</p>
-        </section>
+        <div class="final-auth-copy"><p class="section-kicker reveal">SIAP MULAI?</p><h2 class="section-heading reveal">Bukan cuma faktur.</h2><p class="section-intro reveal">51 template dokumen bisnis, 7 kategori. Pilih format, isi data, cek pratinjau, lalu cetak atau bagikan sesuai perangkat.</p><div class="auth-mini-points reveal"><span>7 kategori kebutuhan</span><span>Preview dokumen</span><span>Print & bagikan</span></div></div>
+        <div class="final-auth-actions reveal">
+          <button type="button" class="hero-btn hero-btn-primary" data-open-auth="up">Buat akun gratis <span aria-hidden="true">↗</span></button>
+          <a class="hero-btn hero-btn-secondary" href="#landing-categories">Lihat semua kategori</a>
+          <p class="final-auth-note">Gratis 10 dokumen pertama &middot; tanpa kartu kredit &middot; bisa dihapus kapan saja.</p>
+        </div>
       </div>
     </section>
     <section class="landing-section landing-cta">
@@ -891,12 +875,43 @@
         <a href="/ketentuan.html">Syarat &amp; Ketentuan</a>
       </div>
     </section>
-  </main>
+  
+    <div class="landing-cta-bar" id="landing-cta-bar">
+      <div class="cta-bar-inner">
+        <div class="cta-bar-text"><strong>Buat akun gratis</strong><span>10 dokumen gratis &middot; tanpa kartu kredit</span></div>
+        <button type="button" class="cta-bar-btn" data-open-auth="up">Mulai gratis</button>
+      </div>
+    </div>
+
+    <div class="auth-sheet-host" id="auth-sheet-host" aria-hidden="true">
+        <div class="sheet-backdrop" id="sheet-backdrop"></div>
+        <section class="auth-card" id="landing-auth-panel" aria-label="Masuk atau daftar akun">
+              <h2 id="auth-title">Selamat datang</h2>
+              <p class="modal-sub" id="auth-sub">Masuk ke akun atau buat akun baru untuk melanjutkan.</p>
+              <div class="auth-tabs" role="tablist" aria-label="Jenis akses akun">
+                <button type="button" id="auth-tab-in" class="on" role="tab" aria-selected="true">Masuk</button>
+                <button type="button" id="auth-tab-up" role="tab" aria-selected="false">Daftar</button>
+              </div>
+              <div class="field" id="auth-name-field" hidden><label for="auth-name">Nama</label><input id="auth-name" type="text" autocomplete="name" placeholder="Nama lengkap"></div>
+              <div class="field" id="auth-email-field"><label for="auth-email">Email</label><input id="auth-email" type="email" autocomplete="email" placeholder="nama@email.com"></div>
+              <div class="field" id="auth-pass-field"><label for="auth-pass">Password</label><input id="auth-pass" type="password" autocomplete="current-password" placeholder="Minimal 8 karakter"></div>
+              <div class="auth-assist">
+                <button type="button" class="auth-link" id="auth-forgot">Lupa password?</button>
+                <button type="button" class="auth-link" id="auth-back" hidden>Kembali masuk</button>
+              </div>
+              <p class="auth-err" id="auth-err" hidden></p>
+              <button class="btn primary" type="button" id="auth-go">Masuk</button>
+              <p class="auth-note">Dengan melanjutkan, Anda dapat mengelola dokumen dan informasi akun melalui FakturKu.</p>
+            </section>
+      </div>
+</main>
 
 
   <script src="js/landing.js" defer></script>
   <script src="js/vendor-html2canvas.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/ai-assistant.js"></script>
+
+  
 </body>
 </html>
