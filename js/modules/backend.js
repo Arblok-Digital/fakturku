@@ -7,8 +7,10 @@ let sb = null;
 
 export async function init() {
   if (!isRemote() || sb) return sb;
+  /* Versi supabase-js DIPIN ke angka tetap (bukan @2 latest) supaya isi yang
+     dijalankan di browser tidak diam-diam berubah saat ada rilis baru. */
   const { createClient } = await import(
-    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm"
+    "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.3/+esm"
   );
   sb = createClient(
     (await import("../config.js")).SUPABASE_URL,
@@ -40,6 +42,18 @@ export async function getUser() {
   return s?.user ?? null;
 }
 
+/* Validasi sesi ke server (bukan storage lokal).
+   Dipakai saat boot: akun yang dihapus/dinonaktifkan tidak boleh tetap melihat workspace. */
+export async function verifySession() {
+  if (!sb) return null;
+  const { data, error } = await sb.auth.getUser();
+  if (error || !data?.user) {
+    try { await sb.auth.signOut(); } catch { /* abaikan */ }
+    return null;
+  }
+  return data.user;
+}
+
 export async function signIn(email, password) {
   const { data, error } = await sb.auth.signInWithPassword({ email, password });
   if (error) throw error;
@@ -47,13 +61,49 @@ export async function signIn(email, password) {
 }
 
 export async function signUp(email, password, fullName) {
+  /* Pendaftaran lewat /api/signup: penyaringan email palsu + batas per IP.
+     Kalau endpoint tidak tersedia (mis. server lokal tanpa /api), jatuh ke signup langsung. */
+  let res = null;
+  try {
+    res = await fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, fullName }),
+    });
+  } catch {
+    res = null;
+  }
+
+  if (res && res.status !== 404) {
+    let data = null;
+    try { data = await res.json(); } catch { data = null; }
+    if (!res.ok) {
+      const err = new Error(data?.error || "Pendaftaran gagal. Coba lagi sebentar.");
+      err.code = data?.code || "SIGNUP_FAILED";
+      err.reason = data?.reason || null;
+      throw err;
+    }
+    /* Sesi dari server dipakai Supabase client supaya user langsung masuk. */
+    if (data?.session?.access_token) {
+      try {
+        const { data: s, error } = await sb.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        if (!error && s?.user) return { user: s.user, limited: Boolean(data.limited) };
+      } catch { /* lanjut ke fallback signIn */ }
+    }
+    return { user: null, limited: Boolean(data?.limited) };
+  }
+
+  /* Fallback: dev lokal tanpa serverless function. */
   const { data, error } = await sb.auth.signUp({
     email,
     password,
     options: { data: { full_name: fullName } },
   });
   if (error) throw error;
-  return data.user;
+  return { user: data.user, limited: false };
 }
 
 export async function signOut() {

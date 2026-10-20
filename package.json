@@ -5,6 +5,11 @@
   "scripts": {
     "check": "node tools/check-syntax.mjs && node tools/check-render-coverage.mjs",
     "check:syntax": "node tools/check-syntax.mjs",
-    "check:render": "node tools/check-render-coverage.mjs"
+    "check:render": "node tools/check-render-coverage.mjs",
+    "check:drift": "powershell -ExecutionPolicy Bypass -File tools/check-schema-drift.ps1",
+    "backup": "powershell -ExecutionPolicy Bypass -File tools/backup-fakturku.ps1",
+    "backup:mirror": "powershell -ExecutionPolicy Bypass -File tools/backup-fakturku.ps1 -MirrorTo \"$env:OneDrive\\Backup\\fakturku\"",
+    "restore:drill": "powershell -ExecutionPolicy Bypass -File tools/restore-fakturku.ps1 -Snapshot latest",
+    "migrations:align": "powershell -ExecutionPolicy Bypass -File tools/align-migrations.ps1"
   }
 }

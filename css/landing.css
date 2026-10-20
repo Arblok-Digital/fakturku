@@ -1063,3 +1063,11 @@ body:has(#auth-modal:not([hidden])) #btn-new-fab { display: none !important; }
   .landing-v2 .ai-demo-disclaimer { padding:11px 15px 14px; }
   .landing-v2 .ai-demo-message { max-width:100%; }
 }
+
+/* Tautan halaman legal di footer landing */
+.landing-v2 .legal-links {
+  display:flex; gap:10px; justify-content:center; flex-wrap:wrap;
+  padding-top:12px; color:#9fb6c9; font-size:12px;
+}
+.landing-v2 .legal-links a { color:#cfe0ee; text-decoration:underline; text-underline-offset:3px; }
+.landing-v2 .legal-links a:hover { color:#fff; }

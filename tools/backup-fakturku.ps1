@@ -5,14 +5,18 @@
 # Pakai:
 #   powershell -ExecutionPolicy Bypass -File tools\backup-fakturku.ps1
 #   powershell -ExecutionPolicy Bypass -File tools\backup-fakturku.ps1 -OutRoot "D:\backup\fakturku" -Keep 30
+#   powershell -ExecutionPolicy Bypass -File tools\backup-fakturku.ps1 -MirrorTo "$env:OneDrive\Backup\fakturku"
 #
 # Catatan keamanan: folder backup berisi data pengguna (email, dokumen, saldo) dan
 # hash password auth.users. Simpan di perangkat tepercaya; jangan commit ke repo.
+# Gunakan -MirrorTo untuk menyalin snapshot ke lokasi offsite (OneDrive/Google Drive/USB).
 
 param(
   [string]$OutRoot = "$env:USERPROFILE\backups\fakturku",
   [int]$Keep = 14,
-  [string]$Ref = "pcydwlfyughwasyqglwq"
+  [string]$Ref = "pcydwlfyughwasyqglwq",
+  [string]$MirrorTo = "",
+  [string]$LogDir = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -83,22 +87,42 @@ $targets = @(
 $stamp = Get-Date -Format "yyyy-MM-dd_HHmmss"
 $dir = Join-Path $OutRoot $stamp
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
+if (-not $LogDir) { $LogDir = $OutRoot }
+New-Item -ItemType Directory -Force -Path $LogDir | Out-Null
+$logPath = Join-Path $LogDir ("backup-" + $stamp + ".log")
+$logLines = New-Object System.Collections.Generic.List[string]
+function Write-Log([string]$m) {
+  $line = ("[" + (Get-Date).ToString("yyyy-MM-dd HH:mm:ss") + "] " + $m)
+  $logLines.Add($line)
+  Write-Output $line
+}
 
 $utf8 = New-Object System.Text.UTF8Encoding($false)
 $summary = [ordered]@{}
 $totalBytes = 0
+$started = Get-Date
 
-foreach ($t in $targets) {
-  $fq = "$($t.schema).$($t.table)"
-  $sql = "SELECT coalesce(json_agg(x), '[]'::json)::text AS data, count(*)::int AS n FROM $fq x;"
-  $res = Invoke-FkSql $sql
-  $data = $res[0].data
-  $n = [int]$res[0].n
-  $path = Join-Path $dir ($fq + ".json")
-  [System.IO.File]::WriteAllText($path, $data, $utf8)
-  $size = (Get-Item $path).Length
-  $totalBytes += $size
-  $summary[$fq] = [ordered]@{ rows = $n; bytes = $size }
+Write-Log "BACKUP START ref=$Ref out=$dir"
+
+try {
+  foreach ($t in $targets) {
+    $fq = "$($t.schema).$($t.table)"
+    $sql = "SELECT coalesce(json_agg(x), '[]'::json)::text AS data, count(*)::int AS n FROM $fq x;"
+    $res = Invoke-FkSql $sql
+    $data = $res[0].data
+    $n = [int]$res[0].n
+    $path = Join-Path $dir ($fq + ".json")
+    [System.IO.File]::WriteAllText($path, $data, $utf8)
+    $size = (Get-Item $path).Length
+    $totalBytes += $size
+    $summary[$fq] = [ordered]@{ rows = $n; bytes = $size }
+    Write-Log ("  OK {0,-34} rows={1,-6} {2} KB" -f $fq, $n, [math]::Round($size / 1KB, 1))
+  }
+} catch {
+  Write-Log ("  GAGAL: " + $_.Exception.Message)
+  [System.IO.File]::WriteAllText($logPath, ($logLines -join [Environment]::NewLine), $utf8)
+  Write-Output ("BACKUP GAGAL -> " + $logPath)
+  exit 1
 }
 
 # jejak versi migrasi + commit repo (untuk referensi pemulihan)
@@ -140,5 +164,26 @@ if ($snapshots.Count -gt $Keep) {
   }
 }
 
+# mirror offsite (OneDrive / Google Drive / USB) - kegagalan tidak menggagalkan backup lokal
+$mirrorStatus = "tidak diaktifkan"
+if ($MirrorTo) {
+  try {
+    $target = Join-Path $MirrorTo $stamp
+    New-Item -ItemType Directory -Force -Path $target | Out-Null
+    Copy-Item (Join-Path $dir "*") -Destination $target -Recurse -Force
+    $copied = (Get-ChildItem $target -File).Count
+    $mirrorStatus = "OK -> $target ($copied file)"
+  } catch {
+    $mirrorStatus = "GAGAL: " + $_.Exception.Message
+  }
+}
+Write-Log ("  mirror offsite: " + $mirrorStatus)
+
+$elapsed = [math]::Round(((Get-Date) - $started).TotalSeconds, 1)
+Write-Log ("BACKUP OK -> " + $dir)
+Write-Log ("  tabel: " + $targets.Count + " | total: " + [math]::Round($totalBytes / 1KB, 1) + " KB | durasi: " + $elapsed + " s")
+
+[System.IO.File]::WriteAllText($logPath, ($logLines -join [Environment]::NewLine), $utf8)
+Write-Output ("log: " + $logPath)
 Write-Output ("BACKUP OK -> " + $dir)
-Write-Output ("tabel: " + $targets.Count + " | total: " + [math]::Round($totalBytes / 1KB, 1) + " KB | snapshot disimpan: " + [math]::Min($snapshots.Count, $Keep))
+Write-Output ("tabel: " + $targets.Count + " | total: " + [math]::Round($totalBytes / 1KB, 1) + " KB | snapshot disimpan: " + [math]::Min($snapshots.Count, $Keep) + " | mirror: " + $mirrorStatus)

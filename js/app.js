@@ -915,9 +915,14 @@ async function authSubmit() {
     if (wasMode === "in") {
       await backend.signIn(email, pass);
     } else if (wasMode === "up") {
-      await backend.signUp(email, pass, name);
+      const result = await backend.signUp(email, pass, name);
       setAuthMode("in");
-      err.textContent = "Pendaftaran berhasil. Silakan masuk.";
+      if (result?.limited) {
+        /* Akun boleh daftar tapi tidak dapat kuota trial (email berisiko / plus-addressing). */
+        err.textContent = "Akun berhasil dibuat, tapi belum dapat kuota dokumen gratis. Hubungi kami kalau ini keliru.";
+      } else {
+        err.textContent = "Pendaftaran berhasil. Silakan masuk.";
+      }
       err.hidden = false;
       err.classList.add("ok");
     } else if (wasMode === "recover") {
@@ -1694,8 +1699,17 @@ async function boot() {
         /* Hash recovery bisa saja sudah diproses sebelum listener terpasang. */
         openRecovery();
       } else if (s) {
-        handleSession(s);
-        if (bootAuthError) toast("Tautan reset tidak valid atau sudah kedaluwarsa.");
+        /* Validasi ke server: akun yang dihapus/dinonaktifkan harus dikeluarkan,
+           bukan sekadar relies on cache lokal. */
+        const user = await backend.verifySession();
+        if (user) {
+          handleSession(s);
+          if (bootAuthError) toast("Tautan reset tidak valid atau sudah kedaluwarsa.");
+        } else {
+          openAuth();
+          setAuthMode("in");
+          toast("Sesi kamu sudah tidak berlaku. Silakan masuk lagi.");
+        }
       } else if (bootAuthError) {
         openAuth();
         setAuthMode("req");

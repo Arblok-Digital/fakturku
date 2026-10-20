@@ -1,15 +1,19 @@
-const CACHE = "fakturku-v26";
+const CACHE = "fakturku-v27";
 const SHELL = [
   "./",
   "./index.html",
   "./admin.html",
+  "./privasi.html",
+  "./ketentuan.html",
   "./manifest.webmanifest",
   "./css/tokens.css",
   "./css/app.css",
   "./css/landing.css",
+  "./css/admin.css",
   "./js/app.js",
   "./js/landing.js",
   "./js/ai-assistant.js",
+  "./js/admin.js",
   "./js/config.js",
   "./js/vendor-html2canvas.js",
   "./js/modules/backend.js",

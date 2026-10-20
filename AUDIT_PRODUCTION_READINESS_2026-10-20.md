@@ -198,3 +198,83 @@ Sudah "cukup" setelah item 1–3: layak dipakai user sungguhan (pembayaran top-u
 
 **Production berubah: TIDAK.** Tidak ada commit, push, merge, atau perubahan config/DB production
 selama audit ini.
+
+---
+
+## 6. Hari 1 — perbaikan yang langsung dikerjakan (2026-10-20, branch `feat/prod-readiness-day1-2026-10-20`)
+
+Keputusan user: **kuota trial tetap 10** (mengurangi trial tidak menyelesaikan masalah, karena
+email palsu tetap bisa masuk selama autentikasi email nonaktif). Serangan diarahkan ke
+**sumber masalahnya: alamat email palsu**.
+
+### 6.1 Guard pendaftaran (P0-2 tanpa mengubah trial)
+
+- `supabase/migrations/20261020100000_signup_guard.sql`
+  - Tabel `blocked_signup_domains` (100+ domain sekali pakai) & `signup_guard_events` (log, hash email/IP).
+  - Fungsi `signup_email_risk()`: **block** domain disposable, alamat role di domain gratis
+    (`info@gmail.com`), pola acak (7+ digit berurutan), email tidak valid;
+    **limit** (daftar tanpa kuota trial) untuk plus-addressing & domain yang sudah banyak akun.
+  - Trigger `guard_signup_insert` BEFORE INSERT di `auth.users` → pendaftaran langsung ke GoTrue
+    juga diblokir (lapisan kedua).
+  - `handle_new_user` diubah: akun berisiko dapat 0 trial; **user sah tetap 10**.
+  - RPC `signup_guard_check(email, ip)`: batas 8 pendaftaran/IP/24 jam + 300/hari global.
+- `api/signup.js` (baru): endpoint pendaftaran — validasi, cek guard, lalu mendaftarkan ke GoTrue,
+  dengan pesan error ramah (bukan error database mentah). Batas 5 permintaan/menit/IP.
+- FE: `backend.signUp()` memakai `/api/signup`, dengan fallback ke signup langsung bila endpoint
+  tidak ada (dev lokal). `app.js` menampilkan pesan spesifik (akun tanpa kuota, email ditolak, dsb).
+- **Diuji di schema scratch `fk_drill`: 17/17 kasus lulus** (11 klasifikasi email, saturasi domain,
+  batas IP, IP lain tidak terpengaruh), lalu schema scratch di-drop.
+
+### 6.2 Backup & pemulihan (P0-3)
+
+- `tools/backup-fakturku.ps1`: tambah **log per run** (`backup-<stamp>.log`, ada di setiap output),
+  **mirror offsite** (`-MirrorTo`, mis. OneDrive), dan keluar dengan exit code 1 bila gagal.
+- `tools/restore-fakturku.ps1` (baru): restore snapshot → schema scratch (drill, aman) atau ke
+  `public` (`-Target public -Confirm`,-mode darurat).
+- `docs/RESTORE_RUNBOOK.md` (baru): cara backup, verifikasi mingguan, restore darurat, dan recovery
+  kalau project Supabase hilang total.
+- **Drill restore dijalankan & LOLOS**: 14 tabel + `auth.users`, jumlah baris cocok 100%, lalu schema
+  scratch di-drop. Sebelumnya tidak pernah ada uji restore sama sekali.
+
+### 6.3 Drift migrasi (P1-1)
+
+- 3 file migrasi di-rename agar versinya sama dengan live
+  (`20261015012559`, `20261015045339`, `20261015060005`).
+- `supabase/migrations/20261020110000_reconcile_missing_objects.sql` (baru): rekonstruksi object live
+  yang belum ada di repo — **termasuk trigger `guard_invoice_issue`** (penjaga billing) yang berarti
+  kalau DB dibangun ulang dari repo, penagihan bisa dilewati, plus fitur notifikasi push admin
+  (2 tabel + 3 fungsi) dan 4 fungsi inti (`adjust_balance`, `get_my_billing`,
+  `guard_invoice_issue_transition`, `claim_topup_push_notification`).
+- `tools/align-migrations.ps1` (baru): menjalankan migrasi repo yang belum tercatat + mencatat versi
+  live-only (CLI `supabase db push` tidak bisa dipakai di mesin ini karena IPv6).
+- `tools/check-schema-drift.ps1` (baru): membandingkan object live vs teks migrasi repo +
+  daftar versi. **Sebelum:** 18 object hilang. **Sesudah:** 0 object hilang.
+
+### 6.4 Legal & kepatuhan (P1-3)
+
+- `privasi.html` + `ketentuan.html` (baru): kebijakan privasi & syarat-ketentuan yang sesuai dengan
+  perilaku aplikasi sebenarnya (termasuk pernyataan bahwa template pajak/hukum **bukan** formulir
+  resmi, retensi 14 hari, log 30 hari, hak pengguna, Quiet Fail).
+- Ditambahkan ke `sitemap.xml` + link di footer landing.
+- ⚠️ **Placeholder `EMAIL-ADMIN-FAKTURKU` harus diganti email resmi sebelum halaman ditayangkan.**
+
+### 6.5 FE & header keamanan
+
+- **Content-Security-Policy** ditambahkan di `vercel.json` (strict: tanpa `unsafe-inline` untuk
+  script; `script-src 'self' https://cdn.jsdelivr.net`).
+  - Blok inline di `admin.html` diekstrak ke `css/admin.css` + `js/admin.js` supaya CSP bisa ketat.
+  - CSP diuji lokal (server dengan header sama): app & panel admin jalan, 0 pelanggaran.
+- **Validasi sesi ke server saat boot** (`backend.verifySession()`): akun yang dihapus/dinonaktifkan
+  langsung dikeluarkan, bukan tetap melihat workspace dari cache lokal.
+- `supabase-js` di-CDN **dipin ke versi 2.117.3** (sebelumnya `@2` = selalu terbaru, bisa berubah
+  sendiri di browser user).
+
+### 6.6 Sisa pekerjaan (tidak bisa diselesaikan tanpa kredensial user)
+
+| Item | Yang dibutuhkan |
+|---|---|
+| P0-1 SMTP kustom | Akun/credential SMTP (Resend/Postmark/SES) |
+| Backup offsite otomatis | Folder OneDrive/Google Drive yang bisa ditunjuk |
+| Observability | Akun Sentry + URL monitor |
+| Notifikasi "password diubah" | Setelah SMTP aktif |
+| Email di halaman legal | Alamat email resmi FakturKu |

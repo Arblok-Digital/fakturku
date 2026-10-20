@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Kebijakan Privasi — FakturKu</title>
+  <meta name="description" content="Kebijakan privasi FakturKu: data apa yang kami kumpulkan, untuk apa, kepada siapa, dan hak Anda sebagai pengguna.">
+  <link rel="canonical" href="https://fakturku.vercel.app/privasi.html">
+  <meta name="robots" content="index, follow, max-image-preview:large">
+  <meta property="og:type" content="article">
+  <meta property="og:site_name" content="FakturKu">
+  <meta property="og:locale" content="id_ID">
+  <meta property="og:url" content="https://fakturku.vercel.app/privasi.html">
+  <meta property="og:title" content="Kebijakan Privasi — FakturKu">
+  <meta property="og:description" content="Data apa yang kami kumpulkan, untuk apa, kepada siapa, dan hak Anda sebagai pengguna FakturKu.">
+  <meta property="og:image" content="https://fakturku.vercel.app/og-image.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#16324F">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/landing.css">
+  <style>
+    .legal-wrap { max-width: 760px; margin: 0 auto; padding: 28px 20px 72px; color: #1b2430; }
+    .legal-wrap h1 { font-size: 28px; line-height: 1.25; margin: 8px 0 4px; }
+    .legal-meta { color: #5a6b7d; font-size: 14px; margin-bottom: 24px; }
+    .legal-wrap h2 { font-size: 19px; margin: 32px 0 8px; }
+    .legal-wrap p, .legal-wrap li { line-height: 1.7; font-size: 15px; color: #33414f; }
+    .legal-wrap ul { padding-left: 20px; }
+    .legal-box { background: #f4f6f8; border: 1px solid #dde3e9; border-radius: 12px; padding: 14px 16px; margin: 16px 0; font-size: 14px; line-height: 1.65; }
+    .legal-back { display: inline-block; margin-bottom: 8px; color: #16324F; font-weight: 600; text-decoration: none; }
+    @media (max-width: 640px) { .legal-wrap h1 { font-size: 23px; } }
+  </style>
+</head>
+<body>
+  <main class="legal-wrap">
+    <a class="legal-back" href="/">&larr; Kembali ke FakturKu</a>
+    <h1>Kebijakan Privasi FakturKu</h1>
+    <p class="legal-meta">Terakhir diperbarui: 20 Oktober 2026 &middot; berlaku untuk pengguna FakturKu di fakturku.vercel.app</p>
+
+    <p>
+      FakturKu adalah aplikasi web untuk menyusun dokumen bisnis (faktur, kwitansi, invoice digital, struk, dan dokumen
+      administrasi). Kebijakan ini menjelaskan data pribadi apa yang kami proses, dasar dan tujuan pemrosesannya,
+      kepada siapa data itu dapat dibagikan, dan hak Anda sebagai pengguna.
+    </p>
+
+    <h2>1. Data yang kami kumpulkan</h2>
+    <ul>
+      <li><strong>Data akun:</strong> alamat email, nama tampilan (opsional), serta hash password yang dikelola oleh penyedia autentikasi kami. Kami tidak pernah melihat atau menyimpan password Anda dalam bentuk terbaca.</li>
+      <li><strong>Isi dokumen:</strong> data yang Anda isi ke dalam faktur/kwitansi/invoice (misalnya nama pembeli, nominal, alamat, nomor rekening) tersimpan di akun Anda agar bisa disinkronkan dan dibuka kembali di perangkat lain.</li>
+      <li><strong>Data penggunaan:</strong> jumlah pesan yang dikirim ke Asisten AI per hari, serta catatan penggunaan fitur seperti jumlah dokumen yang diterbitkan.</li>
+      <li><strong>Data transaksi top-up:</strong> kode permintaan top-up, nominal, dan catatan keputusan oleh admin (dipakai untuk proses pembayaran manual dan rekonsiliasi).</li>
+      <li><strong>Log pendaftaran:</strong> hash (md5) dari alamat email dan alamat IP, beserta alasan penolakan bila pendaftaran ditolak. Data ini hanya dipakai untuk membatasi penyalahgunaan dan tidak dibaca sebagai data identitas.</li>
+      <li><strong>Data teknis:</strong> log akses server (alamat IP, jenis peramban, halaman yang diakses) dalam batas waktu yang wajar untuk menjaga keamanan layanan.</li>
+    </ul>
+
+    <h2>2. Dasar dan tujuan pemrosesan</h2>
+    <ul>
+      <li><strong>Menyediakan layanan yang Anda minta:</strong> membuat akun, menyimpan dokumen, membuat nomor dokumen, dan menyinkronkan draft antar perangkat.</li>
+      <li><strong>Menagihan dan kuota:</strong> menghitung pemakaian kuota dokumen dan saldo top-up Anda.</li>
+      <li><strong>Keamanan dan integritas layanan:</strong> mencegah pendaftaran massal dengan email palsu, membatasi penyalahgunaan kuota, dan investigasi penyalahgunaan.</li>
+      <li><strong>Asisten AI:</strong> pada fitur yang Anda gunakan secara sadar, teks pertanyaan dan cuplikan isian Anda dikirim ke penyedia AI untuk dijawab. Mohon jangan memasukkan data yang sangat rahasia (misalnya data medis atau data KTP pihak lain) ke kolom Asisten AI.</li>
+    </ul>
+
+    <h2>3. Pihak ketiga (pengolah data)</h2>
+    <ul>
+      <li><strong>Supabase</strong> — meng-host database, autentikasi, dan penyimpanan data aplikasi di lingkungan server awan.</li>
+      <li><strong>Vercel</strong> — hosting statis aplikasi dan fungsi API.</li>
+      <li><strong>Google (Gemini API)</strong> — memproses pertanyaan pada fitur Asisten AI, sesuai kebijakan privasi penyedia tersebut.</li>
+      <li><strong>Google Fonts</strong> — memuat font tampilan dari CDN Google; permintaan ke CDN ini secara teknis menyertakan alamat IP Anda.</li>
+    </ul>
+    <p>Kami tidak menjual data pribadi Anda kepada pihak mana pun.</p>
+
+    <h2>4. Pembagian data</h2>
+    <p>
+      Data hanya dibagikan kepada pihak yang menjalankan layanan (lihat poin 3) dengan batas seperlunya. Admin FakturKu
+      dapat melihat data akun, saldo, dan permintaan top-up untuk memproses pembayaran; isi dokumen Anda tidak dibuka
+      oleh admin kecuali Anda meminta bantuan dan menyetujuinya.
+    </p>
+
+    <h2>5. Retensi</h2>
+    <ul>
+      <li>Data akun dan dokumen tersimpan selama akun Anda aktif.</li>
+      <li>Snapshot backup harian menyimpan 14 hari terakhir (berisi data aplikasi, termasuk hash password yang dikelola penyedia autentikasi).</li>
+      <li>Log pendaftaran disimpan 30 hari.</li>
+      <li>Ketika akun dihapus atas permintaan Anda, data akun dihapus dari database operasional; sisa data pada salinan backup akan hilang paling lama 14 hari kemudian.</li>
+    </ul>
+
+    <h2>6. Keamanan</h2>
+    <p>
+      Akses ke data tiap pengguna dibatasi oleh aturan keamanan basis data (row-level security), bukan hanya di antarmuka.
+      Akses admin dibatasi berdasarkan peran, password disimpan sebagai hash, seluruh lalu lintas komputer memakai HTTPS,
+      dan header keamanan konten (CSP) aktif. Tidak ada sistem yang tanpa celah sama sekali; bila terjadi insiden yang
+      berdampak pada data Anda, kami akan memberi tahu pengguna yang terdampak.
+    </p>
+
+    <h2>7. Hak Anda</h2>
+    <ul>
+      <li>Mengakses dan mengunduh data Anda (dokumen bisa diunduh lewat tombol &ldquo;Save as&rdquo; atau dicetak dari aplikasi).</li>
+      <li>Memperbaiki data akun (nama tampilan) dari dalam aplikasi.</li>
+      <li>Meminta penghapusan akun dan datanya.</li>
+      <li>Menarik persetujuan terhadap pemrosesan tertentu, misalnya dengan berhenti menggunakan fitur Asisten AI.</li>
+      <li>Mengajukan pertanyaan, keberatan, atau permintaan secara tertulis kepada kami.</li>
+    </ul>
+
+    <h2>8. Anak-anak</h2>
+    <p>FakturKu tidak ditujukan untuk pengguna di bawah 17 tahun. Jika Anda menemukan akun milik anak di bawah usia tersebut, mohon hubungi kami agar dapat dihapus.</p>
+
+    <h2>9. Perubahan kebijakan</h2>
+    <p>
+      Perubahan material akan kami tampilkan di halaman ini beserta tanggal pembaruan terbaru. Pemakaian layanan
+      secara berkelanjutan setelah tanggal tersebut berarti Anda menyetujui perubahan itu.
+    </p>
+
+    <h2>10. Kontak</h2>
+    <div class="legal-box">
+      <!-- PENTING: ganti alamat di bawah dengan email resmi FakturKu sebelum halaman ini ditayangkan -->
+      Untuk pertanyaan, permintaan penghapusan data, atau keberatan atas pemrosesan, hubungi kami di
+      <strong>EMAIL-ADMIN-FAKTURKU</strong> (sertakan email akun Anda agar mudah kami temukan).
+    </div>
+
+    <p>
+      FakturKu dikelola oleh Arblok Digital. Setiap permintaan data Anda ditangani manual oleh pengelola layanan.
+    </p>
+  </main>
+</body>
+</html>
