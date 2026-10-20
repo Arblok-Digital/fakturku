@@ -1,8 +1,13 @@
-/* Progressive enhancement for the public landing. No editor logic is changed. */
-(() => {
-  const root = document.querySelector("#auth-modal.landing-v2");
-  if (!root) return;
+/* Landing publik FakturKu: progressive enhancement, tanpa menyentuh logic editor.
+   - "Mesin dokumen": 7 kategori, dokumen di-render oleh template engine FakturKu
+     (output asli, bukan mock), autoplay + bisa diambil alih lewat chip.
+   - Form auth: satu node, dua tampilan (kolom kanan desktop / bottom sheet mobile).
+*/
+import { renderDocHtml, getTemplate } from "./modules/template-engine.js";
+import { buildSampleState } from "./modules/sample-docs.js";
 
+const root = document.querySelector("#auth-modal.landing-v2");
+if (root) {
   const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   const revealItems = root.querySelectorAll(".reveal");
   if (reduceMotion || !("IntersectionObserver" in window)) {
@@ -18,16 +23,17 @@
     revealItems.forEach((item) => observer.observe(item));
   }
 
-  const categoryData = {
-    finance: {title:"Invoice & tagihan",copy:"Dokumen keuangan untuk menagih pembayaran dan merapikan catatan transaksi bisnis.",tags:["Invoice","Kuitansi","Bukti transaksi"],brand:"FAKTURKU · FINANCE",doc:"INVOICE",number:"INV-2026-0108",label:"TOTAL TAGIHAN",total:"Rp 3.750.000"},
-    legal: {title:"Surat & administrasi",copy:"Contoh kebutuhan dokumen administratif untuk mendukung proses bisnis dan kesepakatan.",tags:["Surat","Pernyataan","Administrasi"],brand:"FAKTURKU · LEGAL",doc:"SURAT PERNYATAAN",number:"ADM-2026-0021",label:"STATUS DOKUMEN",total:"Siap diperiksa"},
-    umkm: {title:"Nota & bukti transaksi",copy:"Contoh dokumen ringkas untuk membantu usaha mencatat transaksi harian dengan lebih rapi.",tags:["Nota","Kuitansi","Struk"],brand:"FAKTURKU · UMKM",doc:"NOTA PENJUALAN",number:"NT-2026-0032",label:"TOTAL TRANSAKSI",total:"Rp 125.000"},
-    logistik: {title:"Pengiriman & serah terima",copy:"Contoh dokumen pendukung pencatatan barang, pengiriman, dan penerimaan.",tags:["Surat jalan","Serah terima","Pengiriman"],brand:"FAKTURKU · LOGISTIK",doc:"SURAT JALAN",number:"SJ-2026-0014",label:"STATUS PENGIRIMAN",total:"Dalam proses"},
-    pajak: {title:"Administrasi perpajakan",copy:"Contoh lembar kerja dan informasi pendukung untuk administrasi pajak bisnis.",tags:["Data pajak","Periode","Ringkasan"],brand:"FAKTURKU · PAJAK",doc:"RINGKASAN PAJAK",number:"TX-2026-0010",label:"NILAI PAJAK",total:"Rp 375.000"},
-    proyek: {title:"Pekerjaan & proyek",copy:"Contoh dokumen untuk merapikan referensi pekerjaan, progres, dan kebutuhan proyek.",tags:["Penawaran","Progres","Referensi"],brand:"FAKTURKU · PROYEK",doc:"RINGKASAN PROYEK",number:"PR-2026-0007",label:"STATUS PROYEK",total:"Berjalan"},
-    operasional: {title:"Dokumen operasional",copy:"Contoh dokumen untuk membantu koordinasi, persetujuan, dan pencatatan proses internal.",tags:["Permintaan","Persetujuan","Catatan"],brand:"FAKTURKU · OPERASIONAL",doc:"FORM OPERASIONAL",number:"OP-2026-0015",label:"STATUS",total:"Menunggu tinjauan"}
+  /* ---------- kategori & template contoh (output asli aplikasi) ---------- */
+  const CATEGORY_DATA = {
+    finance: { title: "Invoice & tagihan", copy: "Dokumen keuangan untuk menagih pembayaran dan merapikan catatan transaksi bisnis.", tags: ["Invoice", "Kuitansi", "Bukti transaksi"], template: "faktur-a4" },
+    legal: { title: "Surat & administrasi", copy: "Dokumen administratif untuk mendukung proses bisnis dan kesepakatan.", tags: ["Surat", "Pernyataan", "Administrasi"], template: "surat-pernyataan" },
+    umkm: { title: "Nota & bukti transaksi", copy: "Dokumen ringkas untuk mencatat transaksi harian dengan lebih rapi.", tags: ["Nota", "Struk", "Kuitansi"], template: "struk-pos" },
+    logistik: { title: "Pengiriman & serah terima", copy: "Dokumen pendukung pencatatan barang, pengiriman, dan penerimaan.", tags: ["Surat jalan", "Serah terima", "Pengiriman"], template: "surat-jalan" },
+    pajak: { title: "Administrasi perpajakan", copy: "Lembar kerja internal untuk menyiapkan dan memeriksa data pajak.", tags: ["Data pajak", "Periode", "Ringkasan"], template: "lembar-data-faktur-pajak" },
+    proyek: { title: "Pekerjaan & proyek", copy: "Dokumen untuk merapikan referensi pekerjaan, progres, dan kebutuhan proyek.", tags: ["Penawaran", "Progres", "Referensi"], template: "spk" },
+    operasional: { title: "Dokumen operasional", copy: "Dokumen untuk membantu koordinasi, persetujuan, dan pencatatan internal.", tags: ["Permintaan", "Persetujuan", "Catatan"], template: "memo-internal" }
   };
-  const categoryKeys = Object.keys(categoryData);
+  const categoryKeys = Object.keys(CATEGORY_DATA);
 
   /* ---------- section kategori (tetap seperti sebelumnya) ---------- */
   const categoryTabs = [...root.querySelectorAll("[data-category]")];
@@ -42,14 +48,14 @@
     total: root.querySelector("#category-doc-total")
   };
   const renderCategory = (key) => {
-    const data = categoryData[key];
+    const data = CATEGORY_DATA[key];
     if (!data) return;
     categoryTabs.forEach((tab) => {
       const active = tab.dataset.category === key;
       tab.classList.toggle("is-active", active);
       tab.setAttribute("aria-selected", String(active));
     });
-    Object.entries({title:data.title,copy:data.copy,brand:data.brand,doc:data.doc,number:data.number,label:data.label,total:data.total}).forEach(([field,value]) => {
+    Object.entries({ title: data.title, copy: data.copy, doc: data.title.toUpperCase() }).forEach(([field, value]) => {
       if (categoryFields[field]) categoryFields[field].textContent = value;
     });
     if (categoryFields.tags) {
@@ -62,39 +68,60 @@
   };
   categoryTabs.forEach((tab) => tab.addEventListener("click", () => renderCategory(tab.dataset.category)));
 
-  /* ---------- stage dokumen di hero (7 kategori, autoplay) ---------- */
+  /* ---------- stage: dokumen asli dari template engine ---------- */
   const stage = {
     wrap: root.querySelector(".hero-stage"),
-    card: root.querySelector("#doc-card"),
-    brand: root.querySelector("#doc-card-brand"),
-    title: root.querySelector("#doc-card-title"),
-    number: root.querySelector("#doc-card-number"),
-    copy: root.querySelector("#doc-card-copy"),
-    totalLabel: root.querySelector("#doc-card-total-label"),
-    total: root.querySelector("#doc-card-total"),
-    tags: root.querySelector("#doc-card-tags"),
+    frame: root.querySelector("#doc-frame"),
+    scale: root.querySelector("#doc-scale"),
+    name: root.querySelector("#doc-stage-name"),
+    note: root.querySelector("#doc-stage-note"),
     dots: root.querySelector("#doc-dots"),
     chips: [...root.querySelectorAll("[data-doc-chip]")]
   };
   const STAGE_MS = 3600;
+  const FRAME_MAX_H = 470;
   let stageIndex = 0;
   let stageTimer = null;
   let stagePaused = false;
   let takeoverUntil = 0;
+  const cache = new Map();
 
-  const fillStage = (data) => {
-    if (!stage.card) return;
-    stage.brand.textContent = data.brand;
-    stage.title.textContent = data.doc;
-    stage.number.textContent = data.number;
-    stage.copy.textContent = data.copy;
-    stage.totalLabel.textContent = data.label;
-    stage.total.textContent = data.total;
-    stage.tags.replaceChildren(...data.tags.map((tag) => {
-      const chip = document.createElement("span");
-      chip.textContent = tag;
-      return chip;
-    }));
+  const docHtml = (templateId) => {
+    if (cache.has(templateId)) return cache.get(templateId);
+    let out = null;
+    try {
+      const state = buildSampleState(templateId, { issued: true });
+      const { tpl, html } = renderDocHtml(state);
+      out = { html, output: tpl.output, label: tpl.label };
+    } catch (err) {
+      console.warn("render contoh dokumen gagal", err);
+      out = null;
+    }
+    cache.set(templateId, out);
+    return out;
+  };
+
+  const mountDoc = (key) => {
+    const data = CATEGORY_DATA[key];
+    if (!data || !stage.frame) return;
+    const rendered = docHtml(data.template);
+    if (!rendered) return;
+    stage.frame.classList.add("is-swapping");
+    window.setTimeout(() => {
+      stage.scale.innerHTML = `<div class="doc doc-${rendered.output}">${rendered.html}</div>`;
+      const docEl = stage.scale.querySelector(".doc");
+      if (docEl) {
+        const naturalW = docEl.offsetWidth || 794;
+        const naturalH = docEl.offsetHeight || 1123;
+        const target = stage.frame.clientWidth || 460;
+        const scale = Math.min(target / naturalW, 1.2);
+        stage.scale.style.setProperty("--scale", String(scale));
+        stage.frame.style.height = Math.min(Math.round(naturalH * scale), FRAME_MAX_H) + "px";
+      }
+      stage.frame.classList.remove("is-swapping");
+    }, reduceMotion ? 0 : 220);
+    if (stage.name) stage.name.textContent = rendered.label || data.title;
+    if (stage.note) stage.note.textContent = data.copy;
   };
 
   const paintStageControls = (key) => {
@@ -111,21 +138,11 @@
     }
   };
 
-  const showStage = (index, animate = true) => {
+  const showStage = (index) => {
     const key = categoryKeys[index];
-    const data = categoryData[key];
-    if (!data) return;
+    if (!key) return;
     stageIndex = index;
-    const apply = () => {
-      fillStage(data);
-      stage.card?.classList.remove("is-swapping");
-    };
-    if (animate && !reduceMotion && stage.card) {
-      stage.card.classList.add("is-swapping");
-      window.setTimeout(apply, 240);
-    } else {
-      apply();
-    }
+    mountDoc(key);
     paintStageControls(key);
   };
 
@@ -148,7 +165,7 @@
       const dot = document.createElement("button");
       dot.type = "button";
       dot.className = "doc-dot" + (i === 0 ? " is-active" : "");
-      dot.setAttribute("aria-label", "Contoh dokumen " + categoryData[key].title);
+      dot.setAttribute("aria-label", "Contoh dokumen " + CATEGORY_DATA[key].title);
       dot.addEventListener("click", () => {
         takeoverUntil = Date.now() + 8000;
         showStage(i);
@@ -168,17 +185,28 @@
     stage.wrap.addEventListener("pointerenter", () => { stagePaused = true; });
     stage.wrap.addEventListener("pointerleave", () => { stagePaused = false; });
   }
-  if (stage.card) {
-    fillStage(categoryData[categoryKeys[0]]);
-    paintStageControls(categoryKeys[0]);
+  if (stage.frame) {
+    showStage(0);
     const start = () => window.requestIdleCallback
       ? window.requestIdleCallback(startStage, { timeout: 2500 })
       : window.setTimeout(startStage, 600);
-    if (reduceMotion) showStage(0, false);
+    if (reduceMotion) showStage(0);
     else start();
+    /* Ukuran frame mengikuti lebar kolom (presisi). */
+    window.addEventListener("resize", () => {
+      const rendered = docHtml(CATEGORY_DATA[categoryKeys[stageIndex]].template);
+      if (!rendered) return;
+      const docEl = stage.scale.querySelector(".doc");
+      if (!docEl) return;
+      const naturalW = docEl.offsetWidth || 794;
+      const naturalH = docEl.offsetHeight || 1123;
+      const scale = Math.min((stage.frame.clientWidth || 460) / naturalW, 1.2);
+      stage.scale.style.setProperty("--scale", String(scale));
+      stage.frame.style.height = Math.min(Math.round(naturalH * scale), FRAME_MAX_H) + "px";
+    });
   }
 
-  /* ---------- auth: satu kartu, dua tampilan (kolom kanan / bottom sheet) ---------- */
+  /* ---------- auth: satu kartu, dua tampilan ---------- */
   const sideHost = root.querySelector("#hero-side");
   const sheetHost = root.querySelector("#auth-sheet-host");
   const backdrop = root.querySelector("#sheet-backdrop");
@@ -302,4 +330,4 @@
     authUp.setAttribute("aria-selected", "true");
     authIn?.setAttribute("aria-selected", "false");
   });
-})();
+}

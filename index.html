@@ -698,26 +698,18 @@
           </div>
         </div>
 
-        <div class="hero-stage" id="hero-document-preview" aria-label="Contoh dokumen yang bisa dibuat dengan FakturKu">
-          <article class="doc-card" id="doc-card">
-            <div class="doc-card-top">
-              <span class="doc-card-mark" aria-hidden="true">F</span>
-              <div class="doc-card-ident">
-                <div class="doc-card-brand" id="doc-card-brand">FAKTURKU · FINANCE</div>
-                <div class="doc-card-caption">CONTOH DOKUMEN</div>
-              </div>
-              <span class="doc-card-status">SIAP PAKAI</span>
+        <div class="hero-stage" id="hero-document-preview" aria-label="Contoh dokumen asli dari FakturKu">
+          <div class="doc-frame" id="doc-frame">
+            <div class="doc-scale" id="doc-scale"></div>
+            <div class="doc-frame-fade" aria-hidden="true"></div>
+          </div>
+          <div class="doc-stage-bar">
+            <div class="doc-stage-meta">
+              <span class="doc-stage-name" id="doc-stage-name">Faktur Penjualan (A4)</span>
+              <span class="doc-stage-note" id="doc-stage-note">Output asli FakturKu &middot; data contoh</span>
             </div>
-            <h3 class="doc-card-title" id="doc-card-title">INVOICE</h3>
-            <div class="doc-card-number" id="doc-card-number">INV-2026-0108</div>
-            <p class="doc-card-copy" id="doc-card-copy">Dokumen keuangan untuk menagih pembayaran dan merapikan catatan transaksi bisnis.</p>
-            <div class="doc-card-total">
-              <small id="doc-card-total-label">TOTAL TAGIHAN</small>
-              <strong id="doc-card-total">Rp 3.750.000</strong>
-            </div>
-            <div class="doc-card-tags" id="doc-card-tags"></div>
-          </article>
-          <div class="doc-dots" id="doc-dots" role="group" aria-label="Ganti contoh dokumen"></div>
+            <div class="doc-dots" id="doc-dots" role="group" aria-label="Ganti contoh dokumen"></div>
+          </div>
         </div>
 
         <div class="hero-side" id="hero-side"></div>
@@ -907,7 +899,7 @@
 </main>
 
 
-  <script src="js/landing.js" defer></script>
+  <script type="module" src="js/landing.js"></script>
   <script src="js/vendor-html2canvas.js"></script>
   <script type="module" src="js/app.js"></script>
   <script type="module" src="js/ai-assistant.js"></script>

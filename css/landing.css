@@ -1250,3 +1250,67 @@ body:has(#auth-modal:not([hidden])) #btn-new-fab { display: none !important; }
 
 /* hero split: baris grid mulai dari atas, tanpa ada ruang kosong Misterius */
 .landing-v2 .hero-split { align-content: start; }
+
+/* =============================================================
+   Pass: dokumen ASLI + komposisi presisi (2026-10-20)
+   Baris 1: hook (kiri) | form (kanan)  -> atas & bawah sejajar
+   Baris 2: dokumen asli (full width) -> band visual
+   ============================================================= */
+.landing-v2 .hero-split {
+  grid-template-columns: minmax(0, 1fr) 450px;
+  grid-template-areas: "copy side" "stage stage";
+  column-gap: clamp(32px, 4vw, 64px);
+  row-gap: clamp(26px, 3vw, 40px);
+}
+.landing-v2 .hero-split .hero-side { align-self: start; }
+
+/* ---------- frame dokumen (output asli FakturKu) ---------- */
+.landing-v2 .hero-stage {
+  display: grid; grid-template-columns: minmax(0, 1fr) 450px;
+  column-gap: clamp(32px, 4vw, 64px); align-items: start; min-width: 0;
+}
+.landing-v2 .doc-frame {
+  position: relative; grid-column: 1; width: 100%; max-width: 520px;
+  height: 470px; overflow: hidden; border-radius: 12px; background: #fff;
+  box-shadow: 0 28px 72px #040a1459;
+  transition: opacity .24s ease;
+}
+.landing-v2 .doc-frame.is-swapping { opacity: .22; }
+.landing-v2 .doc-scale { --scale: .58; width: max-content; transform: scale(var(--scale)); transform-origin: top left; }
+.landing-v2 .doc-scale .doc { margin: 0; }
+.landing-v2 .doc-frame-fade {
+  position: absolute; inset: auto 0 0 0; height: 118px; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), #fff 88%);
+}
+.landing-v2 .doc-stage-bar { grid-column: 2; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 16px; }
+.landing-v2 .doc-stage-meta { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.landing-v2 .doc-stage-name { color: #f3f6fc; font-size: 15px; font-weight: 700; letter-spacing: -.01em; }
+.landing-v2 .doc-stage-note { color: #aab7ca; font-size: 13px; line-height: 1.65; max-width: 46ch; }
+.landing-v2 .doc-dots { display: flex; gap: 7px; margin-top: 2px; }
+.landing-v2 .doc-dot {
+  width: 8px; height: 8px; padding: 0; border: 0; border-radius: 50%;
+  background: #ffffff33; cursor: pointer; transition: background .2s ease, transform .2s ease;
+}
+.landing-v2 .doc-dot.is-active { background: #b9f56b; transform: scale(1.35); }
+.landing-v2 .hero-stage.preview-focus .doc-frame { box-shadow: 0 0 0 3px #b9f56b55, 0 28px 72px #040a1459; }
+
+@media (max-width: 1023px) {
+  .landing-v2 .hero-split {
+    grid-template-columns: 1fr;
+    grid-template-areas: "copy" "stage" "side";
+    row-gap: 26px;
+  }
+  .landing-v2 .hero-stage { display: flex; flex-direction: column; gap: 16px; }
+  .landing-v2 .doc-frame { width: 100%; max-width: 520px; }
+  .landing-v2 .doc-stage-bar { width: 100%; }
+  .landing-v2 .doc-frame { width: 100%; max-width: 520px; height: 400px; }
+  .landing-v2 .doc-stage-bar { padding-top: 0; }
+  .landing-v2 .doc-stage-note { max-width: none; }
+}
+
+@media (max-width: 760px) {
+  .landing-v2 .doc-frame { height: 360px; }
+  .landing-v2 .doc-frame-fade { height: 96px; }
+  .landing-v2 .doc-stage-name { font-size: 14px; }
+  .landing-v2 .doc-stage-note { font-size: 12px; }
+}

@@ -45,6 +45,13 @@ export function renderDoc(state) {
   return tpl;
 }
 
+/* Render dokumen tanpa menyentuh elemen #doc milik editor.
+   Dipakai landing page supaya contoh di sana = output asli aplikasi. */
+export function renderDocHtml(state) {
+  const tpl = getTemplate(state.template);
+  return { tpl, html: tpl.render(state, HELPERS) };
+}
+
 import * as fmt from "./format.js";
 import { totals } from "./invoice-engine.js";
 

@@ -22,6 +22,7 @@ const SHELL = [
   "./js/modules/numbering.js",
   "./js/modules/invoice-engine.js",
   "./js/modules/output.js",
+  "./js/modules/sample-docs.js",
   "./js/modules/template-engine.js",
   "./js/templates/faktur-a4.js",
   "./js/templates/kwitansi-a4.js",
