@@ -1371,3 +1371,30 @@ body:has(#auth-modal:not([hidden])) #btn-new-fab { display: none !important; }
   .landing-v2 .hero-cards .hero-stage { padding: 10px; border-radius: 14px; }
   .landing-v2 .hero-cards .doc-frame { height: 340px; }
 }
+
+/* =============================================================
+   Pass: kartu LOGIN full-height mengikuti kartu DOKUMEN (2026-10-20)
+   - .hero-cards  : align-items stretch -> kedua kartu sama tinggi
+   - .hero-side   : wrapper flex + tinggi 100%
+   - .auth-card   : height 100% + flex column (konten menyesuaikan)
+   - .auth-note   : margin-top auto -> catatan menempel di bawah
+   ============================================================= */
+.landing-v2 .hero-cards { align-items: stretch; }
+
+.landing-v2 .hero-cards .hero-side {
+  align-self: stretch; height: 100%; display: flex;
+}
+.landing-v2 .hero-cards .hero-side .auth-card {
+  height: 100%; display: flex; flex-direction: column;
+}
+.landing-v2 .hero-cards .hero-side .auth-card .auth-note {
+  margin: auto 0 0; padding-top: 15px;
+}
+
+/* kartu dokumen: meta menempel di bawah kartu (kalau tinggi kartu bertambah) */
+.landing-v2 .hero-cards .doc-stage-bar { margin-top: auto; }
+
+/* di bawah lg form tetap di bottom sheet, kolom login disembunyikan */
+@media (max-width: 1023px) {
+  .landing-v2 .hero-cards .hero-side { display: none; }
+}
