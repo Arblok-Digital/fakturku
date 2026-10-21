@@ -9,14 +9,14 @@
 
 ## 2. H1 final (dipakai di landing & iklan)
 
-**H1 utama (B — tegas):**
+**H1 utama (dipakai live di landing & hero iklan):**
 ```
-Bukan cuma faktur. 51 template dokumen bisnis.
+Semua Urusan Dokumen Bisnis, Beres di Satu Tempat.
 ```
 **Sub-headline:**
 ```
-Faktur, kuitansi, struk, surat penawaran, purchase order, SPK, surat jalan, hingga lembar pajak.
-Isi, lihat pratinjau, cetak A4 atau thermal, kirim WhatsApp.
+Nggak perlu lagi bongkar folder nyari format lama. Dari bikin invoice, struk, sampai surat
+perjanjian, semua ada 51 template-nya. Bingung nulis keterangannya? Ada Asisten AI yang siap bantu buatin.
 ```
 
 **H1 alternatif (kalau perlu variasi):**
@@ -48,7 +48,7 @@ Isi, lihat pratinjau, cetak A4 atau thermal, kirim WhatsApp.
 
 ## 5. 10 angle pesan (sumber untuk generate iklan)
 
-1. **“Bukan cuma faktur”** — breadth: 51 template, 7 kategori. *(angle utama, sesuai H1)*
+1. **“Semua urusan beres di satu tempat”** — breadth: 51 template, 7 kategori. *(angle utama, sesuai H1)*
 2. **“Dokumen diminta mendadak”** — urgency: dari nol → siap kirim dalam hitungan menit.
 3. **“File invoice_final_fix2.docx”** — chaos file: everything in one workspace.
 4. **“Bikin struk 58 mm”** — UMKM/retail: struk thermal siap cetak.

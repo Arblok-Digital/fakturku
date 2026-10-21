@@ -329,14 +329,14 @@ Tiga langkah yang disederhanakan di landing: **Pilih kategori · Isi detail · C
 
 ## 2. H1 final (dipakai di landing & iklan)
 
-**H1 utama (B — tegas):**
+**H1 utama (dipakai live di landing & hero iklan):**
 ```
-Bukan cuma faktur. 51 template dokumen bisnis.
+Semua Urusan Dokumen Bisnis, Beres di Satu Tempat.
 ```
 **Sub-headline:**
 ```
-Faktur, kuitansi, struk, surat penawaran, purchase order, SPK, surat jalan, hingga lembar pajak.
-Isi, lihat pratinjau, cetak A4 atau thermal, kirim WhatsApp.
+Nggak perlu lagi bongkar folder nyari format lama. Dari bikin invoice, struk, sampai surat
+perjanjian, semua ada 51 template-nya. Bingung nulis keterangannya? Ada Asisten AI yang siap bantu buatin.
 ```
 
 **H1 alternatif (kalau perlu variasi):**
@@ -368,7 +368,7 @@ Isi, lihat pratinjau, cetak A4 atau thermal, kirim WhatsApp.
 
 ## 5. 10 angle pesan (sumber untuk generate iklan)
 
-1. **“Bukan cuma faktur”** — breadth: 51 template, 7 kategori. *(angle utama, sesuai H1)*
+1. **“Semua urusan beres di satu tempat”** — breadth: 51 template, 7 kategori. *(angle utama, sesuai H1)*
 2. **“Dokumen diminta mendadak”** — urgency: dari nol → siap kirim dalam hitungan menit.
 3. **“File invoice_final_fix2.docx”** — chaos file: everything in one workspace.
 4. **“Bikin struk 58 mm”** — UMKM/retail: struk thermal siap cetak.
@@ -449,7 +449,7 @@ tidak sok sibuk, tidak berlebihan. Bahasa Indonesia sehari-hari, bukan bahasa ko
 
 ## 5. Kalimat yang boleh dipakai (dalam bahasa FakturKu)
 
-- “Bukan cuma faktur.”
+- “Semua urusan, satu tempat.”
 - “Formatnya sudah ada. Tinggal isi.”
 - “Pratinjau dulu, baru kirim.”
 - “Nomor sama tanggal, tidak perlu mikir.”
@@ -479,7 +479,7 @@ tidak sok sibuk, tidak berlebihan. Bahasa Indonesia sehari-hari, bukan bahasa ko
 
 ### Meta Ads (Facebook / Instagram) — Feed
 - **Headline (primary text, 125 char)**: 1 kalimat, masalah → nilai.
-- **Headline (maksimal 40 char)**: "Bukan Cuma Faktur."
+- **Headline (maksimal 40 char)**: "Semua Urusan Dokumen Bisnis."
 - **Deskripsi**: 1 kalimat + CTA.
 - **CTA button**: `Daftar` / `Selengkapnya` / `Kirim Pesan`.
 - **Kreasi**: 1:1 (1080×1080) atau 4:5 (1080×1350) — **4:5 lebih tinggi engagement**.
@@ -776,7 +776,7 @@ Wajib: **subtitle menyala** (80% orang menonton tanpa suara) + **teks besar di f
 ### B. Product demo (30 detik)
 | Waktu | Visual | Teks layar | VO |
 |---|---|---|---|
-| 0–3 dtk | Hasil akhir dokumen (close-up) | "Bukan cuma faktur." | "Bukan cuma faktur." |
+| 0–3 dtk | Hasil akhir dokumen (close-up) | "Semua urusan, satu tempat." | "Semua urusan dokumen bisnis beres di satu tempat." |
 | 3–8 dtk | Buka kategori → 7 kategori terlihat | "7 kategori" | "Tujuh kategori dokumen." |
 | 8–14 dtk | Ganti template: Faktur → Surat Penawaran → SPK | "51 template" | "Lima puluh satu template." |
 | 14–20 dtk | Isi field, total terhitung otomatis | "Total & nomor otomatis" | "Nomor dan total terisi otomatis." |
@@ -838,7 +838,7 @@ Aturan rekaman:
 | Variasi | Hook | Durasi |
 |---|---|---|
 | V1 | "Invoice-nya lagi di mana?" (urgency) | 15 dtk |
-| V2 | "Bukan cuma faktur. 51 template." (breadth) | 15 dtk |
+| V2 | "Semua urusan dokumen, satu tempat." (breadth) | 15 dtk |
 | V3 | "Struk 58 mm, rapi, dari HP." (spesifik UMKM) | 12 dtk |
 | V4 | "Surat perjalanan dinas? Formatnya sudah ada." (spesifikasi) | 12 dtk |
 
@@ -856,7 +856,7 @@ sepuluh dokumen gratis. Buat akun gratis di fakturku dot app.”
 **VO:** “Banyak yang mengira FakturKu cuma buat faktur. Padahal di dalamnya ada tujuh kategori:
 UMKM, logistik, proyek, pajak, operasional, dan legal. Lima puluh satu template dokumen bisnis.
 Isi, cetak, kirim WhatsApp. Gratis sepuluh dokumen.”
-**Teks layar:** “Bukan cuma faktur.” → “7 kategori · 51 template” → “10 dokumen gratis”
+**Teks layar:** “Semua urusan, satu tempat.” → “7 kategori · 51 template” → “10 dokumen gratis”
 
 ### Naskah 3 — 12 detik, UMKM/thermal
 **VO:** “Struk 58 milimeter, rapi, langsung dari HP. Ganti bikin struk manual satu-satu.
@@ -917,12 +917,12 @@ Dokumen mendadak · file berserakan di chat · format beda-beda antar orang · s
 takut salah kirim ke pelanggan.
 
 ## HEADLINE
-Bukan Cuma Faktur. · 51 Template. 1 Akun. · Formatnya Sudah Jadi. · Pratinjau Dulu, Baru Kirim.
+Semua Urusan Dokumen Bisnis, Beres di Satu Tempat. · 51 Template. 1 Akun. · Formatnya Sudah Jadi. · Pratinjau Dulu, Baru Kirim.
 Nomor Otomatis. · Cetak A4 atau Struk 58 mm. · 10 Dokumen Gratis. · Bikin Surat Tanpa Format.
 
 ## SUB-HEADLINE
-Faktur, kuitansi, struk, surat penawaran, purchase order, SPK, surat jalan, hingga lembar pajak.
-Isi, lihat pratinjau, cetak A4 atau thermal, kirim WhatsApp.
+Nggak perlu lagi bongkar folder nyari format lama. Dari bikin invoice, struk, sampai surat
+perjanjian, semua ada 51 template-nya. Bingung nulis keterangannya? Ada Asisten AI yang siap bantu buatin.
 
 ## CTA
 Buat akun gratis · Lihat contoh dokumen · Coba 1 dokumen gratis · Lihat semua 51 template
@@ -937,7 +937,7 @@ Meta feed: primary 125 char + headline ≤40 char + deskripsi + CTA · Reels/Tik
 · Google Search: "template X | FakturKu" · WhatsApp: 2–4 baris + 1 link.
 
 ## CONTOH KALIMAT
-- “Bukan cuma faktur.”
+- “Semua urusan, satu tempat.”
 - “Formatnya sudah ada. Tinggal isi.”
 - “Pratinjau dulu, baru kirim.”
 - “Nomor sama tanggal, tidak perlu mikir.”

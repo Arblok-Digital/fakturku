@@ -163,15 +163,16 @@ Contoh alur yang dilihat pengunjung: **Invoice → Surat Pernyataan → Nota Pen
 
 **Hero (mobile & desktop sama)**
 - eyebrow: `51 TEMPLATE · 7 KATEGORI`
-- H1 (pilihan A — direkomendasikan): `Setiap urusan butuh dokumen. Semuanya sudah jadi template.`
-- H1 (pilihan B — lebih tegas): `Bukan cuma faktur. 51 template dokumen bisnis.`
-- sub: `Faktur, kuitansi, invoice, struk angsuran, purchase order, surat penawaran. Isi, cetak A4 atau thermal, kirim WhatsApp.`
+- H1 (final, dipakai live 21 Okt 2026): `Semua Urusan Dokumen Bisnis, Beres di Satu Tempat.`
+  - struktur: baris 1 putih, baris 2 lime (`<span>`)
+- sub: `Nggak perlu lagi bongkar folder nyari format lama. Dari bikin invoice, struk, sampai surat perjanjian, semua ada 51 template-nya. Bingung nulis keterangannya? Ada Asisten AI yang siap bantu buatin.`
 - CTA utama: `Buat akun gratis` · CTA sekunder: `Lihat contoh dokumen`
 - link: `Lihat semua 51 template →`
 
-**Catatan copy:** pesan "bukan cuma faktur" dibawa oleh **chip + galeri + sub**, bukan oleh
-kalimat defensif di H1 (pilihan B) — H1 yang menyebut "faktur" dulu justruNUMBER satu ke
-deskripsi yang sama.
+**Catatan copy:** H1 sudah tidak menyebut "faktur" — pakai framing "semua urusan dokumen bisnis, beres di satu tempat".
+Pesan "bukan cuma faktur" tetap dibawa oleh **chip kategori + galeri 51 template + sub-headline**
+(yang menyebut 51 template & Asisten AI). H1 alternatif tetap disimpan di
+`docs/marketing/knowledge-base/04-posisi-dan-pesan.md` untuk variasi iklan.
 
 **Di dalam/atas form**
 - trust line: `Gratis 10 dokumen pertama · tanpa kartu kredit · bisa dihapus kapan saja`

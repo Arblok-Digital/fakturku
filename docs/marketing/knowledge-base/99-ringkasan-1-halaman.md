@@ -38,12 +38,12 @@ Dokumen mendadak · file berserakan di chat · format beda-beda antar orang · s
 takut salah kirim ke pelanggan.
 
 ## HEADLINE
-Bukan Cuma Faktur. · 51 Template. 1 Akun. · Formatnya Sudah Jadi. · Pratinjau Dulu, Baru Kirim.
+Semua Urusan Dokumen Bisnis, Beres di Satu Tempat. · 51 Template. 1 Akun. · Formatnya Sudah Jadi. · Pratinjau Dulu, Baru Kirim.
 Nomor Otomatis. · Cetak A4 atau Struk 58 mm. · 10 Dokumen Gratis. · Bikin Surat Tanpa Format.
 
 ## SUB-HEADLINE
-Faktur, kuitansi, struk, surat penawaran, purchase order, SPK, surat jalan, hingga lembar pajak.
-Isi, lihat pratinjau, cetak A4 atau thermal, kirim WhatsApp.
+Nggak perlu lagi bongkar folder nyari format lama. Dari bikin invoice, struk, sampai surat
+perjanjian, semua ada 51 template-nya. Bingung nulis keterangannya? Ada Asisten AI yang siap bantu buatin.
 
 ## CTA
 Buat akun gratis · Lihat contoh dokumen · Coba 1 dokumen gratis · Lihat semua 51 template
@@ -58,7 +58,7 @@ Meta feed: primary 125 char + headline ≤40 char + deskripsi + CTA · Reels/Tik
 · Google Search: "template X | FakturKu" · WhatsApp: 2–4 baris + 1 link.
 
 ## CONTOH KALIMAT
-- “Bukan cuma faktur.”
+- “Semua urusan, satu tempat.”
 - “Formatnya sudah ada. Tinggal isi.”
 - “Pratinjau dulu, baru kirim.”
 - “Nomor sama tanggal, tidak perlu mikir.”

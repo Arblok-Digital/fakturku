@@ -4,7 +4,7 @@
 
 ### Meta Ads (Facebook / Instagram) — Feed
 - **Headline (primary text, 125 char)**: 1 kalimat, masalah → nilai.
-- **Headline (maksimal 40 char)**: "Bukan Cuma Faktur."
+- **Headline (maksimal 40 char)**: "Semua Urusan Dokumen Bisnis."
 - **Deskripsi**: 1 kalimat + CTA.
 - **CTA button**: `Daftar` / `Selengkapnya` / `Kirim Pesan`.
 - **Kreasi**: 1:1 (1080×1080) atau 4:5 (1080×1350) — **4:5 lebih tinggi engagement**.

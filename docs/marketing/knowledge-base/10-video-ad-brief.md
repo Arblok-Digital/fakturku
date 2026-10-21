@@ -27,7 +27,7 @@ Wajib: **subtitle menyala** (80% orang menonton tanpa suara) + **teks besar di f
 ### B. Product demo (30 detik)
 | Waktu | Visual | Teks layar | VO |
 |---|---|---|---|
-| 0–3 dtk | Hasil akhir dokumen (close-up) | "Bukan cuma faktur." | "Bukan cuma faktur." |
+| 0–3 dtk | Hasil akhir dokumen (close-up) | "Semua urusan, satu tempat." | "Semua urusan dokumen bisnis beres di satu tempat." |
 | 3–8 dtk | Buka kategori → 7 kategori terlihat | "7 kategori" | "Tujuh kategori dokumen." |
 | 8–14 dtk | Ganti template: Faktur → Surat Penawaran → SPK | "51 template" | "Lima puluh satu template." |
 | 14–20 dtk | Isi field, total terhitung otomatis | "Total & nomor otomatis" | "Nomor dan total terisi otomatis." |
@@ -89,7 +89,7 @@ Aturan rekaman:
 | Variasi | Hook | Durasi |
 |---|---|---|
 | V1 | "Invoice-nya lagi di mana?" (urgency) | 15 dtk |
-| V2 | "Bukan cuma faktur. 51 template." (breadth) | 15 dtk |
+| V2 | "Semua urusan dokumen, satu tempat." (breadth) | 15 dtk |
 | V3 | "Struk 58 mm, rapi, dari HP." (spesifik UMKM) | 12 dtk |
 | V4 | "Surat perjalanan dinas? Formatnya sudah ada." (spesifikasi) | 12 dtk |
 
@@ -107,7 +107,7 @@ sepuluh dokumen gratis. Buat akun gratis di fakturku dot app.”
 **VO:** “Banyak yang mengira FakturKu cuma buat faktur. Padahal di dalamnya ada tujuh kategori:
 UMKM, logistik, proyek, pajak, operasional, dan legal. Lima puluh satu template dokumen bisnis.
 Isi, cetak, kirim WhatsApp. Gratis sepuluh dokumen.”
-**Teks layar:** “Bukan cuma faktur.” → “7 kategori · 51 template” → “10 dokumen gratis”
+**Teks layar:** “Semua urusan, satu tempat.” → “7 kategori · 51 template” → “10 dokumen gratis”
 
 ### Naskah 3 — 12 detik, UMKM/thermal
 **VO:** “Struk 58 milimeter, rapi, langsung dari HP. Ganti bikin struk manual satu-satu.
