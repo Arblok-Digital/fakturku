@@ -126,3 +126,25 @@ Cek: `schtasks /Query /TN "FakturKu Backup"`, jalankan manual: `schtasks /Run /T
 4. Uji restore dari snapshot (scratch schema) — perlu persetujuan karena menulis ke DB.
 5. Baseline migrasi repo ↔ live.
 6. Setelah lolos review: merge/push ke `master` (production) **dengan persetujuan eksplisit**.
+
+---
+
+## 8. Rilis lanjutan - 2026-10-21 (`master` @ `d08a373`)
+
+Redesign landing page (mobile-first) resmi rilis ke production setelah review user:
+
+| Area | Perubahan |
+|---|---|
+| Hero | Teks full-width di atas (pill, H1 baru, deskripsi, chip kategori, CTA, checklist), kartu di bawah |
+| H1 | "Semua Urusan Dokumen Bisnis, Beres di Satu Tempat." (baris 2 lime) |
+| Sub-headline | "Nggak perlu lagi bongkar folder nyari format lama. ... Ada Asisten AI yang siap bantu buatin." |
+| Kartu | `.hero-cards` = grid 2 kolom (>=1024px) dengan `align-items: stretch`; kartu Login `height:100%` + flex column |
+| Contoh dokumen | Output asli FakturKu (bukan mock) via `js/modules/sample-docs.js` + `renderDocHtml()` |
+| Editor | `buildExampleState()` delegasi ke modul baru; tab "Contoh" tetap render + draft utuh |
+| SW | cache `fakturku-v29` |
+
+Verifikasi live `https://fakturku.vercel.app`: H1 2 baris (desktop) / 3 baris (mobile), kartu 686px
+kiri = kanan, signup trial T10 berhasil (user tes dihapus, live user tetap 5), `/privasi.html` dan
+`/ketentuan.html` 200, CSP strict + HSTS aktif, 0 error konsol.
+
+Catatan: tidak ada perubahan backend, schema, auth, atau data di rilis ini.

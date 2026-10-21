@@ -1,14 +1,16 @@
 # Brief — Redesign Landing Page FakturKu (mobile-first, 3 detik)
 
-Status: **Tahap 1-3 selesai (2026-10-20), menunggu review** - Branch: `feat/landing-redesign-2026-10-20` - Owner: Arblok Digital
+Status: **RILIS PRODUCTION (2026-10-21)** - `master` @ `d08a373` - Branch feature: `feat/landing-redesign-2026-10-20` - Owner: Arblok Digital
 
 ### Status implementasi per tahap
 
 | Tahap | Status | Catatan |
 |---|---|---|
-| 1. Hero split + copy | Selesai | 2 kolom (>=1024px): kiri pesan + chips + stage, kanan form. H1 memakai versi B (lebih tegas). |
-| 2. Auth bottom sheet | Selesai | Satu node `.auth-card` dipindah via JS (desktop ke kolom kanan, mobile ke sheet). Scroll lock, ESC, backdrop, focus trap, `aria-modal`. |
-| 3. Animasi mesin dokumen | Selesai | 7 kategori autoplay 3,6 dtk, chip bisa diambil alih (jeda 8 dtk), jeda saat tab tak terlihat / sheet terbuka, `prefers-reduced-motion` ke frame pertama statis. |
+| 1. Hero split + copy | Selesai - **live** | Hero full-width: teks (pill, H1, deskripsi, chip kategori, CTA, checklist) di atas, kartu di bawahnya. >=1024px: kartu 2 kolom (Document Preview kiri, Login kanan, rata atas). H1 final: "Semua Urusan Dokumen Bisnis, Beres di Satu Tempat." |
+| 2. Auth bottom sheet | Selesai - **live** | Satu node `.auth-card` dipindah via JS (desktop ke kolom kanan, mobile ke sheet). Scroll lock, ESC, backdrop, focus trap, `aria-modal`. |
+| 3. Animasi mesin dokumen | Selesai - **live** | 7 kategori autoplay 3,6 dtk, chip bisa diambil alih (jeda 8 dtk), jeda saat tab tak terlihat / sheet terbuka, `prefers-reduced-motion` ke frame pertama statis. |
+| 3b. Contoh dokumen = output asli | Selesai - **live** | Data contoh dipindah ke `js/modules/sample-docs.js` (sumber sama untuk editor & landing). `renderDocHtml()` merender tanpa menyentuh DOM editor. 7 kategori memakai template asli (Faktur A4, Surat Pernyataan, Struk POS 58 mm, Surat Jalan, Lembar Pajak, SPK, Memo). |
+| 3c. Presisi layout hero | Selesai - **live** | Teks hero full width, kartu dibungkus `.hero-cards` (grid 2 kolom, `align-items: stretch`), kartu Login `height:100%` + flex column supaya tinggi sama dengan kartu dokumen. |
 | 4. Galeri 51 template | Belum | Section kategori lama masih ada; galeri belum dibuat. |
 | 5. Menu akun/panduan | Belum | Avatar masih = tombol Keluar. |
 | 6. Polish + Lighthouse | Belum | Belum diukur. |
@@ -18,6 +20,23 @@ Status: **Tahap 1-3 selesai (2026-10-20), menunggu review** - Branch: `feat/land
 - Item grid hero diberi `min-width: 0`; tanpa itu chips `scroll-x` memaksa kolom melebar dan teks terpotong di mobile.
 - `openAuth()` (buka landing) dipisah dari `promptAuth()` (buka form). Kalau digabung, form ikut terbuka sendiri saat boot karena `handleSession(null)`.
 - Pesan error GoTrue yang menutupi trigger database ("Database error saving new user") diganti kalimat yang bisa dibaca user.
+- Contoh dokumen di landing bukan mock: `buildSampleState()` dipindah dari `app.js` ke `js/modules/sample-docs.js`, tab "Contoh" di editor memakai fungsi yang sama (regresi: render + TOTAL + draft utuh saat pindah tab).
+- `renderDocHtml(state)` ditambahkan di `template-engine.js` supaya landing bisa render dokumen tanpa menabrak elemen `#doc` milik editor.
+- Cache service worker naik ke `fakturku-v29` karena shell (`index.html`, `css/landing.css`, `js/landing.js`) berubah.
+
+### Verifikasi rilis production (2026-10-21, `master` @ `d08a373`)
+
+| Cek | Hasil |
+|---|---|
+| Deploy Vercel Production | Ready, `https://fakturku.vercel.app` |
+| CI | hijau (syntax 25/25, render 51/51) |
+| Hero 1280px | H1 2 baris, lead 2 baris, kartu 686px (kiri = kanan) |
+| Hero 390px | H1 3 baris, kartu 1 kolom, form di bottom sheet, tanpa overflow |
+| Dokumen di card | render output asli (class `doc doc-a4`, data contoh FakturKu) |
+| Signup production | berhasil, trial **T10**, workspace kebuka (user tes dihapus, live user tetap 5) |
+| Halaman legal | `/privasi.html` 200, `/ketentuan.html` 200 |
+| Header keamanan | CSP strict, HSTS, `X-Frame-Options: DENY` |
+| Service worker | `fakturku-v29`, `/sw.js` 200 |
 
 ---
 
